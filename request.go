@@ -98,12 +98,8 @@ func ParseRouteVars(r *http.Request) (Command string, Key string) {
 
 	/* If path length is 2, we might have a key and a command */
 	if len(path) == 2 {
-		if IsNumeric(path[1]) {
-			key = path[1]
-			cmd = path[0] /* the second to the last would be the command */
-		} else {
-			cmd = path[1] /* */
-		}
+		cmd = path[0] /* the second to the last would be the command */
+		key = path[1]
 	}
 
 	return cmd, key
