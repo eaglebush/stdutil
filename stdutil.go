@@ -209,6 +209,48 @@ func ValidateStructRecord(config *cfg.Configuration, ConnectID string, TableName
 	return res, true
 }
 
+// VerifyWithin - verify within the current database connection
+func VerifyWithin(dh *datahelper.DataHelper, TableName string, Values []ValidationExpression) (Valid bool, QueryOK bool, Message string) {
+	if len(Values) == 0 {
+		return false, false, "No validation expression has been set"
+	}
+
+	sql := `SELECT COUNT(*) FROM ` + TableName + ` WHERE `
+	args := make([]interface{}, len(Values))
+	i := 0
+	andstr := ""
+	placeholder := dh.CurrentDatabaseInfo.ParameterPlaceholder
+
+	for _, v := range Values {
+
+		if dh.CurrentDatabaseInfo.ParameterInSequence {
+			placeholder = dh.CurrentDatabaseInfo.ParameterPlaceholder + strconv.Itoa(i+1)
+		}
+
+		// If there is no operator, we default to "="
+		if v.Operator == "" {
+			v.Operator = "="
+		}
+
+		sql += andstr + v.Name + v.Operator + placeholder
+		args[i] = v.Value
+		i++
+		andstr = " AND "
+
+	}
+
+	sr, err := dh.GetRow(sql, args...)
+	if err != nil {
+		return false, false, err.Error()
+	}
+
+	if sr.HasResult {
+		return (sr.Row.ValueInt64Ord(0) > 0), true, ""
+	}
+
+	return false, false, ""
+}
+
 // ValidateEmail - validate an e-mail address
 func ValidateEmail(email string) bool {
 	re := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
