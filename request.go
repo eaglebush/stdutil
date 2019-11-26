@@ -13,7 +13,7 @@ import (
 
 //CustomVars - command struct
 type CustomVars struct {
-	Command        string
+	Command        []string
 	Key            string
 	QueryString    NameValues
 	HasQueryString bool
@@ -75,31 +75,47 @@ func ParseQueryString(qs *string) NameValues {
 }
 
 //ParseRouteVars - parse custom routes from a mux handler
-func ParseRouteVars(r *http.Request) (Command string, Key string) {
-	cmd := ""
+func ParseRouteVars(r *http.Request) (Command []string, Key string) {
+	cmd := make([]string, 0)
 	key := ""
-	/*
-		1. Last part of the path should be the key, if this is not numeric, it will be the command
-		2. If the total number of paths is 4, we check if the key is numeric, if it is, it will be the key.
-	*/
 
 	m := mux.CurrentRoute(r)
 	pt, _ := m.GetPathTemplate()
 	ptn := strings.Replace(r.URL.Path, pt, "", -1) // Trim the url by URL path. The remaining text will be the path to evaluate
 
+	hasTrailingSlash := false
+	if ptn != "" {
+		hasTrailingSlash = ptn[len(ptn)-1:] == `/`
+	}
+
 	path := strings.FieldsFunc(ptn, func(c rune) bool {
 		return c == '/'
 	})
 
+	pathlen := len(path)
+
 	/* If path length is 1, we might have a key. But if the path is not a number, it might be a command  */
-	if len(path) == 1 {
-		key = path[0]
+	if pathlen == 1 {
+		if hasTrailingSlash {
+			cmd = append(cmd, path[0])
+		} else {
+			key = path[0]
+		}
 	}
 
-	/* If path length is 2, we might have a key and a command */
-	if len(path) == 2 {
-		cmd = path[0] /* the second to the last would be the command */
-		key = path[1]
+	/* If path length is greater than 1, we transfer all paths to the cmd array except the last one. The last one will be checked if it has a trailing slash */
+	if pathlen > 1 {
+		for i, ck := range path {
+			if i < pathlen-1 {
+				cmd = append(cmd, ck)
+			}
+		}
+
+		if hasTrailingSlash {
+			cmd = append(cmd, path[pathlen-1])
+		} else {
+			key = path[pathlen-1]
+		}
 	}
 
 	return cmd, key
