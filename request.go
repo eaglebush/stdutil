@@ -96,25 +96,31 @@ func ParseRouteVars(r *http.Request) (Command []string, Key string) {
 
 	/* If path length is 1, we might have a key. But if the path is not a number, it might be a command  */
 	if pathlen == 1 {
-		if hasTrailingSlash {
-			cmd = append(cmd, path[0])
-		} else {
-			key = path[0]
+		pth := path[0]
+		if len(pth) > 0 {
+			if hasTrailingSlash {
+				cmd = append(cmd, strings.ToLower(pth))
+			} else {
+				key = pth
+			}
 		}
 	}
 
 	/* If path length is greater than 1, we transfer all paths to the cmd array except the last one. The last one will be checked if it has a trailing slash */
 	if pathlen > 1 {
 		for i, ck := range path {
-			if i < pathlen-1 {
-				cmd = append(cmd, ck)
+			if i < pathlen-1 && len(ck) > 0 {
+				cmd = append(cmd, strings.ToLower(ck))
 			}
 		}
 
-		if hasTrailingSlash {
-			cmd = append(cmd, path[pathlen-1])
-		} else {
-			key = path[pathlen-1]
+		pth := path[pathlen-1]
+		if len(pth) > 0 {
+			if hasTrailingSlash {
+				cmd = append(cmd, strings.ToLower(pth))
+			} else {
+				key = pth //key will not be set to lower case
+			}
 		}
 	}
 
