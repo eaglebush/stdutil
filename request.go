@@ -148,7 +148,7 @@ func GetJSON(endpoint string, headers map[string]string) ResultData {
 }
 
 // DeleteJSON - a wrapper for http.Delete with custom result
-func DeleteJSON(endpoint string, headers map[string]string) (rd ResultData) {
+func DeleteJSON(endpoint string, headers map[string]string) ResultData {
 	return ExecuteJSONAPI("DELETE", endpoint, nil, headers, 30)
 }
 
