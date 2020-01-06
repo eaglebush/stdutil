@@ -1,11 +1,14 @@
 package stdutil
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
@@ -36,6 +39,12 @@ type RequestVars struct {
 	ValidAuthToken bool
 }
 
+// ResultData - a result structure and a generic data
+type ResultData struct {
+	Result
+	Data interface{}
+}
+
 //IsGet - a shortcut method to check if the request is a GET
 func (rv *RequestVars) IsGet() bool {
 	return rv.Method == "GET"
@@ -59,6 +68,88 @@ func (rv *RequestVars) IsDelete() bool {
 //IsHead - a shortcut method to check if the request is a HEAD
 func (rv *RequestVars) IsHead() bool {
 	return rv.Method == "HEAD"
+}
+
+// ExecuteJSONAPI - a wrapper for http operation that can change or read data that returns a custom result
+func ExecuteJSONAPI(method string, endpoint string, payload []byte, headers map[string]string, timeout int) (rd ResultData) {
+
+	rd = ResultData{}
+	rd.Result = InitResult()
+
+	nr, err := http.NewRequest(method, endpoint, bytes.NewBuffer(payload))
+	if err != nil {
+		rd.Result.Messages = append(rd.Result.Messages, err.Error())
+		return
+	}
+
+	if headers != nil {
+		for k, v := range headers {
+			k = strings.ToLower(k)
+			nv := strings.Split(v, `=`)
+			switch k {
+			case "cookie":
+				if len(nv) > 0 {
+					nr.AddCookie(&http.Cookie{
+						Name:  nv[0],
+						Value: nv[1],
+					})
+				}
+			default:
+				nr.Header.Add(k, v)
+			}
+		}
+	}
+
+	// Standard header
+	nr.Header.Add("Content-Type", "application/json")
+	nr.Header.Add("Accept-Encoding", "gzip")
+	nr.Header.Add("Content-Encoding", "gzip")
+
+	if timeout == 0 {
+		timeout = 30
+	}
+
+	cli := http.Client{Timeout: time.Second * time.Duration(timeout)}
+	resp, err := cli.Do(nr)
+	if err != nil {
+		rd.Result.Messages = append(rd.Result.Messages, err.Error())
+		return
+	}
+	defer resp.Body.Close()
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		rd.Result.Messages = append(rd.Result.Messages, err.Error())
+		return
+	}
+
+	err = json.Unmarshal(data, &rd)
+	if err != nil {
+		rd.Result.Messages = append(rd.Result.Messages, err.Error())
+		return
+	}
+
+	return
+}
+
+// PostJSON - a wrapper for http.Post with custom result
+func PostJSON(endpoint string, payload []byte, headers map[string]string) ResultData {
+	return ExecuteJSONAPI("POST", endpoint, payload, headers, 30)
+}
+
+// PutJSON - a wrapper for http.Put with custom result
+func PutJSON(endpoint string, payload []byte, headers map[string]string) ResultData {
+	return ExecuteJSONAPI("PUT", endpoint, payload, headers, 30)
+}
+
+// GetJSON - a wrapper for http.Get with returns with a custom result
+func GetJSON(endpoint string, headers map[string]string) ResultData {
+	return ExecuteJSONAPI("GET", endpoint, nil, headers, 30)
+}
+
+// DeleteJSON - a wrapper for http.Delete with custom result
+func DeleteJSON(endpoint string, headers map[string]string) (rd ResultData) {
+	return ExecuteJSONAPI("DELETE", endpoint, nil, headers, 30)
 }
 
 //ParseQueryString - parse the query string into a column value
