@@ -84,16 +84,29 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, headers map[
 
 	if headers != nil {
 		for k, v := range headers {
+
 			k = strings.ToLower(k)
-			nv := strings.Split(v, `=`)
+
 			switch k {
 			case "cookie":
-				if len(nv) > 0 {
-					nr.AddCookie(&http.Cookie{
-						Name:  nv[0],
-						Value: nv[1],
-					})
+
+				// split values with semi-colons
+				cnvs := strings.Split(v, `;`)
+
+				for _, nvs := range cnvs {
+					nv := strings.Split(nvs, `=`)
+
+					if len(nv) > 1 {
+						nv[0] = strings.TrimSpace(nv[0])
+						nv[1] = strings.TrimSpace(nv[1])
+
+						nr.AddCookie(&http.Cookie{
+							Name:  nv[0],
+							Value: nv[1],
+						})
+					}
 				}
+
 			default:
 				nr.Header.Add(k, v)
 			}

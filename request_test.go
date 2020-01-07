@@ -16,6 +16,9 @@ func TestExecuteAPIPOST(t *testing.T) {
 }
 
 func TestExecuteAPIGET(t *testing.T) {
-	exapi := GetJSON("http://hulk.vdimdci.com.ph/api/appshub/user/19", nil)
-	fmt.Println(exapi)
+	hdr := make(map[string]string, 1)
+	hdr["Cookie"] = "APPSHUB-WF-login=zaldy.baguinon; APPSHUB-WF-appdomain=MDCI"
+
+	exapi := GetJSON("http://hulk.vdimdci.com.ph/api/appshub/user/19", hdr)
+	fmt.Printf("%v", exapi)
 }
