@@ -142,6 +142,11 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, headers map[
 		return
 	}
 
+	// set all positive responses into OK
+	if rd.IsStatusValid() || rd.IsStatusYes() {
+		rd.StatusOK()
+	}
+
 	return
 }
 
@@ -359,7 +364,6 @@ func GetRequestVars(r *http.Request, ApplicationID string, HMAC string) RequestV
 				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 			}
 
-			// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
 			return []byte(HMAC), nil
 		})
 
