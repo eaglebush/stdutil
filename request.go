@@ -42,7 +42,7 @@ type RequestVars struct {
 // ResultData - a result structure and a generic data
 type ResultData struct {
 	Result
-	Data interface{}
+	Data json.RawMessage
 }
 
 //IsGet - a shortcut method to check if the request is a GET
