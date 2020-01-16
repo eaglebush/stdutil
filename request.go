@@ -248,21 +248,85 @@ func ParseRouteVars(r *http.Request) (Command []string, Key string) {
 }
 
 //BuildAccessToken - build a JWT token
-func BuildAccessToken(header *map[string]interface{}, claims map[string]interface{}, secretkey string) string {
+func BuildAccessToken(header *map[string]interface{}, claims *map[string]interface{}, secretkey string) string {
+	clm := *claims
+
+	iss := ""
+	sub := ""
+	aud := jwt.Audience{}
+	exp := new(jwt.Time)
+	nbf := new(jwt.Time)
+	iat := new(jwt.Time)
+	usr := ""
+	dom := ""
+	app := ""
+	dev := ""
+
+	var ifc interface{}
+
+	ifc = clm["iss"]
+	if ifc != nil {
+		iss = ifc.(string)
+	}
+
+	ifc = clm["sub"]
+	if ifc != nil {
+		sub = ifc.(string)
+	}
+
+	ifc = clm["aud"]
+	if ifc != nil {
+		aud = ifc.(jwt.Audience)
+	}
+
+	ifc = clm["exp"]
+	if ifc != nil {
+		exp = ifc.(*jwt.Time)
+	}
+
+	ifc = clm["nbf"]
+	if ifc != nil {
+		nbf = ifc.(*jwt.Time)
+	}
+
+	ifc = clm["iat"]
+	if ifc != nil {
+		iat = ifc.(*jwt.Time)
+	}
+
+	ifc = clm["usr"]
+	if ifc != nil {
+		usr = ifc.(string)
+	}
+
+	ifc = clm["dom"]
+	if ifc != nil {
+		dom = ifc.(string)
+	}
+
+	ifc = clm["app"]
+	if ifc != nil {
+		app = ifc.(string)
+	}
+
+	ifc = clm["dev"]
+	if ifc != nil {
+		dev = ifc.(string)
+	}
 
 	pl := CustomPayload{
 		Payload: jwt.Payload{
-			Issuer:         claims["iss"].(string),
-			Subject:        claims["sub"].(string),
-			Audience:       claims["aud"].(jwt.Audience),
-			ExpirationTime: claims["exp"].(*jwt.Time),
-			NotBefore:      claims["nbf"].(*jwt.Time),
-			IssuedAt:       claims["iat"].(*jwt.Time),
+			Issuer:         iss,
+			Subject:        sub,
+			Audience:       aud,
+			ExpirationTime: exp,
+			NotBefore:      nbf,
+			IssuedAt:       iat,
 		},
-		UserName:      claims["usr"].(string),
-		Domain:        claims["dom"].(string),
-		ApplicationID: claims["app"].(string),
-		DeviceID:      claims["dev"].(string),
+		UserName:      usr,
+		Domain:        dom,
+		ApplicationID: app,
+		DeviceID:      dev,
 	}
 
 	HMAC := jwt.NewHS256([]byte(secretkey))
