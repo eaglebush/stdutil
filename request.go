@@ -353,6 +353,7 @@ func GetRequestVars(r *http.Request, secretkey string) RequestVars {
 		// // Use jwt.ValidatePayload to build a jwt.VerifyOption.
 		// // Validators are run in the order informed.
 		// validatePayload := jwt.ValidatePayload(&pl.Payload, iatValidator, expValidator, nbfValidator)
+		// if _, err := jwt.Verify([]byte(jwtfromck), HMAC, &pl, validatePayload); err == nil {
 
 		if _, err := jwt.Verify([]byte(jwtfromck), HMAC, &pl); err == nil {
 			rv.TokenAudience = pl.Audience
