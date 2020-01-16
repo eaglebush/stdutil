@@ -3,14 +3,13 @@ package stdutil
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/gbrlsnchs/jwt/v3"
 	"github.com/gorilla/mux"
 )
 
@@ -26,6 +25,15 @@ type CustomVars struct {
 	DecodedCommand NameValues
 }
 
+// CustomPayload - payload for JWT
+type CustomPayload struct {
+	jwt.Payload
+	UserName      string `json:"usr,omitempty"`
+	Domain        string `json:"dom,omitempty"`
+	ApplicationID string `json:"app,omitempty"`
+	DeviceID      string `json:"dev,omitempty"`
+}
+
 //RequestVars - contains necessary request variables
 type RequestVars struct {
 	Method             string
@@ -36,7 +44,7 @@ type RequestVars struct {
 	ValidAuthToken     bool
 	TokenRaw           string
 	TokenApplicationID string
-	TokenAudience      string
+	TokenAudience      []string
 	TokenDeviceID      string
 	TokenUserName      string
 	TokenDomain        string
@@ -240,53 +248,35 @@ func ParseRouteVars(r *http.Request) (Command []string, Key string) {
 }
 
 //BuildAccessToken - build a JWT token
-func BuildAccessToken(header *map[string]interface{}, claims *map[string]interface{}, HMAC string) string {
+func BuildAccessToken(header *map[string]interface{}, claims map[string]interface{}, secretkey string) string {
 
-	// Create the Claims
-	newclaims := EaglebushClaims{}
-
-	for k, v := range *claims {
-		switch k {
-		case "aud":
-			newclaims.Audience = v.(string)
-		case "exp":
-			newclaims.ExpiresAt = v.(int64)
-		case "jti":
-			newclaims.ID = v.(string)
-		case "iat":
-			newclaims.IssuedAt = v.(int64)
-		case "iss":
-			newclaims.Issuer = v.(string)
-		case "nbf":
-			newclaims.NotBefore = v.(int64)
-		case "sub":
-			newclaims.Subject = v.(string)
-		case "usr":
-			newclaims.UserName = v.(string)
-		case "dom":
-			newclaims.Domain = v.(string)
-		case "dev":
-			newclaims.DeviceID = v.(string)
-		case "app":
-			newclaims.ApplicationID = v.(string)
-		}
+	pl := CustomPayload{
+		Payload: jwt.Payload{
+			Issuer:         claims["iss"].(string),
+			Subject:        claims["sub"].(string),
+			Audience:       claims["aud"].(jwt.Audience),
+			ExpirationTime: claims["exp"].(*jwt.Time),
+			NotBefore:      claims["nbf"].(*jwt.Time),
+			IssuedAt:       claims["iat"].(*jwt.Time),
+		},
+		UserName:      claims["usr"].(string),
+		Domain:        claims["dom"].(string),
+		ApplicationID: claims["app"].(string),
+		DeviceID:      claims["dev"].(string),
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, newclaims)
-	token.Header = *header
+	HMAC := jwt.NewHS256([]byte(secretkey))
 
-	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err := token.SignedString([]byte(HMAC))
-
+	token, err := jwt.Sign(pl, HMAC)
 	if err != nil {
 		return ""
 	}
 
-	return tokenString
+	return string(token)
 }
 
 // GetRequestVars - get request variables
-func GetRequestVars(r *http.Request, HMAC string) RequestVars {
+func GetRequestVars(r *http.Request, secretkey string) RequestVars {
 
 	rv := &RequestVars{}
 
@@ -348,45 +338,32 @@ func GetRequestVars(r *http.Request, HMAC string) RequestVars {
 	// Parse JWT
 	if len(jwtfromck) > 0 {
 
-		token, _ := jwt.Parse(jwtfromck, func(token *jwt.Token) (interface{}, error) {
+		var pl CustomPayload
 
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-			}
+		HMAC := jwt.NewHS256([]byte(secretkey))
 
-			return []byte(HMAC), nil
-		})
+		// Commented as this is not yet implemented
+		//now := time.Now()
 
-		if claims, ok := token.Claims.(EaglebushMapClaims); ok && token.Valid {
+		// // Validate claims "iat", "exp" and "aud".
+		// iatValidator := jwt.IssuedAtValidator(now)
+		// expValidator := jwt.ExpirationTimeValidator(now)
+		// nbfValidator := jwt.NotBeforeValidator(now)
+
+		// // Use jwt.ValidatePayload to build a jwt.VerifyOption.
+		// // Validators are run in the order informed.
+		// validatePayload := jwt.ValidatePayload(&pl.Payload, iatValidator, expValidator, nbfValidator)
+
+		if _, err := jwt.Verify([]byte(jwtfromck), HMAC, &pl); err == nil {
+			rv.TokenAudience = pl.Audience
+
+			rv.TokenUserName = pl.UserName
+			rv.TokenDomain = pl.Domain
+			rv.TokenDeviceID = pl.DeviceID
+			rv.TokenApplicationID = pl.ApplicationID
+
 			rv.TokenRaw = jwtfromck
-
-			tokval := claims["aud"]
-			if tokval != nil {
-				rv.TokenAudience = tokval.(string)
-			}
-
-			tokval = claims["usr"]
-			if tokval != nil {
-				rv.TokenUserName = tokval.(string)
-			}
-
-			tokval = claims["dom"]
-			if tokval != nil {
-				rv.TokenDomain = tokval.(string)
-			}
-
-			tokval = claims["dev"]
-			if tokval != nil {
-				rv.TokenDeviceID = tokval.(string)
-			}
-
-			tokval = claims["app"]
-			if tokval != nil {
-				rv.TokenApplicationID = tokval.(string)
-			}
-
 			rv.ValidAuthToken = true
-
 		}
 	}
 
