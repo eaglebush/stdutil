@@ -28,15 +28,18 @@ type CustomVars struct {
 
 //RequestVars - contains necessary request variables
 type RequestVars struct {
-	Login          string
-	Domain         string
-	Method         string
-	Variables      CustomVars
-	Body           []byte
-	Token          jwt.Token
-	Cookies        map[string]string
-	HasBody        bool
-	ValidAuthToken bool
+	Method             string
+	Variables          CustomVars
+	Body               []byte
+	Cookies            map[string]string
+	HasBody            bool
+	ValidAuthToken     bool
+	TokenRaw           string
+	TokenApplicationID string
+	TokenAudience      string
+	TokenDeviceID      string
+	TokenUserName      string
+	TokenDomain        string
 }
 
 // ResultData - a result structure and a generic data
@@ -238,35 +241,38 @@ func ParseRouteVars(r *http.Request) (Command []string, Key string) {
 
 //BuildAccessToken - build a JWT token
 func BuildAccessToken(header *map[string]interface{}, claims *map[string]interface{}, HMAC string) string {
-	/*
-		token := jwt.NewWithClaims(jwt.SigningMethodHMAC, jwt.MapClaims{
-			"foo": "bar",
-			"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
-		})
-	*/
+
 	// Create the Claims
-	stdclaims := jwt.StandardClaims{}
+	newclaims := EaglebushClaims{}
 
 	for k, v := range *claims {
 		switch k {
 		case "aud":
-			stdclaims.Audience = v.(string)
+			newclaims.Audience = v.(string)
 		case "exp":
-			stdclaims.ExpiresAt = v.(int64)
+			newclaims.ExpiresAt = v.(int64)
 		case "jti":
-			stdclaims.Id = v.(string)
+			newclaims.ID = v.(string)
 		case "iat":
-			stdclaims.IssuedAt = v.(int64)
+			newclaims.IssuedAt = v.(int64)
 		case "iss":
-			stdclaims.Issuer = v.(string)
+			newclaims.Issuer = v.(string)
 		case "nbf":
-			stdclaims.NotBefore = v.(int64)
+			newclaims.NotBefore = v.(int64)
 		case "sub":
-			stdclaims.Subject = v.(string)
+			newclaims.Subject = v.(string)
+		case "usr":
+			newclaims.UserName = v.(string)
+		case "dom":
+			newclaims.Domain = v.(string)
+		case "dev":
+			newclaims.DeviceID = v.(string)
+		case "app":
+			newclaims.ApplicationID = v.(string)
 		}
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, stdclaims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, newclaims)
 	token.Header = *header
 
 	// Sign and get the complete encoded token as a string using the secret
@@ -280,7 +286,8 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 }
 
 // GetRequestVars - get request variables
-func GetRequestVars(r *http.Request, ApplicationID string, HMAC string) RequestVars {
+func GetRequestVars(r *http.Request, HMAC string) RequestVars {
+
 	rv := &RequestVars{}
 
 	const mp string = "multipart/form-data"
@@ -314,50 +321,33 @@ func GetRequestVars(r *http.Request, ApplicationID string, HMAC string) RequestV
 		r.ParseForm()
 	}
 
+	// Get Form data
 	rv.Variables.FormData = NameValues{}
 	rv.Variables.FormData.Pair = make([]NameValue, 0)
 	for k, v := range r.PostForm {
-		rv.Variables.FormData.Pair = append(rv.Variables.FormData.Pair, NameValue{k, strings.Join(v[:], ",")})
+		rv.Variables.FormData.Pair = append(rv.Variables.FormData.Pair, NameValue{
+			k, strings.Join(v[:], ","),
+		})
 	}
 	rv.Variables.HasFormData = len(rv.Variables.FormData.Pair) > 0
 
+	// Get route commands
 	rv.Variables.Command, rv.Variables.Key = ParseRouteVars(r)
 
 	jwtfromck := ""
-	rv.ValidAuthToken = false
 
-	// Get cookies that matters
-	rv.Cookies = make(map[string]string)
-	for _, c := range r.Cookies() {
-		rv.Cookies[c.Name] = c.Value
-		// Set login value if met
-		if c.Name == ApplicationID+"-login" {
-			rv.Login = c.Value
-		}
-
-		if c.Name == ApplicationID+"-appdomain" {
-			rv.Domain = c.Value
-		}
-
-		if c.Name == ApplicationID+"-sessionid" {
-			jwtfromck = c.Value
-		}
-	}
-
-	// Get JWT from request headers if the cookie has none
-	if jwtfromck == "" {
-		jwth := r.Header.Get("Authorization")
-		if len(jwth) > 0 {
-			jwtp := strings.Split(jwth, " ")
-			if len(jwtp) > 1 {
-				if strings.ToLower(strings.TrimSpace(jwtp[0])) == "bearer" {
-					jwtfromck = strings.TrimSpace(jwtp[1])
-				}
+	// Get Authorization header
+	if jwth := r.Header.Get("Authorization"); len(jwth) > 0 {
+		if jwtp := strings.Split(jwth, " "); len(jwtp) > 1 {
+			if strings.ToLower(strings.TrimSpace(jwtp[0])) == "bearer" {
+				jwtfromck = strings.TrimSpace(jwtp[1])
 			}
 		}
 	}
 
+	// Parse JWT
 	if len(jwtfromck) > 0 {
+
 		token, _ := jwt.Parse(jwtfromck, func(token *jwt.Token) (interface{}, error) {
 
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -367,25 +357,79 @@ func GetRequestVars(r *http.Request, ApplicationID string, HMAC string) RequestV
 			return []byte(HMAC), nil
 		})
 
-		if token.Valid {
-			rv.Token = *token
-		}
-	}
+		if claims, ok := token.Claims.(EaglebushMapClaims); ok && token.Valid {
+			rv.TokenRaw = jwtfromck
 
-	// Validate the user name from cookie against the retrieved token. Expiry Data could also be validated manually here
-	if rv.Token.Valid {
-		tokuser := rv.Token.Header["user"]
-		if tokuser == nil {
-			rv.ValidAuthToken = false
-		}
+			tokval := claims["aud"]
+			if tokval != nil {
+				rv.TokenAudience = tokval.(string)
+			}
 
-		tokdom := rv.Token.Header["domain"]
-		if tokdom == nil {
-			rv.ValidAuthToken = false
-		}
+			tokval = claims["usr"]
+			if tokval != nil {
+				rv.TokenUserName = tokval.(string)
+			}
 
-		rv.ValidAuthToken = tokuser == rv.Login && tokdom == rv.Domain
+			tokval = claims["dom"]
+			if tokval != nil {
+				rv.TokenDomain = tokval.(string)
+			}
+
+			tokval = claims["dev"]
+			if tokval != nil {
+				rv.TokenDeviceID = tokval.(string)
+			}
+
+			tokval = claims["app"]
+			if tokval != nil {
+				rv.TokenApplicationID = tokval.(string)
+			}
+
+			rv.ValidAuthToken = true
+
+		}
 	}
 
 	return *rv
+}
+
+// FirstCommand - get first command from route
+func (cv *CustomVars) FirstCommand() string {
+	_, ret := cv.GetCommand(0)
+	return ret
+}
+
+// SecondCommand - get second command from route
+func (cv *CustomVars) SecondCommand() string {
+	_, ret := cv.GetCommand(1)
+	return ret
+}
+
+// ThirdCommand - get third command from route
+func (cv *CustomVars) ThirdCommand() string {
+	_, ret := cv.GetCommand(2)
+	return ret
+}
+
+// LastCommand - get third command from route
+func (cv *CustomVars) LastCommand() string {
+	_, ret := cv.GetCommand(uint(len(cv.Command) - 1))
+	return ret
+}
+
+// GetCommand - get command by index
+func (cv *CustomVars) GetCommand(index uint) (exists bool, value string) {
+	lenc := uint(len(cv.Command))
+
+	// if there's no command, return at once
+	if lenc == 0 {
+		return false, ""
+	}
+
+	// if the index is greater than the length of the array
+	if index > lenc-1 {
+		return false, ""
+	}
+
+	return true, cv.Command[index]
 }
