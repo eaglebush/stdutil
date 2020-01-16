@@ -254,9 +254,9 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 	iss := ""
 	sub := ""
 	aud := jwt.Audience{}
-	exp := new(jwt.Time)
-	nbf := new(jwt.Time)
-	iat := new(jwt.Time)
+	exp := int64(0)
+	nbf := int64(0)
+	iat := int64(0)
 	usr := ""
 	dom := ""
 	app := ""
@@ -276,22 +276,22 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 
 	ifc = clm["aud"]
 	if ifc != nil {
-		aud = ifc.(jwt.Audience)
+		aud = ifc.([]string)
 	}
 
 	ifc = clm["exp"]
 	if ifc != nil {
-		exp = ifc.(*jwt.Time)
+		exp = ifc.(int64)
 	}
 
 	ifc = clm["nbf"]
 	if ifc != nil {
-		nbf = ifc.(*jwt.Time)
+		nbf = ifc.(int64)
 	}
 
 	ifc = clm["iat"]
 	if ifc != nil {
-		iat = ifc.(*jwt.Time)
+		iat = ifc.(int64)
 	}
 
 	ifc = clm["usr"]
@@ -319,9 +319,9 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 			Issuer:         iss,
 			Subject:        sub,
 			Audience:       aud,
-			ExpirationTime: exp,
-			NotBefore:      nbf,
-			IssuedAt:       iat,
+			ExpirationTime: &jwt.Time{Time: time.Unix(exp, 0)},
+			NotBefore:      &jwt.Time{Time: time.Unix(nbf, 0)},
+			IssuedAt:       &jwt.Time{Time: time.Unix(iat, 0)},
 		},
 		UserName:      usr,
 		Domain:        dom,

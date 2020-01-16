@@ -57,3 +57,22 @@ func TestJWTParse(t *testing.T) {
 	}
 
 }
+
+func TestBuildAccessToken(t *testing.T) {
+	jwth := map[string]interface{}{
+		"alg": "HS256",
+		"typ": "JWT",
+	}
+
+	jwtc := map[string]interface{}{
+		"nbf": time.Now().Unix(),
+		"aud": []string{"APPSHUB-AUTH"},
+		"usr": "zaldy.baguinon",
+		"dom": "MDCI",
+		"dev": "j4h2j34h23jk4h3kj4hfdsfsdf",
+		"app": "APPSHUB-AITH",
+	}
+
+	token := BuildAccessToken(&jwth, &jwtc, "thisisanhmacsecretkey")
+	fmt.Println(token)
+}
