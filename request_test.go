@@ -66,7 +66,9 @@ func TestBuildAccessToken(t *testing.T) {
 
 	jwtc := map[string]interface{}{
 		"nbf": time.Now().Unix(),
-		"aud": []string{"APPSHUB-AUTH"},
+		"iat": time.Now().Unix(),
+		//"aud": []string{"APPSHUB-AUTH"},
+		"aud": "APPSHUB-AUTH",
 		"usr": "zaldy.baguinon",
 		"dom": "MDCI",
 		"dev": "j4h2j34h23jk4h3kj4hfdsfsdf",
@@ -74,5 +76,36 @@ func TestBuildAccessToken(t *testing.T) {
 	}
 
 	token := BuildAccessToken(&jwth, &jwtc, "thisisanhmacsecretkey")
+	if token == "" {
+		t.Fail()
+	}
 	fmt.Println(token)
+}
+
+func TestParseAccessToken(t *testing.T) {
+	var pl CustomPayload
+
+	HMAC := jwt.NewHS256([]byte("thisisanhmacsecretkey"))
+
+	// Commented as this is not yet implemented
+	//now := time.Now()
+
+	// // Validate claims "iat", "exp" and "aud".
+	// iatValidator := jwt.IssuedAtValidator(now)
+	// expValidator := jwt.ExpirationTimeValidator(now)
+	// nbfValidator := jwt.NotBeforeValidator(now)
+
+	// // Use jwt.ValidatePayload to build a jwt.VerifyOption.
+	// // Validators are run in the order informed.
+	// validatePayload := jwt.ValidatePayload(&pl.Payload, iatValidator, expValidator, nbfValidator)
+	// if _, err := jwt.Verify([]byte(jwtfromck), HMAC, &pl, validatePayload); err == nil {
+
+	jwtfromck := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJBUFBTSFVCLUFVVEgiLCJleHAiOjAsIm5iZiI6MTU3OTIyMTM1MywiaWF0IjoxNTc5MjIxMzUzLCJ1c3IiOiJ6YWxkeS5iYWd1aW5vbiIsImRvbSI6Ik1EQ0kiLCJhcHAiOiJBUFBTSFVCLUFJVEgiLCJkZXYiOiJqNGgyajM0aDIzams0aDNrajRoZmRzZnNkZiJ9.MS77eSy7rg0a8-wTyaGmSbR8kOtZCv0092qVoucpG9k"
+
+	if _, err := jwt.Verify([]byte(jwtfromck), HMAC, &pl); err == nil {
+
+		fmt.Printf("%+v", pl)
+	} else {
+		t.Fail()
+	}
 }

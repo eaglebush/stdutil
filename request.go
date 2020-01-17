@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 	"time"
 
@@ -276,7 +277,20 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 
 	ifc = clm["aud"]
 	if ifc != nil {
-		aud = ifc.([]string)
+		t := reflect.TypeOf(ifc)
+
+		// check if this is a slice
+		if t.Kind() == reflect.Slice {
+			// check if what type of slice are the elements
+			if t.Elem().Kind() == reflect.String {
+				aud = ifc.([]string)
+			}
+		}
+
+		// check if this is a string
+		if t.Kind() == reflect.String {
+			aud = jwt.Audience([]string{ifc.(string)})
+		}
 	}
 
 	ifc = clm["exp"]
@@ -314,14 +328,23 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 		dev = ifc.(string)
 	}
 
+	unixt := func(unixts int64) *jwt.Time {
+		epoch := time.Date(1970, time.January, 1, 0, 0, 0, 0, time.UTC)
+		tt := time.Unix(unixts, 0)
+		if tt.Before(epoch) {
+			tt = epoch
+		}
+		return &jwt.Time{Time: tt}
+	}
+
 	pl := CustomPayload{
 		Payload: jwt.Payload{
 			Issuer:         iss,
 			Subject:        sub,
 			Audience:       aud,
-			ExpirationTime: &jwt.Time{Time: time.Unix(exp, 0)},
-			NotBefore:      &jwt.Time{Time: time.Unix(nbf, 0)},
-			IssuedAt:       &jwt.Time{Time: time.Unix(iat, 0)},
+			ExpirationTime: unixt(exp),
+			NotBefore:      unixt(nbf),
+			IssuedAt:       unixt(iat),
 		},
 		UserName:      usr,
 		Domain:        dom,
