@@ -372,7 +372,7 @@ func GetRequestVars(r *http.Request, secretkey string) RequestVars {
 	rv.Method = strings.ToUpper(r.Method)
 	ctype := strings.Split(r.Header.Get("Content-Type"), ";")
 	c1 := strings.TrimSpace(ctype[0])
-	useBody := (c1 != "application/x-www-form-urlencoded" && c1 != mp) && (rv.IsPost() || rv.IsPut())
+	useBody := (c1 != "application/x-www-form-urlencoded" && c1 != mp) && (rv.IsPost() || rv.IsPut() || rv.IsDelete())
 
 	if useBody {
 		// We are receiving body as bytes to Unmarshall later depending on the type
