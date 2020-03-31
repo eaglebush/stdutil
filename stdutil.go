@@ -154,7 +154,7 @@ func ValidateRecord(config *cfg.Configuration, ConnectID string, TableName strin
 		return false, false, "No validation expression has been set"
 	}
 
-	sql := `SELECT COUNT(*) FROM ` + TableName + ` WHERE `
+	tableNameWithParameters := TableName + ` WHERE `
 	args := make([]interface{}, len(Values))
 	i := 0
 	andstr := ""
@@ -170,13 +170,13 @@ func ValidateRecord(config *cfg.Configuration, ConnectID string, TableName strin
 			v.Operator = "="
 		}
 
-		sql += andstr + v.Name + v.Operator + placeholder
+		tableNameWithParameters += andstr + v.Name + v.Operator + placeholder
 		args[i] = v.Value
 		i++
 		andstr = " AND "
 	}
 
-	sr, err := dh.GetRow(sql, args...)
+	sr, err := dh.GetRow([]string{`COUNT(*)`}, tableNameWithParameters, args...)
 	if err != nil {
 		return false, false, err.Error()
 	}
@@ -215,7 +215,7 @@ func VerifyWithin(dh *datahelper.DataHelper, TableName string, Values []Validati
 		return false, false, "No validation expression has been set"
 	}
 
-	sql := `SELECT COUNT(*) FROM ` + TableName + ` WHERE `
+	tableNameWithParameters := TableName + ` WHERE `
 	args := make([]interface{}, len(Values))
 	i := 0
 	andstr := ""
@@ -232,14 +232,14 @@ func VerifyWithin(dh *datahelper.DataHelper, TableName string, Values []Validati
 			v.Operator = "="
 		}
 
-		sql += andstr + v.Name + v.Operator + placeholder
+		tableNameWithParameters += andstr + v.Name + v.Operator + placeholder
 		args[i] = v.Value
 		i++
 		andstr = " AND "
 
 	}
 
-	sr, err := dh.GetRow(sql, args...)
+	sr, err := dh.GetRow([]string{`COUNT(*)`}, tableNameWithParameters, args...)
 	if err != nil {
 		return false, false, err.Error()
 	}
