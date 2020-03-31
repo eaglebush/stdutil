@@ -11,12 +11,23 @@ type NameValue struct {
 	Value interface{}
 }
 
-//NameValues - a struct to manage value structs
+// NameValues - a struct to manage value structs
 type NameValues struct {
 	Pair []NameValue
 }
 
-//ValueString - get the struct value as string
+// KeyExists - checks if the key or name exists
+func (nvp *NameValues) KeyExists(name string) bool {
+	nn := strings.ToLower(name)
+	for _, nv := range nvp.Pair {
+		if nn == strings.ToLower(nv.Name) {
+			return true
+		}
+	}
+	return false
+}
+
+// ValueString - get the struct value as string
 func (nvp *NameValues) ValueString(name string) string {
 	nn := strings.ToLower(name)
 	for _, nv := range nvp.Pair {
@@ -27,7 +38,7 @@ func (nvp *NameValues) ValueString(name string) string {
 	return ""
 }
 
-//ValueInt - get the struct value as int
+// ValueInt - get the struct value as int
 func (nvp *NameValues) ValueInt(name string) int {
 	nn := strings.ToLower(name)
 	for _, nv := range nvp.Pair {
@@ -39,7 +50,7 @@ func (nvp *NameValues) ValueInt(name string) int {
 	return 0
 }
 
-//ValuePlain - get the struct value as interface{}
+// ValuePlain - get the struct value as interface{}
 func (nvp *NameValues) ValuePlain(name string) interface{} {
 	nn := strings.ToLower(name)
 	for _, nv := range nvp.Pair {
@@ -50,7 +61,7 @@ func (nvp *NameValues) ValuePlain(name string) interface{} {
 	return nil
 }
 
-//ValueBool - get the struct value as bool
+// ValueBool - get the struct value as bool
 func (nvp *NameValues) ValueBool(name string) bool {
 	nn := strings.ToLower(name)
 	for _, nv := range nvp.Pair {
