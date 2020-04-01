@@ -200,7 +200,7 @@ func ParseQueryString(qs *string) NameValues {
 	return ret
 }
 
-//ParseRouteVars - parse custom routes from a mux handler
+// ParseRouteVars - parse custom routes from a mux handler
 func ParseRouteVars(r *http.Request) (Command []string, Key string) {
 	cmd := make([]string, 0)
 	key := ""
@@ -253,7 +253,7 @@ func ParseRouteVars(r *http.Request) (Command []string, Key string) {
 	return cmd, key
 }
 
-//BuildAccessToken - build a JWT token
+// BuildAccessToken - build a JWT token
 func BuildAccessToken(header *map[string]interface{}, claims *map[string]interface{}, secretkey string) string {
 	clm := *claims
 
@@ -390,6 +390,10 @@ func GetRequestVars(r *http.Request, secretkey string) RequestVars {
 			return []byte{}
 		}
 		rv.Body = b()
+
+		if rv.Body != nil {
+			rv.HasBody = len(rv.Body) > 0
+		}
 	}
 
 	// Query Strings
