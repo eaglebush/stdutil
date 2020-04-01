@@ -77,9 +77,14 @@ func (rv *RequestVars) IsDelete() bool {
 	return rv.Method == "DELETE"
 }
 
-//IsHead - a shortcut method to check if the request is a HEAD
+// IsHead - a shortcut method to check if the request is a HEAD
 func (rv *RequestVars) IsHead() bool {
 	return rv.Method == "HEAD"
+}
+
+// IsOptions - a shortcut method to check if the request is OPTIONS
+func (rv *RequestVars) IsOptions() bool {
+	return rv.Method == "OPTIONS"
 }
 
 // ExecuteJSONAPI - a wrapper for http operation that can change or read data that returns a custom result
