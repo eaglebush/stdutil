@@ -133,7 +133,7 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, headers map[
 	// Standard header
 	nr.Header.Add("Content-Type", "application/json")
 	nr.Header.Add("Accept-Encoding", "gzip")
-	nr.Header.Add("Content-Encoding", "gzip")
+	//nr.Header.Add("Content-Encoding", "gzip")
 
 	if timeout == 0 {
 		timeout = 30
