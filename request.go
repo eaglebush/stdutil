@@ -132,7 +132,13 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool
 
 	// Standard header
 	nr.Header.Add("Content-Type", "application/json")
-	nr.Header.Add("Accept-Encoding", "gzip")
+
+	if nr.Method == "GET" {
+		if ce := nr.Header.Get("Content-Encoding"); ce != "" {
+			nr.Header.Add("Accept-Encoding", ce)
+		}
+	}
+
 	if gzipped {
 		nr.Header.Add("Content-Encoding", "gzip")
 	}
