@@ -277,3 +277,14 @@ func SortByKeyArray(values *NameValues, keyOrder *[]string) NameValues {
 	}
 	return ret
 }
+
+// StripEndingForwardSlash - remove the ending forward slash of a string
+func StripEndingForwardSlash(value string) string {
+	v := strings.TrimSpace(value)
+	v = strings.ReplaceAll(v, `\`, `/`)
+	ix := strings.LastIndex(v, `/`)
+	if ix == (len(v) - 1) {
+		value = value[0:ix]
+	}
+	return v
+}
