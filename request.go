@@ -88,7 +88,7 @@ func (rv *RequestVars) IsOptions() bool {
 }
 
 // ExecuteJSONAPI - a wrapper for http operation that can change or read data that returns a custom result
-func ExecuteJSONAPI(method string, endpoint string, payload []byte, headers map[string]string, timeout int) (rd ResultData) {
+func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool, headers map[string]string, timeout int) (rd ResultData) {
 
 	rd = ResultData{}
 	rd.Result = InitResult()
@@ -133,7 +133,9 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, headers map[
 	// Standard header
 	nr.Header.Add("Content-Type", "application/json")
 	nr.Header.Add("Accept-Encoding", "gzip")
-	//nr.Header.Add("Content-Encoding", "gzip")
+	if gzipped {
+		nr.Header.Add("Content-Encoding", "gzip")
+	}
 
 	if timeout == 0 {
 		timeout = 30
@@ -169,23 +171,23 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, headers map[
 }
 
 // PostJSON - a wrapper for http.Post with custom result
-func PostJSON(endpoint string, payload []byte, headers map[string]string) ResultData {
-	return ExecuteJSONAPI("POST", endpoint, payload, headers, 30)
+func PostJSON(endpoint string, payload []byte, gzipped bool, headers map[string]string) ResultData {
+	return ExecuteJSONAPI("POST", endpoint, payload, gzipped, headers, 30)
 }
 
 // PutJSON - a wrapper for http.Put with custom result
-func PutJSON(endpoint string, payload []byte, headers map[string]string) ResultData {
-	return ExecuteJSONAPI("PUT", endpoint, payload, headers, 30)
+func PutJSON(endpoint string, payload []byte, gzipped bool, headers map[string]string) ResultData {
+	return ExecuteJSONAPI("PUT", endpoint, payload, gzipped, headers, 30)
 }
 
 // GetJSON - a wrapper for http.Get with returns with a custom result
 func GetJSON(endpoint string, headers map[string]string) ResultData {
-	return ExecuteJSONAPI("GET", endpoint, nil, headers, 30)
+	return ExecuteJSONAPI("GET", endpoint, nil, false, headers, 30)
 }
 
 // DeleteJSON - a wrapper for http.Delete with custom result
 func DeleteJSON(endpoint string, headers map[string]string) ResultData {
-	return ExecuteJSONAPI("DELETE", endpoint, nil, headers, 30)
+	return ExecuteJSONAPI("DELETE", endpoint, nil, false, headers, 30)
 }
 
 //ParseQueryString - parse the query string into a column value
