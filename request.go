@@ -162,11 +162,6 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool
 		}
 	}
 
-	// set all positive responses into OK
-	if rd.IsStatusValid() || rd.IsStatusYes() {
-		rd.StatusOK()
-	}
-
 	return
 }
 
