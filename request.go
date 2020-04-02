@@ -153,10 +153,11 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, headers map[
 		return
 	}
 
-	err = json.Unmarshal(data, &rd)
-	if err != nil {
-		rd.Result.Messages = append(rd.Result.Messages, err.Error())
-		return
+	if len(data) != 0 {
+		if err = json.Unmarshal(data, &rd); err != nil {
+			rd.Result.Messages = append(rd.Result.Messages, err.Error())
+			return
+		}
 	}
 
 	// set all positive responses into OK
@@ -270,18 +271,15 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 
 	var ifc interface{}
 
-	ifc = clm["iss"]
-	if ifc != nil {
+	if ifc = clm["iss"]; ifc != nil {
 		iss = ifc.(string)
 	}
 
-	ifc = clm["sub"]
-	if ifc != nil {
+	if ifc = clm["sub"]; ifc != nil {
 		sub = ifc.(string)
 	}
 
-	ifc = clm["aud"]
-	if ifc != nil {
+	if ifc = clm["aud"]; ifc != nil {
 		t := reflect.TypeOf(ifc)
 
 		// check if this is a slice
@@ -298,38 +296,31 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 		}
 	}
 
-	ifc = clm["exp"]
-	if ifc != nil {
+	if ifc = clm["exp"]; ifc != nil {
 		exp = ifc.(int64)
 	}
 
-	ifc = clm["nbf"]
-	if ifc != nil {
+	if ifc = clm["nbf"]; ifc != nil {
 		nbf = ifc.(int64)
 	}
 
-	ifc = clm["iat"]
-	if ifc != nil {
+	if ifc = clm["iat"]; ifc != nil {
 		iat = ifc.(int64)
 	}
 
-	ifc = clm["usr"]
-	if ifc != nil {
+	if ifc = clm["usr"]; ifc != nil {
 		usr = ifc.(string)
 	}
 
-	ifc = clm["dom"]
-	if ifc != nil {
+	if ifc = clm["dom"]; ifc != nil {
 		dom = ifc.(string)
 	}
 
-	ifc = clm["app"]
-	if ifc != nil {
+	if ifc = clm["app"]; ifc != nil {
 		app = ifc.(string)
 	}
 
-	ifc = clm["dev"]
-	if ifc != nil {
+	if ifc = clm["dev"]; ifc != nil {
 		dev = ifc.(string)
 	}
 
