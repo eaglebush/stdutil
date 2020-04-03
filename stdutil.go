@@ -154,11 +154,15 @@ func ValidateRecord(config *cfg.Configuration, ConnectID string, TableName strin
 		return false, false, "No validation expression has been set"
 	}
 
-	tableNameWithParameters := TableName + ` WHERE `
+	tableNameWithParameters := TableName
 	args := make([]interface{}, len(Values))
 	i := 0
 	andstr := ""
 	placeholder := dh.CurrentDatabaseInfo.ParameterPlaceholder
+
+	if len(Values) > 0 {
+		tableNameWithParameters += ` WHERE `
+	}
 
 	for _, v := range Values {
 		if dh.CurrentDatabaseInfo.ParameterInSequence {
@@ -215,11 +219,15 @@ func VerifyWithin(dh *datahelper.DataHelper, TableName string, Values []Validati
 		return false, false, "No validation expression has been set"
 	}
 
-	tableNameWithParameters := TableName + ` WHERE `
+	tableNameWithParameters := TableName
 	args := make([]interface{}, len(Values))
 	i := 0
 	andstr := ""
 	placeholder := dh.CurrentDatabaseInfo.ParameterPlaceholder
+
+	if len(Values) > 0 {
+		tableNameWithParameters += ` WHERE `
+	}
 
 	for _, v := range Values {
 
