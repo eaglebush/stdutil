@@ -215,9 +215,6 @@ func ValidateStructRecord(config *cfg.Configuration, ConnectID string, TableName
 
 // VerifyWithin - verify within the current database connection
 func VerifyWithin(dh *datahelper.DataHelper, TableName string, Values []ValidationExpression) (Valid bool, QueryOK bool, Message string) {
-	if len(Values) == 0 {
-		return false, false, "No validation expression has been set"
-	}
 
 	tableNameWithParameters := TableName
 	args := make([]interface{}, len(Values))
@@ -247,16 +244,12 @@ func VerifyWithin(dh *datahelper.DataHelper, TableName string, Values []Validati
 
 	}
 
-	sr, err := dh.GetRow([]string{`COUNT(*)`}, tableNameWithParameters, args...)
+	exists, err := dh.Exists(tableNameWithParameters, args...)
 	if err != nil {
 		return false, false, err.Error()
 	}
 
-	if sr.HasResult {
-		return (sr.Row.ValueInt64Ord(0) > 0), true, ""
-	}
-
-	return false, false, ""
+	return exists, true, ""
 }
 
 // ValidateEmail - validate an e-mail address
