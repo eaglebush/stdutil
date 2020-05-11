@@ -10,20 +10,27 @@ func TestResultMessage(t *testing.T) {
 	r.Messages = append(r.Messages, "   This is the first message")
 	r.Messages = append(r.Messages, "         This is the second message")
 	r.Messages = append(r.Messages, "This is the third  message                 ")
+	AppendInfo(&r.Messages, "This is an information message!")
+	r.AddInfo("This is an information message too!")
+	r.AddInfo("This is an information message too, damn!")
+	r.AddInfo("This is an information message too, damn you!")
+	//r.AddWarning("This is a warning!")
+
+	for _, m := range r.Messages {
+		t.Log(`Unfixed`, m)
+	}
+
+	//r.Fix()
 
 	if !r.IsStatusOK() {
 		for _, m := range r.Messages {
-			t.Log(m)
+			t.Log(`Fixed`, m)
 		}
 	}
 
-	r.AddInfo("     This is the fourth message      ")
-	r.AddInfo("   This is the fifth message   ")
-	r.AddInfo("  This is the sixth message  ")
+	t.Log(`Dominant Message`, r.DominantMessageType())
+	t.Log(`Has Error Messages`, r.HasErrors())
+	t.Log(`Has Warning Messages`, r.HasWarnings())
+	t.Log(`Has Info Messages`, r.HasInfos())
 
-	if !r.IsStatusOK() {
-		for _, m := range r.Messages {
-			t.Log(m)
-		}
-	}
 }
