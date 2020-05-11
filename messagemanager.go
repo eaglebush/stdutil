@@ -18,18 +18,24 @@ type MessageManager struct {
 }
 
 // AddInfo - adds an information message
-func (r *MessageManager) AddInfo(Message string) {
-	addMessage(&r.Messages, strings.TrimSpace(Message), INFO)
+func (r *MessageManager) AddInfo(Message ...string) {
+	for _, m := range Message {
+		addMessage(&r.Messages, m, INFO)
+	}
 }
 
 // AddWarning - adds a warning message
-func (r *MessageManager) AddWarning(Message string) {
-	addMessage(&r.Messages, strings.TrimSpace(Message), WARNING)
+func (r *MessageManager) AddWarning(Message ...string) {
+	for _, m := range Message {
+		addMessage(&r.Messages, m, WARNING)
+	}
 }
 
 // AddError - adds an error message
-func (r *MessageManager) AddError(Message string) {
-	addMessage(&r.Messages, strings.TrimSpace(Message), ERROR)
+func (r *MessageManager) AddError(Message ...string) {
+	for _, m := range Message {
+		addMessage(&r.Messages, m, ERROR)
+	}
 }
 
 // Fix - fix messages within an instance
@@ -79,18 +85,24 @@ func (r *MessageManager) DominantMessageType() MessageType {
 }
 
 // AppendInfo - appends an information message
-func AppendInfo(Messages *[]string, Message string) {
-	addMessage(Messages, Message, INFO)
+func AppendInfo(Messages *[]string, Message ...string) {
+	for _, m := range Message {
+		addMessage(Messages, m, INFO)
+	}
 }
 
 // AppendWarning - appends a warning message
-func AppendWarning(Messages *[]string, Message string) {
-	addMessage(Messages, Message, WARNING)
+func AppendWarning(Messages *[]string, Message ...string) {
+	for _, m := range Message {
+		addMessage(Messages, m, WARNING)
+	}
 }
 
 // AppendError - appends an error message
-func AppendError(Messages *[]string, Message string) {
-	addMessage(Messages, Message, ERROR)
+func AppendError(Messages *[]string, Message ...string) {
+	for _, m := range Message {
+		addMessage(Messages, m, ERROR)
+	}
 }
 
 // FixMessages - fix all unformatted messages to formatted messages
