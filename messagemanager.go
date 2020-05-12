@@ -7,9 +7,10 @@ type MessageType string
 
 // Constants
 const (
-	INFO    MessageType = "INFO: "
-	WARNING MessageType = "WARNING: "
-	ERROR   MessageType = "ERROR: "
+	INFO    MessageType = "INFO"
+	WARNING MessageType = "WARNING"
+	ERROR   MessageType = "ERROR"
+	DELIM   string      = `: `
 )
 
 // MessageManager - a struct to create messages
@@ -47,7 +48,7 @@ func (r *MessageManager) Fix() {
 func (r MessageManager) HasErrors() bool {
 
 	for _, msg := range r.Messages {
-		if strings.HasPrefix(strings.ToUpper(msg), string(ERROR)) {
+		if strings.HasPrefix(strings.ToUpper(msg), string(ERROR)+DELIM) {
 			return true
 		}
 	}
@@ -59,7 +60,7 @@ func (r MessageManager) HasErrors() bool {
 func (r MessageManager) HasWarnings() bool {
 
 	for _, msg := range r.Messages {
-		if strings.HasPrefix(strings.ToUpper(msg), string(WARNING)) {
+		if strings.HasPrefix(strings.ToUpper(msg), string(WARNING)+DELIM) {
 			return true
 		}
 	}
@@ -71,7 +72,7 @@ func (r MessageManager) HasWarnings() bool {
 func (r MessageManager) HasInfos() bool {
 
 	for _, msg := range r.Messages {
-		if strings.HasPrefix(strings.ToUpper(msg), string(INFO)) {
+		if strings.HasPrefix(strings.ToUpper(msg), string(INFO)+DELIM) {
 			return true
 		}
 	}
@@ -123,12 +124,12 @@ func fixMessages(Messages *[]string) []string {
 	for i, msg := range *Messages {
 		ms := strings.ToUpper(msg)
 		switch true {
-		case strings.HasPrefix(ms, string(INFO)):
-		case strings.HasPrefix(ms, string(WARNING)):
-		case strings.HasPrefix(ms, string(ERROR)):
+		case strings.HasPrefix(ms, string(INFO)+DELIM):
+		case strings.HasPrefix(ms, string(WARNING)+DELIM):
+		case strings.HasPrefix(ms, string(ERROR)+DELIM):
 		default:
 			// fix all messages as errors
-			msgr[i] = string(ERROR) + strings.TrimSpace(msg)
+			msgr[i] = string(ERROR) + DELIM + strings.TrimSpace(msg)
 		}
 	}
 
@@ -141,8 +142,8 @@ func addMessage(Messages *[]string, Message string, Type MessageType) {
 	Message = strings.TrimSpace(Message)
 	sm := strings.ToUpper(Message)
 
-	if !strings.HasPrefix(sm, string(Type)) {
-		*Messages = append(*Messages, string(Type)+Message)
+	if !strings.HasPrefix(sm, string(Type)+DELIM) {
+		*Messages = append(*Messages, string(Type)+DELIM+Message)
 		return
 	}
 
@@ -159,11 +160,11 @@ func getDominantMessageType(Messages *[]string) MessageType {
 
 	for _, msg := range *Messages {
 		switch true {
-		case strings.HasPrefix(msg, string(INFO)):
+		case strings.HasPrefix(msg, string(INFO)+DELIM):
 			nfo++
-		case strings.HasPrefix(msg, string(WARNING)):
+		case strings.HasPrefix(msg, string(WARNING)+DELIM):
 			wrn++
-		case strings.HasPrefix(msg, string(ERROR)):
+		case strings.HasPrefix(msg, string(ERROR)+DELIM):
 			err++
 		}
 	}
