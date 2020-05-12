@@ -184,3 +184,13 @@ func getDominantMessageType(Messages *[]string) MessageType {
 	// default is error
 	return ERROR
 }
+
+func toJavaScriptStringArray(Messages *[]string) string {
+	data := ""
+	cma := ""
+	for _, msg := range *Messages {
+		data += cma + "'" + msg + "'"
+		cmd = ","
+	}
+	return data
+}
