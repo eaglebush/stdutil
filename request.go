@@ -426,7 +426,7 @@ func GetRequestVars(r *http.Request, secretkey string) RequestVars {
 	}
 
 	// Parse JWT
-	if len(jwtfromck) > 0 {
+	if len(jwtfromck) > 0 && secretkey != "" {
 
 		var pl CustomPayload
 
