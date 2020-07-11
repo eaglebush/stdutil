@@ -16,39 +16,39 @@ import (
 
 //CustomVars - command struct
 type CustomVars struct {
-	Command        []string
-	Key            string
-	QueryString    NameValues
-	HasQueryString bool
-	FormData       NameValues
-	HasFormData    bool
-	IsMultipart    bool
-	DecodedCommand NameValues
+	Command        []string   // Commands represents the sub-paths in the URL request
+	Key            string     // The key of the the request
+	QueryString    NameValues // The query string values of the URL request
+	HasQueryString bool       // Indicates that the URL request has a query string
+	FormData       NameValues // The form values associated with the URL request, usually appear when the method is POST and PUT
+	HasFormData    bool       // Indicates that the URL request has form data
+	IsMultipart    bool       // Indicates that the URL request is a multi part request
+	DecodedCommand NameValues // Decoded commands from an encrypted values represented by q query string
 }
 
 // CustomPayload - payload for JWT
 type CustomPayload struct {
 	jwt.Payload
-	UserName      string `json:"usr,omitempty"`
-	Domain        string `json:"dom,omitempty"`
-	ApplicationID string `json:"app,omitempty"`
-	DeviceID      string `json:"dev,omitempty"`
+	UserName      string `json:"usr,omitempty"` // Username payload for JWT
+	Domain        string `json:"dom,omitempty"` // Domain payload for JWT
+	ApplicationID string `json:"app,omitempty"` // Application payload for JWT
+	DeviceID      string `json:"dev,omitempty"` // Device id payload for JWT
 }
 
-//RequestVars - contains necessary request variables
+// RequestVars - contains necessary request variables
 type RequestVars struct {
-	Method             string
-	Variables          CustomVars
-	Body               []byte
-	Cookies            map[string]string
-	HasBody            bool
-	ValidAuthToken     bool
-	TokenRaw           string
-	TokenApplicationID string
-	TokenAudience      []string
-	TokenDeviceID      string
-	TokenUserName      string
-	TokenDomain        string
+	Method             string            // Method of the request
+	Variables          CustomVars        // Variables included in the request
+	Body               []byte            // The body of the request
+	Cookies            map[string]string // Cookies included in the request
+	HasBody            bool              // Indicates that the request has a body
+	ValidAuthToken     bool              // Indicates that the request has a valid JWT token
+	TokenRaw           string            // Raw JWT token
+	TokenApplicationID string            // Application ID from the JWT token
+	TokenAudience      []string          // Audience intended by the token
+	TokenDeviceID      string            // The device id where the token came from
+	TokenUserName      string            // User account authenticated and produced the token
+	TokenDomain        string            // The application domain that the token is intended for
 }
 
 // ResultData - a result structure and a generic data
@@ -100,6 +100,7 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool
 	}
 
 	if headers != nil {
+
 		for k, v := range headers {
 
 			k = strings.ToLower(k)

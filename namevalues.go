@@ -79,13 +79,13 @@ func (nvp *NameValues) ValuePtrString(name string) *string {
 	return &result
 }
 
-//ValuePtrInt - get the struct value as int pointer
+// ValuePtrInt - get the struct value as int pointer
 func (nvp *NameValues) ValuePtrInt(name string) *int {
 	result := nvp.ValueInt(name)
 	return &result
 }
 
-//ValueInt64 - get the struct value as int64
+// ValueInt64 - get the struct value as int64
 func (nvp *NameValues) ValueInt64(name string) int64 {
 	for _, nv := range nvp.Pair {
 		if strings.ToLower(name) == strings.ToLower(nv.Name) {
@@ -96,19 +96,19 @@ func (nvp *NameValues) ValueInt64(name string) int64 {
 	return 0
 }
 
-//ValuePtrInt64 - get the struct value as int pointer
+// ValuePtrInt64 - get the struct value as int pointer
 func (nvp *NameValues) ValuePtrInt64(name string) *int64 {
 	result := nvp.ValueInt64(name)
 	return &result
 }
 
-//ValuePtrPlain - get the struct value as interface{} pointer
+// ValuePtrPlain - get the struct value as interface{} pointer
 func (nvp *NameValues) ValuePtrPlain(name string) *interface{} {
 	result := nvp.ValuePlain(name)
 	return &result
 }
 
-//ValueFloat64 - get the struct value as int
+// ValueFloat64 - get the struct value as int
 func (nvp *NameValues) ValueFloat64(name string) float64 {
 	for _, nv := range nvp.Pair {
 		if strings.ToLower(name) == strings.ToLower(nv.Name) {
@@ -119,7 +119,7 @@ func (nvp *NameValues) ValueFloat64(name string) float64 {
 	return 0
 }
 
-//ValuePtrFloat64 - get the struct value as int as pointer
+// ValuePtrFloat64 - get the struct value as int as pointer
 func (nvp *NameValues) ValuePtrFloat64(name string) *float64 {
 	result := nvp.ValueFloat64(name)
 	return &result
