@@ -1,10 +1,15 @@
 package stdutil
 
+import (
+	"runtime"
+)
+
 //Result - standard result structure
 type Result struct {
 	MessageManager
 	Execution    string // Values: SUCCESS, FAIL
 	Status       string // OK, ERROR, VALID or any status
+	Operation    string // Name of the operation / function that returned the result
 	FocusControl string // Control to focus when error was activated
 	//Messages     []string // Messages in the result
 }
@@ -17,6 +22,12 @@ func InitResult() Result {
 		Status:    "ERROR",
 	}
 	res.Messages = make([]string, 0)
+
+	if pc, _, _, ok := runtime.Caller(1); ok {
+		if details := runtime.FuncForPC(pc); details != nil {
+			res.Operation = details.Name()
+		}
+	}
 
 	return res
 }
