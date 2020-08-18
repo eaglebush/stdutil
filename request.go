@@ -57,34 +57,39 @@ type ResultData struct {
 	Data json.RawMessage
 }
 
-//IsGet - a shortcut method to check if the request is a GET
+// IsGet - a shortcut method to check if the request is a GET
 func (rv *RequestVars) IsGet() bool {
 	return rv.Method == "GET"
 }
 
-//IsPost - a shortcut method to check if the request is a POST
+// IsPost is a shortcut method to check if the request is a POST
 func (rv *RequestVars) IsPost() bool {
 	return rv.Method == "POST"
 }
 
-//IsPut - a shortcut method to check if the request is a PUT
+// IsPut is a shortcut method to check if the request is a PUT
 func (rv *RequestVars) IsPut() bool {
 	return rv.Method == "PUT"
 }
 
-//IsDelete - a shortcut method to check if the request is a DELETE
+// IsDelete is a shortcut method to check if the request is a DELETE
 func (rv *RequestVars) IsDelete() bool {
 	return rv.Method == "DELETE"
 }
 
-// IsHead - a shortcut method to check if the request is a HEAD
+// IsHead is a shortcut method to check if the request is a HEAD
 func (rv *RequestVars) IsHead() bool {
 	return rv.Method == "HEAD"
 }
 
-// IsOptions - a shortcut method to check if the request is OPTIONS
+// IsOptions is a shortcut method to check if the request is OPTIONS
 func (rv *RequestVars) IsOptions() bool {
 	return rv.Method == "OPTIONS"
+}
+
+// MustBody validates that the method recognizes body content
+func (rv *RequestVars) MustBody() bool {
+	return rv.Method == "POST" || rv.Method == "PUT"
 }
 
 // ExecuteJSONAPI - a wrapper for http operation that can change or read data that returns a custom result
