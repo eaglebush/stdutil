@@ -14,7 +14,7 @@ type Result struct {
 	//Messages     []string // Messages in the result
 }
 
-// InitResult - initialize result for API query
+// InitResult - initialize result for API query. This is the recommended initialization of this object.
 func InitResult() Result {
 
 	res := Result{
@@ -23,6 +23,7 @@ func InitResult() Result {
 	}
 	res.Messages = make([]string, 0)
 
+	// Auto-detect function that called this function
 	if pc, _, _, ok := runtime.Caller(1); ok {
 		if details := runtime.FuncForPC(pc); details != nil {
 			res.Operation = details.Name()
