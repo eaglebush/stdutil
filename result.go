@@ -2,6 +2,7 @@ package stdutil
 
 import (
 	"runtime"
+	"strings"
 )
 
 //Result - standard result structure
@@ -26,7 +27,11 @@ func InitResult() Result {
 	// Auto-detect function that called this function
 	if pc, _, _, ok := runtime.Caller(1); ok {
 		if details := runtime.FuncForPC(pc); details != nil {
-			res.Operation = details.Name()
+			nm := details.Name()
+			if pos := strings.LastIndex(nm, `.`); pos != -1 {
+				nm = nm[pos+1:]
+			}
+			res.Operation = nm
 		}
 	}
 
