@@ -31,7 +31,7 @@ func InitResult() Result {
 			if pos := strings.LastIndex(nm, `.`); pos != -1 {
 				nm = nm[pos+1:]
 			}
-			res.Operation = nm
+			res.Operation = strings.ToLower(nm)
 		}
 	}
 
