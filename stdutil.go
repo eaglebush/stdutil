@@ -154,6 +154,12 @@ func ValidateRecord(config *cfg.Configuration, ConnectID string, TableName strin
 		return false, false, "No validation expression has been set"
 	}
 
+	cdi := dh.CurrentDatabaseInfo
+	pos := strings.LastIndex(TableName, `.`)
+	if pos == -1 && cdi.Schema != "" {
+		TableName = cdi.Schema + `.` + TableName
+	}
+
 	tableNameWithParameters := TableName
 	args := make([]interface{}, len(Values))
 	i := 0
@@ -216,7 +222,14 @@ func ValidateStructRecord(config *cfg.Configuration, ConnectID string, TableName
 // VerifyWithin - verify within the current database connection
 func VerifyWithin(dh *datahelper.DataHelper, TableName string, Values []ValidationExpression) (Valid bool, QueryOK bool, Message string) {
 
+	cdi := dh.CurrentDatabaseInfo
+	pos := strings.LastIndex(TableName, `.`)
+	if pos == -1 && cdi.Schema != "" {
+		TableName = cdi.Schema + `.` + TableName
+	}
+
 	tableNameWithParameters := TableName
+
 	args := make([]interface{}, len(Values))
 	i := 0
 	andstr := ""
