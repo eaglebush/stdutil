@@ -155,9 +155,18 @@ func ValidateRecord(config *cfg.Configuration, ConnectID string, TableName strin
 	}
 
 	cdi := dh.CurrentDatabaseInfo
-	pos := strings.LastIndex(TableName, `.`)
-	if pos == -1 && cdi.Schema != "" {
-		TableName = cdi.Schema + `.` + TableName
+
+	if cdi.Schema != "" {
+		if posd := strings.Index(TableName, `.`); posd == -1 {
+
+			// Get reserved word escape chars
+			rwe := parseReserveWordsChars(cdi.ReservedWordEscapeChar)
+
+			if strings.Index(TableName, rwe[0]) != -1 && strings.Index(TableName, rwe[1]) != -1 {
+				TableName = rwe[0] + cdi.Schema + rwe[1] + `.` + TableName
+			}
+			TableName = cdi.Schema + `.` + TableName
+		}
 	}
 
 	tableNameWithParameters := TableName
@@ -223,9 +232,18 @@ func ValidateStructRecord(config *cfg.Configuration, ConnectID string, TableName
 func VerifyWithin(dh *datahelper.DataHelper, TableName string, Values []ValidationExpression) (Valid bool, QueryOK bool, Message string) {
 
 	cdi := dh.CurrentDatabaseInfo
-	pos := strings.LastIndex(TableName, `.`)
-	if pos == -1 && cdi.Schema != "" {
-		TableName = cdi.Schema + `.` + TableName
+
+	if cdi.Schema != "" {
+		if posd := strings.Index(TableName, `.`); posd == -1 {
+
+			// Get reserved word escape chars
+			rwe := parseReserveWordsChars(cdi.ReservedWordEscapeChar)
+
+			if strings.Index(TableName, rwe[0]) != -1 && strings.Index(TableName, rwe[1]) != -1 {
+				TableName = rwe[0] + cdi.Schema + rwe[1] + `.` + TableName
+			}
+			TableName = cdi.Schema + `.` + TableName
+		}
 	}
 
 	tableNameWithParameters := TableName
@@ -301,4 +319,18 @@ func StripEndingForwardSlash(value string) string {
 		v = v[0:ix]
 	}
 	return v
+}
+
+// parseReserveWordsChars always returns two-element array of opening and closing escape chars
+func parseReserveWordsChars(ec string) []string {
+
+	if len(ec) == 1 {
+		return []string{ec, ec}
+	}
+
+	if len(ec) >= 2 {
+		return []string{ec[0:1], ec[1:2]}
+	}
+
+	return []string{`"`, `"`} // default is double quotes
 }
