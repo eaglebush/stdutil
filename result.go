@@ -8,11 +8,11 @@ import (
 //Result - standard result structure
 type Result struct {
 	MessageManager
-	Execution    string // Values: SUCCESS, FAIL
-	Status       string // OK, ERROR, VALID or any status
-	Operation    string // Name of the operation / function that returned the result
-	FocusControl string // Control to focus when error was activated
-	//Messages     []string // Messages in the result
+	Execution    string      // Values: SUCCESS, FAIL
+	Status       string      // OK, ERROR, VALID or any status
+	Operation    string      // Name of the operation / function that returned the result
+	FocusControl string      // Control to focus when error was activated
+	Tag          interface{} // Miscellaneous result
 }
 
 // InitResult - initialize result for API query. This is the recommended initialization of this object.
