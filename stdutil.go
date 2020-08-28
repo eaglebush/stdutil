@@ -154,21 +154,6 @@ func ValidateRecord(config *cfg.Configuration, ConnectID string, TableName strin
 		return false, false, "No validation expression has been set"
 	}
 
-	cdi := dh.CurrentDatabaseInfo
-
-	if cdi.Schema != "" {
-		if posd := strings.Index(TableName, `.`); posd == -1 {
-
-			// Get reserved word escape chars
-			rwe := parseReserveWordsChars(cdi.ReservedWordEscapeChar)
-
-			if strings.Index(TableName, rwe[0]) != -1 && strings.Index(TableName, rwe[1]) != -1 {
-				TableName = rwe[0] + cdi.Schema + rwe[1] + `.` + TableName
-			}
-			TableName = cdi.Schema + `.` + TableName
-		}
-	}
-
 	tableNameWithParameters := TableName
 	args := make([]interface{}, len(Values))
 	i := 0
@@ -230,21 +215,6 @@ func ValidateStructRecord(config *cfg.Configuration, ConnectID string, TableName
 
 // VerifyWithin - verify within the current database connection
 func VerifyWithin(dh *datahelper.DataHelper, TableName string, Values []ValidationExpression) (Valid bool, QueryOK bool, Message string) {
-
-	cdi := dh.CurrentDatabaseInfo
-
-	if cdi.Schema != "" {
-		if posd := strings.Index(TableName, `.`); posd == -1 {
-
-			// Get reserved word escape chars
-			rwe := parseReserveWordsChars(cdi.ReservedWordEscapeChar)
-
-			if strings.Index(TableName, rwe[0]) != -1 && strings.Index(TableName, rwe[1]) != -1 {
-				TableName = rwe[0] + cdi.Schema + rwe[1] + `.` + TableName
-			}
-			TableName = cdi.Schema + `.` + TableName
-		}
-	}
 
 	tableNameWithParameters := TableName
 
