@@ -144,7 +144,7 @@ func ValidateRecord(config *cfg.Configuration, ConnectID string, TableName strin
 
 	dh := datahelper.NewDataHelper(config)
 	_, err := dh.Connect(ConnectID)
-	defer dh.Disconnect()
+	defer dh.Disconnect(false)
 
 	if err != nil {
 		return false, false, err.Error()
