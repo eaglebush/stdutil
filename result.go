@@ -8,6 +8,8 @@ import (
 //Result - standard result structure
 type Result struct {
 	MessageManager
+	TaskID       string      // ID of the request and of the result
+	WorkerID     string      // ID of the worker that processed the data
 	Execution    string      // Values: SUCCESS, FAIL
 	Status       string      // OK, ERROR, VALID or any status
 	Operation    string      // Name of the operation / function that returned the result
