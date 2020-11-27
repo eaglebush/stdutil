@@ -1,13 +1,22 @@
 package stdutil
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/nats-io/stan.go"
+)
+
+type Event struct {
+	ID      string
+	Handler func(m *stan.Msg)
+}
 
 // EventChannel is a struct to describe the channel where the event is contained
 type EventChannel struct {
 	Application string
 	Schema      string
 	Module      string
-	Events      []string
+	Events      []Event
 }
 
 // NewEventChannel properly creates a new event channel
@@ -24,26 +33,28 @@ func NewEventChannel(application string, schema string, module string) EventChan
 	}
 }
 
-// AddEvents add events to channel
-func (ec *EventChannel) AddEvents(events ...string) {
+// HandleEvent add event to channel and its handler
+func (ec *EventChannel) HandleEvent(eventid string, handler func(msg *stan.Msg)) {
 
 	var exists bool
 
-	for _, ie := range events {
+	exists = false
 
-		exists = false
-		ie := strings.TrimSpace(strings.ToLower(ie))
+	evt := Event{
+		ID:      strings.TrimSpace(strings.ToLower(eventid)),
+		Handler: handler,
+	}
 
-		for _, e := range ec.Events {
-			if e == ie {
-				exists = true
-				break
-			}
+	for i, e := range ec.Events {
+		if e.ID == evt.ID {
+			ec.Events[i].Handler = handler
+			exists = true
+			break
 		}
+	}
 
-		if !exists {
-			ec.Events = append(ec.Events, ie)
-		}
+	if !exists {
+		ec.Events = append(ec.Events, evt)
 	}
 
 }
