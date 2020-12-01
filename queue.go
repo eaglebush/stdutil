@@ -52,6 +52,18 @@ func NewEventChannel(application string, schema string, module string) EventChan
 
 // }
 
+// GetMatch event channel
+func GetMatch(subject string, evtchans []EventChannel) *EventChannel {
+
+	for _, e := range evtchans {
+		if subject == e.ToString() {
+			return &e
+		}
+	}
+
+	return nil
+}
+
 // ToString composes the event channel to a proper channel name
 func (ec *EventChannel) ToString() string {
 	return strings.ToLower(ec.Application) + `.` + strings.ToLower(ec.Schema) + `.` + strings.ToLower(ec.Module)
