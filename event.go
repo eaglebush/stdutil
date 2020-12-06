@@ -7,6 +7,7 @@ import (
 // EventChannel is a struct to describe the channel where the event is contained
 type EventChannel struct {
 	Application string
+	Service     string
 	Module      string
 }
 
@@ -24,13 +25,15 @@ type Event struct {
 }
 
 // NewEventChannel properly creates a new event channel
-func NewEventChannel(application string, module string) EventChannel {
+func NewEventChannel(application string, service string, module string) EventChannel {
 
 	application = strings.ReplaceAll(strings.ToLower(application), `.`, ``)
+	service = strings.ReplaceAll(strings.ToLower(service), `.`, ``)
 	module = strings.ReplaceAll(strings.ToLower(module), `.`, ``)
 
 	return EventChannel{
 		Application: application,
+		Service:     service,
 		Module:      module,
 	}
 }
@@ -49,5 +52,5 @@ func GetMatch(subject string, evtchans []EventChannel) *EventChannel {
 
 // ToString composes the event channel to a proper channel name
 func (ec *EventChannel) ToString() string {
-	return strings.ToLower(ec.Application) + `.` + strings.ToLower(ec.Module)
+	return strings.ToLower(ec.Application) + `.` + strings.ToLower(ec.Service) + `.` + strings.ToLower(ec.Module)
 }
