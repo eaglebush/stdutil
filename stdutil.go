@@ -304,3 +304,70 @@ func parseReserveWordsChars(ec string) []string {
 
 	return []string{`"`, `"`} // default is double quotes
 }
+
+// NewString initializes a string pointer with an initial value
+func NewString(initial string) (init *string) {
+	init = new(string)
+	*init = initial
+	return
+}
+
+// NewByte initializes a byte pointer with an initial value
+func NewByte(initial byte) (init *byte) {
+	init = new(byte)
+	*init = initial
+	return
+}
+
+// NewInt initializes an int pointer with an initial value
+func NewInt(initial int) (init *int) {
+	init = new(int)
+	*init = initial
+	return
+}
+
+// NewInt32 initializes an int32 pointer with an initial value
+func NewInt32(initial int32) (init *int32) {
+	init = new(int32)
+	*init = initial
+	return
+}
+
+// NewInt64 initializes an int64 pointer with an initial value
+func NewInt64(initial int64) (init *int64) {
+	init = new(int64)
+	*init = initial
+	return
+}
+
+// NewBool initializes a bool pointer with an initial value
+func NewBool(initial bool) (init *bool) {
+	init = new(bool)
+	*init = initial
+	return
+}
+
+// NewFloat32 initializes a float32 pointer with an initial value
+func NewFloat32(initial float32) (init *float32) {
+	init = new(float32)
+	*init = initial
+	return
+}
+
+// NewFloat64 initializes a float64 pointer with an initial value
+func NewFloat64(initial float64) (init *float64) {
+	init = new(float64)
+	*init = initial
+	return
+}
+
+// NewTime initializes a time.Time pointer with an initial value
+func NewTime(initial *time.Time) (init *time.Time) {
+	init = new(time.Time)
+
+	if initial != nil {
+		init = initial
+	}
+
+	return
+}
