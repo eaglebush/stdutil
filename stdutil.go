@@ -291,6 +291,26 @@ func StripEndingForwardSlash(value string) string {
 	return v
 }
 
+// StripTrailing - strip string of trailing characters after the length
+func StripTrailing(value string, length int) string {
+
+	if len(value) > length {
+		return value[0:length]
+	}
+
+	return value
+}
+
+// StripLeading - strip string of leading characters by an offset
+func StripLeading(value string, offset int) string {
+
+	if len(value) > offset {
+		return value[offset:]
+	}
+
+	return value
+}
+
 // parseReserveWordsChars always returns two-element array of opening and closing escape chars
 func parseReserveWordsChars(ec string) []string {
 
