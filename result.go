@@ -8,13 +8,16 @@ import (
 //Result - standard result structure
 type Result struct {
 	MessageManager
-	TaskID       string      // ID of the request and of the result
-	WorkerID     string      // ID of the worker that processed the data
-	Execution    string      // Values: SUCCESS, FAIL
-	Status       string      // OK, ERROR, VALID or any status
-	Operation    string      // Name of the operation / function that returned the result
-	FocusControl string      // Control to focus when error was activated
-	Tag          interface{} // Miscellaneous result
+	TaskID       *string      `json:"task_id,omitempty"`       // ID of the request and of the result
+	WorkerID     *string      `json:"worker_id,omitempty"`     // ID of the worker that processed the data
+	Execution    string       `json:"execution,omitempty"`     // Values: SUCCESS, FAIL
+	Status       string       `json:"status,omitempty"`        // OK, ERROR, VALID or any status
+	Operation    string       `json:"operation,omitempty"`     // Name of the operation / function that returned the result
+	FocusControl string       `json:"focus_control,omitempty"` // Control to focus when error was activated
+	Page         *int         `json:"page,omitempty"`          // Current Page
+	PageCount    *int         `json:"page_count,omitempty"`    // Page Count
+	PageSize     *int         `json:"page_size,omitempty"`     // Page Size
+	Tag          *interface{} `json:"tag,omitempty"`           // Miscellaneous result
 }
 
 // InitResult - initialize result for API query. This is the recommended initialization of this object.

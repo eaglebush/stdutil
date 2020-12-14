@@ -15,7 +15,7 @@ const (
 
 // MessageManager - a struct to create messages
 type MessageManager struct {
-	Messages []string
+	Messages []string `json:"messages,omitempty"`
 }
 
 // AddInfo - adds an information message
