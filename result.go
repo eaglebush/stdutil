@@ -33,12 +33,30 @@ type Result struct {
 }
 
 // InitResult - initialize result for API query. This is the recommended initialization of this object.
-func InitResult() Result {
+// In the variadic argument, the first slice will be its status, the rest will be added to the messages
+func InitResult(args ...string) Result {
 
 	res := Result{
 		Status: string(EXCEPTION),
 	}
+
 	res.Messages = make([]string, 0)
+
+	if ln := len(args); ln > 0 {
+
+		res.Status = args[0]
+
+		if ln > 1 {
+			for i := 1; i < len(args); i++ {
+				if res.Status == string(EXCEPTION) {
+					res.AddError(args[i])
+				} else {
+					res.AddInfo(args[i])
+				}
+			}
+
+		}
+	}
 
 	// Auto-detect function that called this function
 	if pc, _, _, ok := runtime.Caller(1); ok {
