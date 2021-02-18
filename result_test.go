@@ -22,7 +22,7 @@ func TestResultMessage(t *testing.T) {
 
 	//r.Fix()
 
-	if !r.IsStatusOK() {
+	if !r.OK() {
 		for _, m := range r.Messages {
 			t.Log(`Fixed`, m)
 		}

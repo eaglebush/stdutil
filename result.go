@@ -5,15 +5,27 @@ import (
 	"strings"
 )
 
-//Result - standard result structure
+// Status type
+type Status string
+
+// Status items
+const (
+	OK        Status = `OK`
+	EXCEPTION Status = `EXCEPTION`
+	VALID     Status = `VALID`
+	INVALID   Status = `INVALID`
+	YES       Status = `YES`
+	NO        Status = `NO`
+)
+
+// Result - standard result structure
 type Result struct {
 	MessageManager
-	TaskID       *string      `json:"task_id,omitempty"`       // ID of the request and of the result
-	WorkerID     *string      `json:"worker_id,omitempty"`     // ID of the worker that processed the data
-	Execution    string       `json:"execution,omitempty"`     // Values: SUCCESS, FAIL
 	Status       string       `json:"status,omitempty"`        // OK, ERROR, VALID or any status
 	Operation    string       `json:"operation,omitempty"`     // Name of the operation / function that returned the result
-	FocusControl string       `json:"focus_control,omitempty"` // Control to focus when error was activated
+	TaskID       *string      `json:"task_id,omitempty"`       // ID of the request and of the result
+	WorkerID     *string      `json:"worker_id,omitempty"`     // ID of the worker that processed the data
+	FocusControl *string      `json:"focus_control,omitempty"` // Control to focus when error was activated
 	Page         *int         `json:"page,omitempty"`          // Current Page
 	PageCount    *int         `json:"page_count,omitempty"`    // Page Count
 	PageSize     *int         `json:"page_size,omitempty"`     // Page Size
@@ -24,8 +36,7 @@ type Result struct {
 func InitResult() Result {
 
 	res := Result{
-		Execution: "FAIL",
-		Status:    "ERROR",
+		Status: string(EXCEPTION),
 	}
 	res.Messages = make([]string, 0)
 
@@ -43,78 +54,37 @@ func InitResult() Result {
 	return res
 }
 
-//Success - sets the execution status to SUCCESS
-func (r *Result) Success() {
-	r.Execution = "SUCCESS"
+// Return a status
+func (r *Result) Return(status Status) {
+	r.Status = string(status)
 }
 
-//Fail - sets the execution to FAIL
-func (r *Result) Fail() {
-	r.Execution = "FAIL"
+// OK returns true if the status is OK.
+func (r *Result) OK() bool {
+	return r.Status == string(OK)
 }
 
-//StatusOK - sets the Status to OK
-func (r *Result) StatusOK() {
-	r.Status = "OK"
+// Error returns true if the status is EXCEPTION.
+func (r *Result) Error() bool {
+	return r.Status == string(EXCEPTION)
 }
 
-//StatusError - sets the Status to Error
-func (r *Result) StatusError() {
-	r.Status = "ERROR"
+// Valid returns true if the status is VALID.
+func (r *Result) Valid() bool {
+	return r.Status == string(VALID)
 }
 
-//StatusValid - sets the Status to Valid
-func (r *Result) StatusValid() {
-	r.Status = "VALID"
+// Invalid returns true if the status is INVALID.
+func (r *Result) Invalid() bool {
+	return r.Status == string(INVALID)
 }
 
-//StatusInvalid - sets the Status to Invalid
-func (r *Result) StatusInvalid() {
-	r.Status = "INVALID"
+// Yes returns true if the status is YES.
+func (r *Result) Yes() bool {
+	return r.Status == string(YES)
 }
 
-//StatusYes - sets the Status to Yes
-func (r *Result) StatusYes() {
-	r.Status = "YES"
-}
-
-//StatusNo - sets the Status  to No
-func (r *Result) StatusNo() {
-	r.Status = "NO"
-}
-
-//IsStatusOK - checks if the status is OK
-func (r *Result) IsStatusOK() bool {
-	FixMessages(&r.Messages)
-	return r.Status == "OK"
-}
-
-//IsStatusError - checks if the status is Error
-func (r *Result) IsStatusError() bool {
-	FixMessages(&r.Messages)
-	return r.Status == "ERROR"
-}
-
-//IsStatusValid - checks if the status is Valid
-func (r *Result) IsStatusValid() bool {
-	FixMessages(&r.Messages)
-	return r.Status == "VALID"
-}
-
-//IsStatusInvalid - checks if the status is invalid
-func (r *Result) IsStatusInvalid() bool {
-	FixMessages(&r.Messages)
-	return r.Status == "INVALID"
-}
-
-//IsStatusYes - checks if the status is Yes
-func (r *Result) IsStatusYes() bool {
-	FixMessages(&r.Messages)
-	return r.Status == "YES"
-}
-
-//IsStatusNo - checks if the status is No
-func (r *Result) IsStatusNo() bool {
-	FixMessages(&r.Messages)
-	return r.Status == "NO"
+// No returns true if the status is No.
+func (r *Result) No() bool {
+	return r.Status == string(NO)
 }

@@ -6,10 +6,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	datahelper "github.com/eaglebush/datahelper"
-
-	cfg "github.com/eaglebush/config"
 )
 
 // AnyToString - convert any variable to string
@@ -56,11 +52,6 @@ func AnyToString(value interface{}) string {
 	}
 
 	return b
-}
-
-// ToDatePointed - translate the current date value to a string pointed value
-func ToDatePointed(value time.Time) *time.Time {
-	return &value
 }
 
 // IntToInterfaceArray - converts a name value array to interface array
@@ -139,120 +130,6 @@ func InterpolateString(base string, keyValues NameValues) (string, []interface{}
 	return retstr, retif
 }
 
-// ValidateRecord - validate anything in the Values map and return a boolean result
-func ValidateRecord(config *cfg.Configuration, ConnectID string, TableName string, Values []ValidationExpression) (Valid bool, QueryOK bool, Message string) {
-
-	dh := datahelper.NewDataHelper(config)
-	_, err := dh.Connect(ConnectID)
-	defer dh.Disconnect(false)
-
-	if err != nil {
-		return false, false, err.Error()
-	}
-
-	if len(Values) == 0 {
-		return false, false, "No validation expression has been set"
-	}
-
-	tableNameWithParameters := TableName
-	args := make([]interface{}, len(Values))
-	i := 0
-	andstr := ""
-	placeholder := dh.CurrentDatabaseInfo.ParameterPlaceholder
-
-	if len(Values) > 0 {
-		tableNameWithParameters += ` WHERE `
-	}
-
-	for _, v := range Values {
-		if dh.CurrentDatabaseInfo.ParameterInSequence {
-			placeholder = dh.CurrentDatabaseInfo.ParameterPlaceholder + strconv.Itoa(i+1)
-		}
-
-		// If there is no operator, we default to "="
-		if v.Operator == "" {
-			v.Operator = "="
-		}
-
-		tableNameWithParameters += andstr + v.Name + v.Operator + placeholder
-		args[i] = v.Value
-		i++
-		andstr = " AND "
-	}
-
-	sr, err := dh.GetRow([]string{`COUNT(*)`}, tableNameWithParameters, args...)
-	if err != nil {
-		return false, false, err.Error()
-	}
-
-	if sr.HasResult {
-		return (sr.Row.ValueInt64Ord(0) > 0), true, ""
-	}
-
-	return false, false, ""
-}
-
-// ValidateStructRecord - validate record from class
-func ValidateStructRecord(config *cfg.Configuration, ConnectID string, TableName string, Values []ValidationExpression) (Result, bool) {
-	res := InitResult()
-	res.StatusInvalid()
-	valid, status, message := ValidateRecord(config, ConnectID, TableName, Values)
-
-	if !status {
-		res.Messages = append(res.Messages, "ERROR: "+message)
-		return res, false
-	}
-
-	res.Success()
-
-	if !valid {
-		return res, true
-	}
-
-	res.StatusValid()
-	return res, true
-}
-
-// VerifyWithin - verify within the current database connection
-func VerifyWithin(dh *datahelper.DataHelper, TableName string, Values []ValidationExpression) (Valid bool, QueryOK bool, Message string) {
-
-	tableNameWithParameters := TableName
-
-	args := make([]interface{}, len(Values))
-	i := 0
-	andstr := ""
-	placeholder := dh.CurrentDatabaseInfo.ParameterPlaceholder
-
-	if len(Values) > 0 {
-		tableNameWithParameters += ` WHERE `
-	}
-
-	for _, v := range Values {
-
-		if dh.CurrentDatabaseInfo.ParameterInSequence {
-			placeholder = dh.CurrentDatabaseInfo.ParameterPlaceholder + strconv.Itoa(i+1)
-		}
-
-		// If there is no operator, we default to "="
-		if v.Operator == "" {
-			v.Operator = "="
-		}
-
-		tableNameWithParameters += andstr + v.Name + v.Operator + placeholder
-		args[i] = v.Value
-		i++
-		andstr = " AND "
-
-	}
-
-	exists, err := dh.Exists(tableNameWithParameters, args...)
-	if err != nil {
-		return false, false, err.Error()
-	}
-
-	return exists, true, ""
-}
-
 // ValidateEmail - validate an e-mail address
 func ValidateEmail(email string) bool {
 	re := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
@@ -309,20 +186,6 @@ func StripLeading(value string, offset int) string {
 	}
 
 	return value
-}
-
-// parseReserveWordsChars always returns two-element array of opening and closing escape chars
-func parseReserveWordsChars(ec string) []string {
-
-	if len(ec) == 1 {
-		return []string{ec, ec}
-	}
-
-	if len(ec) >= 2 {
-		return []string{ec[0:1], ec[1:2]}
-	}
-
-	return []string{`"`, `"`} // default is double quotes
 }
 
 // NewString initializes a string pointer with an initial value
