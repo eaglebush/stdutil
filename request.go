@@ -14,18 +14,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-//CustomVars - command struct
-type CustomVars struct {
-	Command        []string   // Commands represents the sub-paths in the URL request
-	Key            string     // The key of the the request
-	QueryString    NameValues // The query string values of the URL request
-	HasQueryString bool       // Indicates that the URL request has a query string
-	FormData       NameValues // The form values associated with the URL request, usually appear when the method is POST and PUT
-	HasFormData    bool       // Indicates that the URL request has form data
-	IsMultipart    bool       // Indicates that the URL request is a multi part request
-	DecodedCommand NameValues // Decoded commands from an encrypted values represented by q query string
-}
-
 // CustomPayload - payload for JWT
 type CustomPayload struct {
 	jwt.Payload
@@ -33,63 +21,19 @@ type CustomPayload struct {
 	Domain        string `json:"dom,omitempty"` // Domain payload for JWT
 	ApplicationID string `json:"app,omitempty"` // Application payload for JWT
 	DeviceID      string `json:"dev,omitempty"` // Device id payload for JWT
+	TenantID      string `json:"tnt,omitempty"` // Tenant id payload for JWT
 }
 
-// RequestVars - contains necessary request variables
-type RequestVars struct {
-	Method             string            // Method of the request
-	Variables          CustomVars        // Variables included in the request
-	Body               []byte            // The body of the request
-	Cookies            map[string]string // Cookies included in the request
-	HasBody            bool              // Indicates that the request has a body
-	ValidAuthToken     bool              // Indicates that the request has a valid JWT token
-	TokenRaw           string            // Raw JWT token
-	TokenApplicationID string            // Application ID from the JWT token
-	TokenAudience      []string          // Audience intended by the token
-	TokenDeviceID      string            // The device id where the token came from
-	TokenUserName      string            // User account authenticated and produced the token
-	TokenDomain        string            // The application domain that the token is intended for
-}
-
-// ResultData - a result structure and a generic data
+// ResultData - a result structure and a JSON raw message
 type ResultData struct {
 	Result
-	Data json.RawMessage
+	Data json.RawMessage `json:"data,omitempty"`
 }
 
-// IsGet - a shortcut method to check if the request is a GET
-func (rv *RequestVars) IsGet() bool {
-	return rv.Method == "GET"
-}
-
-// IsPost is a shortcut method to check if the request is a POST
-func (rv *RequestVars) IsPost() bool {
-	return rv.Method == "POST"
-}
-
-// IsPut is a shortcut method to check if the request is a PUT
-func (rv *RequestVars) IsPut() bool {
-	return rv.Method == "PUT"
-}
-
-// IsDelete is a shortcut method to check if the request is a DELETE
-func (rv *RequestVars) IsDelete() bool {
-	return rv.Method == "DELETE"
-}
-
-// IsHead is a shortcut method to check if the request is a HEAD
-func (rv *RequestVars) IsHead() bool {
-	return rv.Method == "HEAD"
-}
-
-// IsOptions is a shortcut method to check if the request is OPTIONS
-func (rv *RequestVars) IsOptions() bool {
-	return rv.Method == "OPTIONS"
-}
-
-// MustBody validates that the method recognizes body content
-func (rv *RequestVars) MustBody() bool {
-	return rv.Method == "POST" || rv.Method == "PUT"
+// ResultAny - a result structure with an empty interface
+type ResultAny struct {
+	Result
+	Data interface{} `json:"data,omitempty"`
 }
 
 // ExecuteJSONAPI - a wrapper for http operation that can change or read data that returns a custom result
@@ -372,12 +316,16 @@ func GetRequestVars(r *http.Request, secretkey string) RequestVars {
 
 	rv := &RequestVars{}
 
-	const mp string = "multipart/form-data"
+	const (
+		mulpart string = "multipart/form-data"
+		furlenc string = "application/x-www-form-urlencoded"
+	)
 
 	rv.Method = strings.ToUpper(r.Method)
 	ctype := strings.Split(r.Header.Get("Content-Type"), ";")
 	c1 := strings.TrimSpace(ctype[0])
-	useBody := (c1 != "application/x-www-form-urlencoded" && c1 != mp) && (rv.IsPost() || rv.IsPut() || rv.IsDelete())
+
+	useBody := (c1 != furlenc && c1 != mulpart) && (rv.IsPostOrPut() || rv.IsDelete())
 
 	if useBody {
 		// We are receiving body as bytes to Unmarshall later depending on the type
@@ -389,9 +337,7 @@ func GetRequestVars(r *http.Request, secretkey string) RequestVars {
 			}
 			return []byte{}
 		}
-		rv.Body = b()
-
-		if rv.Body != nil {
+		if rv.Body = b(); rv.Body != nil {
 			rv.HasBody = len(rv.Body) > 0
 		}
 	}
@@ -399,7 +345,7 @@ func GetRequestVars(r *http.Request, secretkey string) RequestVars {
 	// Query Strings
 	rv.Variables.QueryString = ParseQueryString(&r.URL.RawQuery)
 	rv.Variables.HasQueryString = len(rv.Variables.QueryString.Pair) > 0
-	rv.Variables.IsMultipart = (c1 == mp)
+	rv.Variables.IsMultipart = (c1 == mulpart)
 
 	if rv.Variables.IsMultipart {
 		r.ParseMultipartForm(30 << 20)
@@ -410,12 +356,14 @@ func GetRequestVars(r *http.Request, secretkey string) RequestVars {
 	// Get Form data
 	rv.Variables.FormData = NameValues{}
 	rv.Variables.FormData.Pair = make([]NameValue, 0)
+
 	for k, v := range r.PostForm {
-		rv.Variables.FormData.Pair = append(rv.Variables.FormData.Pair, NameValue{
-			k, strings.Join(v[:], ","),
-		})
+		rv.Variables.FormData.Pair = append(rv.Variables.FormData.Pair,
+			NameValue{
+				k, strings.Join(v[:], ","),
+			})
+		rv.Variables.HasFormData = true
 	}
-	rv.Variables.HasFormData = len(rv.Variables.FormData.Pair) > 0
 
 	// Get route commands
 	rv.Variables.Command, rv.Variables.Key = ParseRouteVars(r)
@@ -452,58 +400,18 @@ func GetRequestVars(r *http.Request, secretkey string) RequestVars {
 		// if _, err := jwt.Verify([]byte(jwtfromck), HMAC, &pl, validatePayload); err == nil {
 
 		if _, err := jwt.Verify([]byte(jwtfromck), HMAC, &pl); err == nil {
-			rv.TokenAudience = pl.Audience
 
+			rv.TokenAudience = pl.Audience
 			rv.TokenUserName = pl.UserName
 			rv.TokenDomain = pl.Domain
 			rv.TokenDeviceID = pl.DeviceID
 			rv.TokenApplicationID = pl.ApplicationID
-
+			rv.TokenTenantID = pl.TenantID
 			rv.TokenRaw = jwtfromck
+
 			rv.ValidAuthToken = true
 		}
 	}
 
 	return *rv
-}
-
-// FirstCommand - get first command from route
-func (cv *CustomVars) FirstCommand() string {
-	_, ret := cv.GetCommand(0)
-	return ret
-}
-
-// SecondCommand - get second command from route
-func (cv *CustomVars) SecondCommand() string {
-	_, ret := cv.GetCommand(1)
-	return ret
-}
-
-// ThirdCommand - get third command from route
-func (cv *CustomVars) ThirdCommand() string {
-	_, ret := cv.GetCommand(2)
-	return ret
-}
-
-// LastCommand - get third command from route
-func (cv *CustomVars) LastCommand() string {
-	_, ret := cv.GetCommand(uint(len(cv.Command) - 1))
-	return ret
-}
-
-// GetCommand - get command by index
-func (cv *CustomVars) GetCommand(index uint) (exists bool, value string) {
-	lenc := uint(len(cv.Command))
-
-	// if there's no command, return at once
-	if lenc == 0 {
-		return false, ""
-	}
-
-	// if the index is greater than the length of the array
-	if index > lenc-1 {
-		return false, ""
-	}
-
-	return true, cv.Command[index]
 }
