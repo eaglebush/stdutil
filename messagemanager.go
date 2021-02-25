@@ -80,8 +80,8 @@ func (r MessageManager) HasInfos() bool {
 	return false
 }
 
-// DominantMessageType - checks for a dominant message
-func (r *MessageManager) DominantMessageType() MessageType {
+// PrevailingType - checks for a dominant message
+func (r *MessageManager) PrevailingType() MessageType {
 	return getDominantMessageType(&r.Messages)
 }
 

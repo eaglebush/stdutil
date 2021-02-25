@@ -7,20 +7,30 @@ import (
 func TestResultMessage(t *testing.T) {
 
 	r := InitResult()
-	r.Messages = append(r.Messages, "   This is the first message")
-	r.Messages = append(r.Messages, "         This is the second message")
-	r.Messages = append(r.Messages, "This is the third  message                 ")
-	AppendInfo(&r.Messages, "This is an information message!")
+	r.Messages = append(r.Messages, "   This is the first message not added thru any Add methods")
+	r.Messages = append(r.Messages, "         This is the second message not added thru any Add methods")
+	r.Messages = append(r.Messages, "This is the third  message not added thru any Add methods                ")
+
+	r.Status = string(WARNING)
+
 	r.AddInfo("This is an information message too!")
 	r.AddInfo("This is an information message too, damn!")
-	r.AddInfo("This is an information message too, damn you!")
-	//r.AddWarning("This is a warning!")
+	x := r.AddInfo("This is an information message too, damn you!")
+	r.AddWarning("This is a warning!")
 
 	for _, m := range r.Messages {
 		t.Log(`Unfixed`, m)
 	}
 
-	//r.Fix()
+	// Result returned from r.AddInfo
+	for _, m := range x.Messages {
+		t.Logf("Result returned: %s, Status: %s", m, x.Status)
+	}
+
+	mm := r.MessageManager()
+	mm.Fix()
+
+	// AppendError(&mm.Messages, "This is an appended message")
 
 	if !r.OK() {
 		for _, m := range r.Messages {
@@ -28,9 +38,9 @@ func TestResultMessage(t *testing.T) {
 		}
 	}
 
-	t.Log(`Dominant Message`, r.DominantMessageType())
-	t.Log(`Has Error Messages`, r.HasErrors())
-	t.Log(`Has Warning Messages`, r.HasWarnings())
-	t.Log(`Has Info Messages`, r.HasInfos())
+	t.Log(`Dominant Message`, mm.PrevailingType())
+	t.Log(`Has Error Messages`, mm.HasErrors())
+	t.Log(`Has Warning Messages`, mm.HasWarnings())
+	t.Log(`Has Info Messages`, mm.HasInfos())
 
 }
