@@ -157,3 +157,14 @@ func (r *Result) AddError(Message ...string) Result {
 
 	return *r
 }
+
+// AddErr - adds a real error and returns itself
+func (r *Result) AddErr(err error) Result {
+	if r.mm == nil {
+		r.mm = &MessageManager{}
+	}
+	r.mm.AddError(err.Error())
+	r.Messages = r.mm.Messages
+
+	return *r
+}
