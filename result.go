@@ -1,6 +1,7 @@
 package stdutil
 
 import (
+	"fmt"
 	"runtime"
 	"strings"
 )
@@ -126,36 +127,51 @@ func (r *Result) MessageManager() *MessageManager {
 }
 
 // AddInfo - adds an information message and returns itself
-func (r *Result) AddInfo(Message ...string) Result {
+func (r *Result) AddInfo(message ...string) Result {
 	if r.mm == nil {
 		r.mm = &MessageManager{}
 	}
-	r.mm.AddInfo(Message...)
+	r.mm.AddInfo(message...)
 	r.Messages = r.mm.Messages
 
 	return *r
+}
+
+// AddInfof adds a formatted information message and returns itself
+func (r *Result) AddInfof(format string, a ...interface{}) Result {
+	return r.AddInfo(fmt.Sprintf(format, a...))
 }
 
 // AddWarning - adds a warning message and returns itself
-func (r *Result) AddWarning(Message ...string) Result {
+func (r *Result) AddWarning(message ...string) Result {
 	if r.mm == nil {
 		r.mm = &MessageManager{}
 	}
-	r.mm.AddWarning(Message...)
+	r.mm.AddWarning(message...)
 	r.Messages = r.mm.Messages
 
 	return *r
 }
 
+// AddWarningf adds a formatted warning message and returns itself
+func (r *Result) AddWarningf(format string, a ...interface{}) Result {
+	return r.AddWarning(fmt.Sprintf(format, a...))
+}
+
 // AddError - adds an error message and returns itself
-func (r *Result) AddError(Message ...string) Result {
+func (r *Result) AddError(message ...string) Result {
 	if r.mm == nil {
 		r.mm = &MessageManager{}
 	}
-	r.mm.AddError(Message...)
+	r.mm.AddError(message...)
 	r.Messages = r.mm.Messages
 
 	return *r
+}
+
+// AddErrorf adds a formatted error message and returns itself
+func (r *Result) AddErrorf(format string, a ...interface{}) Result {
+	return r.AddError(fmt.Sprintf(format, a...))
 }
 
 // AddErr - adds a real error and returns itself
