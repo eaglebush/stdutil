@@ -41,6 +41,20 @@ func (r *MessageManager) AddError(Message ...string) {
 	}
 }
 
+// AddFatal - adds a fatal error message
+func (r *MessageManager) AddFatal(Message ...string) {
+	for _, m := range Message {
+		addMessage(&r.Messages, m, MsgFatal)
+	}
+}
+
+// AddAppMsg - adds an error message
+func (r *MessageManager) AddAppMsg(Message ...string) {
+	for _, m := range Message {
+		addMessage(&r.Messages, m, MsgApp)
+	}
+}
+
 // Fix - fix messages within an instance
 func (r *MessageManager) Fix() {
 	r.Messages = fixMessages(&r.Messages)
@@ -48,13 +62,11 @@ func (r *MessageManager) Fix() {
 
 // HasErrors - Checks if the message array has errors
 func (r MessageManager) HasErrors() bool {
-
 	for _, msg := range r.Messages {
 		if strings.HasPrefix(strings.ToUpper(msg), string(MsgError)+DelimMsgType) {
 			return true
 		}
 	}
-
 	return false
 }
 
@@ -72,13 +84,11 @@ func (r MessageManager) HasWarnings() bool {
 
 // HasInfos - Checks if the message array has information messages
 func (r MessageManager) HasInfos() bool {
-
 	for _, msg := range r.Messages {
 		if strings.HasPrefix(strings.ToUpper(msg), string(MsgInfo)+DelimMsgType) {
 			return true
 		}
 	}
-
 	return false
 }
 
@@ -113,25 +123,18 @@ func FixMessages(Messages *[]string) {
 	fixMessages(Messages)
 }
 
-// DominantMessageType - get dominant message type
+// DominantMessageType - get dominant message type. App messages will be deleted
 func DominantMessageType(Messages *[]string) MessageType {
 	return getDominantMessageType(Messages)
 }
 
-// fix messages
+// trims message from spaces
 func fixMessages(Messages *[]string) []string {
 
 	msgr := *Messages
 
 	for i, msg := range *Messages {
-		ms := strings.ToUpper(msg)
-		switch true {
-		case strings.HasPrefix(ms, string(MsgInfo)+DelimMsgType):
-		case strings.HasPrefix(ms, string(MsgWarn)+DelimMsgType):
-		case strings.HasPrefix(ms, string(MsgError)+DelimMsgType):
-		default:
-			msgr[i] = strings.TrimSpace(msg)
-		}
+		msgr[i] = strings.TrimSpace(msg)
 	}
 
 	return msgr
@@ -141,10 +144,10 @@ func fixMessages(Messages *[]string) []string {
 func addMessage(Messages *[]string, Message string, Type MessageType) {
 
 	Message = strings.TrimSpace(Message)
-	sm := strings.ToUpper(Message)
+	td := string(Type) + DelimMsgType
 
-	if !strings.HasPrefix(sm, string(Type)+DelimMsgType) {
-		*Messages = append(*Messages, string(Type)+DelimMsgType+Message)
+	if !strings.HasPrefix(strings.ToUpper(Message), td) && Type != MsgApp {
+		*Messages = append(*Messages, td+Message)
 		return
 	}
 
@@ -158,6 +161,7 @@ func getDominantMessageType(Messages *[]string) MessageType {
 	nfo := 0
 	wrn := 0
 	err := 0
+	ftl := 0
 
 	for _, msg := range *Messages {
 		switch true {
@@ -167,7 +171,14 @@ func getDominantMessageType(Messages *[]string) MessageType {
 			wrn++
 		case strings.HasPrefix(msg, string(MsgError)+DelimMsgType):
 			err++
+		case strings.HasPrefix(msg, string(MsgFatal)+DelimMsgType):
+			ftl++
 		}
+	}
+
+	// fatal errors always dominate
+	if ftl > 0 {
+		return MsgFatal
 	}
 
 	if nfo > wrn && nfo > err {

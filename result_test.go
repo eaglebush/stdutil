@@ -11,7 +11,7 @@ func TestResultMessage(t *testing.T) {
 	r.Messages = append(r.Messages, "         This is the second message not added thru any Add methods")
 	r.Messages = append(r.Messages, "This is the third  message not added thru any Add methods                ")
 
-	r.Status = string(WARNING)
+	r.Status = string(MsgWarn)
 
 	r.AddInfo("This is an information message too!")
 	r.AddInfo("This is an information message too, damn!")
