@@ -16,6 +16,7 @@ func TestResultMessage(t *testing.T) {
 	r.AddInfo("This is an information message too!")
 	r.AddInfo("This is an information message too, damn!")
 	x := r.AddInfo("This is an information message too, damn you!")
+
 	r.AddWarning("This is a warning!")
 
 	for _, m := range r.Messages {
