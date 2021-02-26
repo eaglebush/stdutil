@@ -73,7 +73,7 @@ func (r MessageManager) HasWarnings() bool {
 func (r MessageManager) HasInfos() bool {
 
 	for _, msg := range r.Messages {
-		if strings.HasPrefix(strings.ToUpper(msg), string(MsgInfo)+DELIM) {
+		if strings.HasPrefix(strings.ToUpper(msg), string(MsgInfo)+delim) {
 			return true
 		}
 	}
