@@ -10,6 +10,7 @@ const (
 	MsgInfo  MessageType = "INFO"
 	MsgWarn  MessageType = "WARNING"
 	MsgError MessageType = "ERROR"
+	MsgFatal MessageType = "FATAL"
 	MsgApp   MessageType = ""
 	delim    string      = `: `
 )
