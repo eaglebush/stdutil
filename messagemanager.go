@@ -7,10 +7,11 @@ type MessageType string
 
 // Constants
 const (
-	INFO    MessageType = "INFO"
-	WARNING MessageType = "WARNING"
-	ERROR   MessageType = "ERROR"
-	DELIM   string      = `: `
+	MsgInfo  MessageType = "INFO"
+	MsgWarn  MessageType = "WARNING"
+	MsgError MessageType = "ERROR"
+	MsgApp   MessageType = ""
+	delim    string      = `: `
 )
 
 // MessageManager - a struct to create messages
@@ -21,21 +22,21 @@ type MessageManager struct {
 // AddInfo - adds an information message
 func (r *MessageManager) AddInfo(Message ...string) {
 	for _, m := range Message {
-		addMessage(&r.Messages, m, INFO)
+		addMessage(&r.Messages, m, MsgInfo)
 	}
 }
 
 // AddWarning - adds a warning message
 func (r *MessageManager) AddWarning(Message ...string) {
 	for _, m := range Message {
-		addMessage(&r.Messages, m, WARNING)
+		addMessage(&r.Messages, m, MsgWarn)
 	}
 }
 
 // AddError - adds an error message
 func (r *MessageManager) AddError(Message ...string) {
 	for _, m := range Message {
-		addMessage(&r.Messages, m, ERROR)
+		addMessage(&r.Messages, m, MsgError)
 	}
 }
 
@@ -48,7 +49,7 @@ func (r *MessageManager) Fix() {
 func (r MessageManager) HasErrors() bool {
 
 	for _, msg := range r.Messages {
-		if strings.HasPrefix(strings.ToUpper(msg), string(ERROR)+DELIM) {
+		if strings.HasPrefix(strings.ToUpper(msg), string(MsgError)+delim) {
 			return true
 		}
 	}
@@ -60,7 +61,7 @@ func (r MessageManager) HasErrors() bool {
 func (r MessageManager) HasWarnings() bool {
 
 	for _, msg := range r.Messages {
-		if strings.HasPrefix(strings.ToUpper(msg), string(WARNING)+DELIM) {
+		if strings.HasPrefix(strings.ToUpper(msg), string(MsgWarn)+delim) {
 			return true
 		}
 	}
@@ -72,7 +73,7 @@ func (r MessageManager) HasWarnings() bool {
 func (r MessageManager) HasInfos() bool {
 
 	for _, msg := range r.Messages {
-		if strings.HasPrefix(strings.ToUpper(msg), string(INFO)+DELIM) {
+		if strings.HasPrefix(strings.ToUpper(msg), string(MsgInfo)+DELIM) {
 			return true
 		}
 	}
@@ -88,21 +89,21 @@ func (r *MessageManager) PrevailingType() MessageType {
 // AppendInfo - appends an information message
 func AppendInfo(Messages *[]string, Message ...string) {
 	for _, m := range Message {
-		addMessage(Messages, m, INFO)
+		addMessage(Messages, m, MsgInfo)
 	}
 }
 
 // AppendWarning - appends a warning message
 func AppendWarning(Messages *[]string, Message ...string) {
 	for _, m := range Message {
-		addMessage(Messages, m, WARNING)
+		addMessage(Messages, m, MsgWarn)
 	}
 }
 
 // AppendError - appends an error message
 func AppendError(Messages *[]string, Message ...string) {
 	for _, m := range Message {
-		addMessage(Messages, m, ERROR)
+		addMessage(Messages, m, MsgError)
 	}
 }
 
@@ -124,12 +125,11 @@ func fixMessages(Messages *[]string) []string {
 	for i, msg := range *Messages {
 		ms := strings.ToUpper(msg)
 		switch true {
-		case strings.HasPrefix(ms, string(INFO)+DELIM):
-		case strings.HasPrefix(ms, string(WARNING)+DELIM):
-		case strings.HasPrefix(ms, string(ERROR)+DELIM):
+		case strings.HasPrefix(ms, string(MsgInfo)+delim):
+		case strings.HasPrefix(ms, string(MsgWarn)+delim):
+		case strings.HasPrefix(ms, string(MsgError)+delim):
 		default:
-			// fix all messages as errors
-			msgr[i] = string(ERROR) + DELIM + strings.TrimSpace(msg)
+			msgr[i] = strings.TrimSpace(msg)
 		}
 	}
 
@@ -142,8 +142,8 @@ func addMessage(Messages *[]string, Message string, Type MessageType) {
 	Message = strings.TrimSpace(Message)
 	sm := strings.ToUpper(Message)
 
-	if !strings.HasPrefix(sm, string(Type)+DELIM) {
-		*Messages = append(*Messages, string(Type)+DELIM+Message)
+	if !strings.HasPrefix(sm, string(Type)+delim) {
+		*Messages = append(*Messages, string(Type)+delim+Message)
 		return
 	}
 
@@ -160,27 +160,26 @@ func getDominantMessageType(Messages *[]string) MessageType {
 
 	for _, msg := range *Messages {
 		switch true {
-		case strings.HasPrefix(msg, string(INFO)+DELIM):
+		case strings.HasPrefix(msg, string(MsgInfo)+delim):
 			nfo++
-		case strings.HasPrefix(msg, string(WARNING)+DELIM):
+		case strings.HasPrefix(msg, string(MsgWarn)+delim):
 			wrn++
-		case strings.HasPrefix(msg, string(ERROR)+DELIM):
+		case strings.HasPrefix(msg, string(MsgError)+delim):
 			err++
 		}
 	}
 
 	if nfo > wrn && nfo > err {
-		return INFO
+		return MsgInfo
 	}
 
 	if wrn > nfo && wrn > err {
-		return WARNING
+		return MsgWarn
 	}
 
 	if err > nfo && err > wrn {
-		return ERROR
+		return MsgError
 	}
 
-	// default is error
-	return ERROR
+	return MsgApp
 }
