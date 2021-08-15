@@ -61,9 +61,7 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool
 				cnvs := strings.Split(v, `;`)
 
 				for _, nvs := range cnvs {
-					nv := strings.Split(nvs, `=`)
-
-					if len(nv) > 1 {
+					if nv := strings.Split(nvs, `=`); len(nv) > 1 {
 						nv[0] = strings.TrimSpace(nv[0])
 						nv[1] = strings.TrimSpace(nv[1])
 
@@ -211,16 +209,13 @@ func ParseRouteVars(r *http.Request) (Command []string, Key string) {
 func BuildAccessToken(header *map[string]interface{}, claims *map[string]interface{}, secretkey string) string {
 	clm := *claims
 
-	iss := ""
-	sub := ""
+	var (
+		usr, dom, app, dev string
+		iss, sub, jti      string
+		exp, nbf, iat      int64
+	)
+
 	aud := jwt.Audience{}
-	exp := int64(0)
-	nbf := int64(0)
-	iat := int64(0)
-	usr := ""
-	dom := ""
-	app := ""
-	dev := ""
 
 	var ifc interface{}
 
@@ -277,6 +272,10 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 		dev = ifc.(string)
 	}
 
+	if ifc = clm["jti"]; ifc != nil {
+		jti = ifc.(string)
+	}
+
 	unixt := func(unixts int64) *jwt.Time {
 		epoch := time.Date(1970, time.January, 1, 0, 0, 0, 0, time.UTC)
 		tt := time.Unix(unixts, 0)
@@ -294,6 +293,7 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 			ExpirationTime: unixt(exp),
 			NotBefore:      unixt(nbf),
 			IssuedAt:       unixt(iat),
+			JWTID:          jti,
 		},
 		UserName:      usr,
 		Domain:        dom,
@@ -311,7 +311,7 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 	return string(token)
 }
 
-// GetRequestVars - get request variables
+// GetRequestVars - get request variables and return JWT validation result
 func GetRequestVars(r *http.Request, secretkey string) RequestVars {
 
 	rv := &RequestVars{}
@@ -368,50 +368,62 @@ func GetRequestVars(r *http.Request, secretkey string) RequestVars {
 	// Get route commands
 	rv.Variables.Command, rv.Variables.Key = ParseRouteVars(r)
 
-	jwtfromck := ""
+	if len(secretkey) == 0 {
+		return *rv
+	}
+
+	var (
+		jwtfromck, jwth string
+		jwtp            []string
+	)
 
 	// Get Authorization header
-	if jwth := r.Header.Get("Authorization"); len(jwth) > 0 {
-		if jwtp := strings.Split(jwth, " "); len(jwtp) > 1 {
-			if strings.ToLower(strings.TrimSpace(jwtp[0])) == "bearer" {
-				jwtfromck = strings.TrimSpace(jwtp[1])
-			}
+	if jwth = r.Header.Get("Authorization"); len(jwth) == 0 {
+		return *rv
+	}
+
+	if jwtp = strings.Split(jwth, " "); len(jwtp) < 1 {
+		return *rv
+	}
+
+	if strings.EqualFold(strings.TrimSpace(jwtp[0]), "bearer") {
+		if jwtfromck = strings.TrimSpace(jwtp[1]); len(jwtfromck) == 0 {
+			return *rv
 		}
 	}
 
 	// Parse JWT
-	if len(jwtfromck) > 0 && secretkey != "" {
+	var pl CustomPayload
 
-		var pl CustomPayload
+	HMAC := jwt.NewHS256([]byte(secretkey))
 
-		HMAC := jwt.NewHS256([]byte(secretkey))
+	// Commented as this is not yet implemented
+	//now := time.Now()
 
-		// Commented as this is not yet implemented
-		//now := time.Now()
+	// // Validate claims "iat", "exp" and "aud".
+	// iatValidator := jwt.IssuedAtValidator(now)
+	// expValidator := jwt.ExpirationTimeValidator(now)
+	// nbfValidator := jwt.NotBeforeValidator(now)
 
-		// // Validate claims "iat", "exp" and "aud".
-		// iatValidator := jwt.IssuedAtValidator(now)
-		// expValidator := jwt.ExpirationTimeValidator(now)
-		// nbfValidator := jwt.NotBeforeValidator(now)
+	// // Use jwt.ValidatePayload to build a jwt.VerifyOption.
+	// // Validators are run in the order informed.
+	// validatePayload := jwt.ValidatePayload(&pl.Payload, iatValidator, expValidator, nbfValidator)
+	// if _, err := jwt.Verify([]byte(jwtfromck), HMAC, &pl, validatePayload); err == nil {
 
-		// // Use jwt.ValidatePayload to build a jwt.VerifyOption.
-		// // Validators are run in the order informed.
-		// validatePayload := jwt.ValidatePayload(&pl.Payload, iatValidator, expValidator, nbfValidator)
-		// if _, err := jwt.Verify([]byte(jwtfromck), HMAC, &pl, validatePayload); err == nil {
-
-		if _, err := jwt.Verify([]byte(jwtfromck), HMAC, &pl); err == nil {
-
-			rv.TokenAudience = pl.Audience
-			rv.TokenUserName = pl.UserName
-			rv.TokenDomain = pl.Domain
-			rv.TokenDeviceID = pl.DeviceID
-			rv.TokenApplicationID = pl.ApplicationID
-			rv.TokenTenantID = pl.TenantID
-			rv.TokenRaw = jwtfromck
-
-			rv.ValidAuthToken = true
-		}
+	if _, err := jwt.Verify([]byte(jwtfromck), HMAC, &pl); err != nil {
+		rv.ValidAuthToken = false
+		return *rv
 	}
+
+	rv.TokenAudience = pl.Audience
+	rv.TokenUserName = pl.UserName
+	rv.TokenDomain = pl.Domain
+	rv.TokenDeviceID = pl.DeviceID
+	rv.TokenApplicationID = pl.ApplicationID
+	rv.TokenTenantID = pl.TenantID
+	rv.TokenRaw = jwtfromck
+
+	rv.ValidAuthToken = true
 
 	return *rv
 }
