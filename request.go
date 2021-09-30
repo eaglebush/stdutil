@@ -14,6 +14,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+var reqTimeOut int
+
 // CustomPayload - payload for JWT
 type CustomPayload struct {
 	jwt.Payload
@@ -36,6 +38,15 @@ type ResultAny struct {
 	Data interface{} `json:"data,omitempty"`
 }
 
+func init() {
+	reqTimeOut = 30
+}
+
+// SetRequestTimeOut sets the new timeout value
+func SetRequestTimeout(timeout int) {
+	reqTimeOut = timeout
+}
+
 // ExecuteJSONAPI - a wrapper for http operation that can change or read data that returns a custom result
 func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool, headers map[string]string, timeout int) (rd ResultData) {
 
@@ -44,37 +55,34 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool
 
 	nr, err := http.NewRequest(method, endpoint, bytes.NewBuffer(payload))
 	if err != nil {
-		rd.Result.Messages = append(rd.Result.Messages, err.Error())
+		rd.Result.AddErr(err)
 		return
 	}
 
-	if headers != nil {
+	for k, v := range headers {
 
-		for k, v := range headers {
+		k = strings.ToLower(k)
 
-			k = strings.ToLower(k)
+		switch k {
+		case "cookie":
 
-			switch k {
-			case "cookie":
+			// split values with semi-colons
+			cnvs := strings.Split(v, `;`)
 
-				// split values with semi-colons
-				cnvs := strings.Split(v, `;`)
+			for _, nvs := range cnvs {
+				if nv := strings.Split(nvs, `=`); len(nv) > 1 {
+					nv[0] = strings.TrimSpace(nv[0])
+					nv[1] = strings.TrimSpace(nv[1])
 
-				for _, nvs := range cnvs {
-					if nv := strings.Split(nvs, `=`); len(nv) > 1 {
-						nv[0] = strings.TrimSpace(nv[0])
-						nv[1] = strings.TrimSpace(nv[1])
-
-						nr.AddCookie(&http.Cookie{
-							Name:  nv[0],
-							Value: nv[1],
-						})
-					}
+					nr.AddCookie(&http.Cookie{
+						Name:  nv[0],
+						Value: nv[1],
+					})
 				}
-
-			default:
-				nr.Header.Add(k, v)
 			}
+
+		default:
+			nr.Header.Add(k, v)
 		}
 	}
 
@@ -98,20 +106,20 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool
 	cli := http.Client{Timeout: time.Second * time.Duration(timeout)}
 	resp, err := cli.Do(nr)
 	if err != nil {
-		rd.Result.Messages = append(rd.Result.Messages, err.Error())
+		rd.Result.AddErr(err)
 		return
 	}
 	defer resp.Body.Close()
 
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		rd.Result.Messages = append(rd.Result.Messages, err.Error())
+		rd.Result.AddErr(err)
 		return
 	}
 
 	if len(data) != 0 {
 		if err = json.Unmarshal(data, &rd); err != nil {
-			rd.Result.Messages = append(rd.Result.Messages, err.Error())
+			rd.Result.AddErr(err)
 			return
 		}
 	}
@@ -121,22 +129,22 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool
 
 // PostJSON - a wrapper for http.Post with custom result
 func PostJSON(endpoint string, payload []byte, gzipped bool, headers map[string]string) ResultData {
-	return ExecuteJSONAPI("POST", endpoint, payload, gzipped, headers, 30)
+	return ExecuteJSONAPI("POST", endpoint, payload, gzipped, headers, reqTimeOut)
 }
 
 // PutJSON - a wrapper for http.Put with custom result
 func PutJSON(endpoint string, payload []byte, gzipped bool, headers map[string]string) ResultData {
-	return ExecuteJSONAPI("PUT", endpoint, payload, gzipped, headers, 30)
+	return ExecuteJSONAPI("PUT", endpoint, payload, gzipped, headers, reqTimeOut)
 }
 
 // GetJSON - a wrapper for http.Get with returns with a custom result
 func GetJSON(endpoint string, headers map[string]string) ResultData {
-	return ExecuteJSONAPI("GET", endpoint, nil, false, headers, 30)
+	return ExecuteJSONAPI("GET", endpoint, nil, false, headers, reqTimeOut)
 }
 
 // DeleteJSON - a wrapper for http.Delete with custom result
 func DeleteJSON(endpoint string, headers map[string]string) ResultData {
-	return ExecuteJSONAPI("DELETE", endpoint, nil, false, headers, 30)
+	return ExecuteJSONAPI("DELETE", endpoint, nil, false, headers, reqTimeOut)
 }
 
 //ParseQueryString - parse the query string into a column value
