@@ -38,16 +38,28 @@ func NewEventChannel(application string, service string, module string) EventCha
 	}
 }
 
-// GetMatch event channel
-func GetMatch(subject string, evtchans []EventChannel) *EventChannel {
+// GetEventSubjectMatch seeks the list of event channels by module
+func GetEventSubjectMatch(subject string, evtchans []EventChannel) EventChannel {
 
 	for _, e := range evtchans {
-		if subject == e.ToString() {
-			return &e
+		if strings.EqualFold(subject, e.ToString()) {
+			return e
 		}
 	}
 
-	return nil
+	return EventChannel{}
+}
+
+// GetEventModuleMatch seeks the list of event channels by module
+func GetEventModuleMatch(module string, evtchans []EventChannel) EventChannel {
+
+	for _, e := range evtchans {
+		if strings.EqualFold(module, e.Module) {
+			return e
+		}
+	}
+
+	return EventChannel{}
 }
 
 // ToString composes the event channel to a proper channel name
