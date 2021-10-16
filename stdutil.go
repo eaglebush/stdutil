@@ -12,46 +12,88 @@ import (
 func AnyToString(value interface{}) string {
 	var b string
 
-	switch value.(type) {
+	if value == nil {
+		return ""
+	}
+
+	switch t := value.(type) {
 	case string:
-		b = value.(string)
+		b = t
 	case int:
-		b = strconv.FormatInt(int64(value.(int)), 10)
+		b = strconv.FormatInt(int64(t), 10)
 	case int8:
-		b = strconv.FormatInt(int64(value.(int8)), 10)
+		b = strconv.FormatInt(int64(t), 10)
 	case int16:
-		b = strconv.FormatInt(int64(value.(int16)), 10)
+		b = strconv.FormatInt(int64(t), 10)
 	case int32:
-		b = strconv.FormatInt(int64(value.(int32)), 10)
+		b = strconv.FormatInt(int64(t), 10)
 	case int64:
-		b = strconv.FormatInt(value.(int64), 10)
+		b = strconv.FormatInt(t, 10)
 	case uint:
-		b = strconv.FormatUint(uint64(value.(uint)), 10)
+		b = strconv.FormatUint(uint64(t), 10)
 	case uint8:
-		b = strconv.FormatUint(uint64(value.(uint8)), 10)
+		b = strconv.FormatUint(uint64(t), 10)
 	case uint16:
-		b = strconv.FormatUint(uint64(value.(uint16)), 10)
+		b = strconv.FormatUint(uint64(t), 10)
 	case uint32:
-		b = strconv.FormatUint(uint64(value.(uint32)), 10)
+		b = strconv.FormatUint(uint64(t), 10)
 	case uint64:
-		b = strconv.FormatUint(uint64(value.(uint64)), 10)
+		b = strconv.FormatUint(uint64(t), 10)
 	case float32:
-		b = fmt.Sprintf("%f", value.(float32))
+		b = fmt.Sprintf("%f", t)
 	case float64:
-		b = fmt.Sprintf("%f", value.(float64))
+		b = fmt.Sprintf("%f", t)
 	case bool:
-		b = "false"
-		s := strings.ToLower(value.(string))
-		if len(s) > 0 {
-			if s == "true" || s == "on" || s == "yes" || s == "1" || s == "-1" {
-				b = "true"
-			}
+		if t {
+			return "true"
+		} else {
+			return "false"
 		}
 	case time.Time:
-		b = "'" + value.(time.Time).Format(time.RFC3339) + "'"
+		b = "'" + t.Format(time.RFC3339) + "'"
+	case *string:
+		b = *t
+	case *int:
+		b = strconv.FormatInt(int64(*t), 10)
+	case *int8:
+		b = strconv.FormatInt(int64(*t), 10)
+	case *int16:
+		b = strconv.FormatInt(int64(*t), 10)
+	case *int32:
+		b = strconv.FormatInt(int64(*t), 10)
+	case *int64:
+		b = strconv.FormatInt(*t, 10)
+	case *uint:
+		b = strconv.FormatUint(uint64(*t), 10)
+	case *uint8:
+		b = strconv.FormatUint(uint64(*t), 10)
+	case *uint16:
+		b = strconv.FormatUint(uint64(*t), 10)
+	case *uint32:
+		b = strconv.FormatUint(uint64(*t), 10)
+	case *uint64:
+		b = strconv.FormatUint(uint64(*t), 10)
+	case *float32:
+		b = fmt.Sprintf("%f", *t)
+	case *float64:
+		b = fmt.Sprintf("%f", *t)
+	case *bool:
+		if *t {
+			return "true"
+		} else {
+			return "false"
+		}
+	case *time.Time:
+		tm := *t
+		b = "'" + tm.Format(time.RFC3339) + "'"
 	}
 
 	return b
+}
+
+// Itos is a shortcut to AnyToString
+func Itos(value interface{}) string {
+	return AnyToString(value)
 }
 
 // IntToInterfaceArray - converts a name value array to interface array
