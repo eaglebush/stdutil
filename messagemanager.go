@@ -97,6 +97,11 @@ func (r *MessageManager) PrevailingType() MessageType {
 	return getDominantMessageType(&r.Messages)
 }
 
+// ToString return the messages as a carriage/return delimited string
+func (r *MessageManager) ToString() string {
+	return strings.Join(r.Messages, "\r\n")
+}
+
 // AppendInfo - appends an information message
 func AppendInfo(Messages *[]string, Message ...string) {
 	for _, m := range Message {
