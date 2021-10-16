@@ -184,3 +184,8 @@ func (r *Result) AddErr(err error) Result {
 
 	return *r
 }
+
+// ToString adds a formatted error message and returns itself
+func (r *Result) MessagesToString() string {
+	return r.mm.ToString()
+}
