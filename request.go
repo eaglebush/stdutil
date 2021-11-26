@@ -3,6 +3,7 @@ package stdutil
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -135,7 +136,12 @@ func ExecuteAPI(method string, endpoint string, payload []byte, gzipped bool, he
 	}
 	defer resp.Body.Close()
 
-	return ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
 
 // PostJSON - a wrapper for http.Post with custom result
