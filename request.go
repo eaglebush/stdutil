@@ -84,6 +84,8 @@ func ExecuteAPI(method string, endpoint string, payload []byte, gzipped bool, he
 		return nil, err
 	}
 
+	nr.Close = true
+
 	if headers == nil {
 		headers = make(map[string]string)
 	}
