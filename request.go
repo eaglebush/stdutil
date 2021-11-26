@@ -53,6 +53,10 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool
 	rd = ResultData{}
 	rd.Result = InitResult()
 
+	if headers == nil {
+		headers = make(map[string]string)
+	}
+
 	headers["Content-Type"] = "application/json"
 
 	data, err := ExecuteAPI(method, endpoint, payload, gzipped, headers, timeout)
@@ -77,6 +81,10 @@ func ExecuteAPI(method string, endpoint string, payload []byte, gzipped bool, he
 	nr, err := http.NewRequest(method, endpoint, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, err
+	}
+
+	if headers == nil {
+		headers = make(map[string]string)
 	}
 
 	for k, v := range headers {
