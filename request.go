@@ -53,10 +53,30 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool
 	rd = ResultData{}
 	rd.Result = InitResult()
 
-	nr, err := http.NewRequest(method, endpoint, bytes.NewBuffer(payload))
+	headers["Content-Type"] = "application/json"
+
+	data, err := ExecuteAPI(method, endpoint, payload, gzipped, headers, timeout)
 	if err != nil {
 		rd.Result.AddErr(err)
 		return
+	}
+
+	if len(data) != 0 {
+		if err = json.Unmarshal(data, &rd); err != nil {
+			rd.Result.AddErr(err)
+			return
+		}
+	}
+
+	return
+}
+
+// ExecuteAPI - a wrapper for http operation that can change or read data that returns a byte array
+func ExecuteAPI(method string, endpoint string, payload []byte, gzipped bool, headers map[string]string, timeout int) ([]byte, error) {
+
+	nr, err := http.NewRequest(method, endpoint, bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, err
 	}
 
 	for k, v := range headers {
@@ -86,9 +106,6 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool
 		}
 	}
 
-	// Standard header
-	nr.Header.Add("Content-Type", "application/json")
-
 	if nr.Method == "GET" {
 		if ce := nr.Header.Get("Content-Encoding"); ce != "" {
 			nr.Header.Add("Accept-Encoding", ce)
@@ -106,25 +123,11 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool
 	cli := http.Client{Timeout: time.Second * time.Duration(timeout)}
 	resp, err := cli.Do(nr)
 	if err != nil {
-		rd.Result.AddErr(err)
-		return
+		return nil, err
 	}
 	defer resp.Body.Close()
 
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		rd.Result.AddErr(err)
-		return
-	}
-
-	if len(data) != 0 {
-		if err = json.Unmarshal(data, &rd); err != nil {
-			rd.Result.AddErr(err)
-			return
-		}
-	}
-
-	return
+	return ioutil.ReadAll(resp.Body)
 }
 
 // PostJSON - a wrapper for http.Post with custom result
