@@ -116,6 +116,7 @@ func ExecuteAPI(method string, endpoint string, payload []byte, gzipped bool, he
 	}
 
 	if nr.Method == "GET" {
+		nr.Header.Add("Accept-Encoding", "identity")
 		if ce := nr.Header.Get("Content-Encoding"); ce != "" {
 			nr.Header.Add("Accept-Encoding", ce)
 		}
