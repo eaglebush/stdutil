@@ -140,10 +140,11 @@ func ExecuteAPI(method string, endpoint string, payload []byte, gzipped bool, he
 	}
 	defer resp.Body.Close()
 
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
+	// Ignore error temporarily
+	data, _ := io.ReadAll(resp.Body)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	return data, nil
 }
