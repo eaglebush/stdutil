@@ -117,15 +117,9 @@ func ExecuteAPI(method string, endpoint string, payload []byte, gzipped bool, he
 		}
 	}
 
-	//nr.Header.Add("Connection", "keep-alive")
+	nr.Header.Add("Connection", "keep-alive")
 
 	if nr.Method == "GET" {
-		nr.Header.Add("Accept-Encoding", "identity")
-
-		if gzipped {
-			nr.Header.Set("Accept-Encoding", "gzip")
-		}
-
 		if ce := nr.Header.Get("Content-Encoding"); ce != "" {
 			nr.Header.Set("Accept-Encoding", ce)
 		}
