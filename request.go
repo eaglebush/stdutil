@@ -125,7 +125,7 @@ func ExecuteAPI(method string, endpoint string, payload []byte, gzipped bool, he
 		}
 	}
 
-	if gzipped {
+	if gzipped && nr.Method != "GET" {
 		nr.Header.Add("Content-Encoding", "gzip")
 	}
 
