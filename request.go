@@ -412,7 +412,7 @@ func GetRequestVars(r *http.Request, secretkey string) RequestVars {
 		return *rv
 	}
 
-	if jwtp = strings.Split(jwth, " "); len(jwtp) < 1 {
+	if jwtp = strings.Split(jwth, " "); len(jwtp) < 2 {
 		return *rv
 	}
 
