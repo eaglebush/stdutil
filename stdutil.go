@@ -189,7 +189,7 @@ func SortByKeyArray(values *NameValues, keyOrder *[]string) NameValues {
 		for i := 0; i < len(ko); i++ {
 			for _, v := range values.Pair {
 				kv := v.Name
-				if strings.ToLower(ko[i]) == strings.ToLower(kv) {
+				if strings.EqualFold(ko[i], kv) {
 					ret.Pair = append(ret.Pair, v)
 					break
 				}

@@ -24,7 +24,7 @@ type RequestVars struct {
 
 // Errors
 var (
-	ErrRVNoBody = errors.New(`The request has no payload`)
+	ErrRVNoBody = errors.New(`the request has no payload`)
 )
 
 // IsGet - a shortcut method to check if the request is a GET
