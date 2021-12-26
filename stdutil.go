@@ -52,38 +52,97 @@ func AnyToString(value interface{}) string {
 	case time.Time:
 		b = "'" + t.Format(time.RFC3339) + "'"
 	case *string:
+		if t == nil {
+			return ""
+		}
+
 		b = *t
 	case *int:
+		if t == nil {
+			return "0"
+		}
+
 		b = strconv.FormatInt(int64(*t), 10)
 	case *int8:
+		if t == nil {
+			return "0"
+		}
+
 		b = strconv.FormatInt(int64(*t), 10)
 	case *int16:
+		if t == nil {
+			return "0"
+		}
+
 		b = strconv.FormatInt(int64(*t), 10)
 	case *int32:
+		if t == nil {
+			return "0"
+		}
+
 		b = strconv.FormatInt(int64(*t), 10)
 	case *int64:
+		if t == nil {
+			return "0"
+		}
+
 		b = strconv.FormatInt(*t, 10)
 	case *uint:
+		if t == nil {
+			return "0"
+		}
 		b = strconv.FormatUint(uint64(*t), 10)
 	case *uint8:
+		if t == nil {
+			return "0"
+		}
+
 		b = strconv.FormatUint(uint64(*t), 10)
 	case *uint16:
+		if t == nil {
+			return "0"
+		}
+
 		b = strconv.FormatUint(uint64(*t), 10)
 	case *uint32:
+		if t == nil {
+			return "0"
+		}
+
 		b = strconv.FormatUint(uint64(*t), 10)
 	case *uint64:
+		if t == nil {
+			return "0"
+		}
+
 		b = strconv.FormatUint(uint64(*t), 10)
 	case *float32:
+		if t == nil {
+			return "0"
+		}
+
 		b = fmt.Sprintf("%f", *t)
 	case *float64:
+		if t == nil {
+			return "0"
+		}
+
 		b = fmt.Sprintf("%f", *t)
 	case *bool:
+		if t == nil {
+			return "false"
+		}
+
 		if *t {
 			return "true"
 		} else {
 			return "false"
 		}
 	case *time.Time:
+		if t == nil {
+			return "'" + time.Time{}.Format(time.RFC3339) + "'"
+		}
+
 		tm := *t
 		b = "'" + tm.Format(time.RFC3339) + "'"
 	}
