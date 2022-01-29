@@ -17,41 +17,42 @@ const (
 
 // MessageManager - a struct to create messages
 type MessageManager struct {
-	Messages []string `json:"messages,omitempty"`
+	MessagePrefix string   `json:"prefix,omitempty"` // Prefix of the message to return
+	Messages      []string `json:"messages,omitempty"`
 }
 
 // AddInfo - adds an information message
 func (r *MessageManager) AddInfo(Message ...string) {
 	for _, m := range Message {
-		addMessage(&r.Messages, m, MsgInfo)
+		addMessage(&r.Messages, r.MessagePrefix, m, MsgInfo)
 	}
 }
 
 // AddWarning - adds a warning message
 func (r *MessageManager) AddWarning(Message ...string) {
 	for _, m := range Message {
-		addMessage(&r.Messages, m, MsgWarn)
+		addMessage(&r.Messages, r.MessagePrefix, m, MsgWarn)
 	}
 }
 
 // AddError - adds an error message
 func (r *MessageManager) AddError(Message ...string) {
 	for _, m := range Message {
-		addMessage(&r.Messages, m, MsgError)
+		addMessage(&r.Messages, r.MessagePrefix, m, MsgError)
 	}
 }
 
 // AddFatal - adds a fatal error message
 func (r *MessageManager) AddFatal(Message ...string) {
 	for _, m := range Message {
-		addMessage(&r.Messages, m, MsgFatal)
+		addMessage(&r.Messages, r.MessagePrefix, m, MsgFatal)
 	}
 }
 
 // AddAppMsg - adds an error message
 func (r *MessageManager) AddAppMsg(Message ...string) {
 	for _, m := range Message {
-		addMessage(&r.Messages, m, MsgApp)
+		addMessage(&r.Messages, r.MessagePrefix, m, MsgApp)
 	}
 }
 
@@ -103,23 +104,23 @@ func (r *MessageManager) ToString() string {
 }
 
 // AppendInfo - appends an information message
-func AppendInfo(Messages *[]string, Message ...string) {
+func AppendInfo(Messages *[]string, MessagePrefix string, Message ...string) {
 	for _, m := range Message {
-		addMessage(Messages, m, MsgInfo)
+		addMessage(Messages, MessagePrefix, m, MsgInfo)
 	}
 }
 
 // AppendWarning - appends a warning message
-func AppendWarning(Messages *[]string, Message ...string) {
+func AppendWarning(Messages *[]string, MessagePrefix string, Message ...string) {
 	for _, m := range Message {
-		addMessage(Messages, m, MsgWarn)
+		addMessage(Messages, MessagePrefix, m, MsgWarn)
 	}
 }
 
 // AppendError - appends an error message
-func AppendError(Messages *[]string, Message ...string) {
+func AppendError(Messages *[]string, MessagePrefix string, Message ...string) {
 	for _, m := range Message {
-		addMessage(Messages, m, MsgError)
+		addMessage(Messages, MessagePrefix, m, MsgError)
 	}
 }
 
@@ -146,10 +147,15 @@ func fixMessages(Messages *[]string) []string {
 }
 
 // add new message to the message array
-func addMessage(Messages *[]string, Message string, Type MessageType) {
+func addMessage(Messages *[]string, MessagePrefix, Message string, Type MessageType) {
 
 	Message = strings.TrimSpace(Message)
-	td := string(Type) + DelimMsgType
+
+	td := string(Type)
+	if MessagePrefix != "" {
+		td += " [" + MessagePrefix + "]"
+	}
+	td += DelimMsgType
 
 	if !strings.HasPrefix(strings.ToUpper(Message), td) && Type != MsgApp {
 		*Messages = append(*Messages, td+Message)

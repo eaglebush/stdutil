@@ -21,22 +21,31 @@ const (
 
 // Result - standard result structure
 type Result struct {
-	Messages     []string     `json:"messages,omitempty"`      // Accumulated messages as a result from Add methods. Do not append messages using append()
-	Status       string       `json:"status,omitempty"`        // OK, ERROR, VALID or any status
-	Operation    string       `json:"operation,omitempty"`     // Name of the operation / function that returned the result
-	TaskID       *string      `json:"task_id,omitempty"`       // ID of the request and of the result
-	WorkerID     *string      `json:"worker_id,omitempty"`     // ID of the worker that processed the data
-	FocusControl *string      `json:"focus_control,omitempty"` // Control to focus when error was activated
-	Page         *int         `json:"page,omitempty"`          // Current Page
-	PageCount    *int         `json:"page_count,omitempty"`    // Page Count
-	PageSize     *int         `json:"page_size,omitempty"`     // Page Size
-	Tag          *interface{} `json:"tag,omitempty"`           // Miscellaneous result
-	mm           *MessageManager
+	Messages      []string     `json:"messages"`                // Accumulated messages as a result from Add methods. Do not append messages using append()
+	Status        string       `json:"status"`                  // OK, ERROR, VALID or any status
+	Operation     string       `json:"operation,omitempty"`     // Name of the operation / function that returned the result
+	TaskID        *string      `json:"task_id,omitempty"`       // ID of the request and of the result
+	WorkerID      *string      `json:"worker_id,omitempty"`     // ID of the worker that processed the data
+	FocusControl  *string      `json:"focus_control,omitempty"` // Control to focus when error was activated
+	Page          *int         `json:"page,omitempty"`          // Current Page
+	PageCount     *int         `json:"page_count,omitempty"`    // Page Count
+	PageSize      *int         `json:"page_size,omitempty"`     // Page Size
+	Tag           *interface{} `json:"tag,omitempty"`           // Miscellaneous result
+	MessagePrefix string       `json:"prefix,omitempty"`        // Prefix of the message to return
+	mm            *MessageManager
 }
 
 // InitResult - initialize result for API query. This is the recommended initialization of this object.
-// In the variadic argument, the first slice will be its status, the rest will be added to the messages
-func InitResult(args ...string) Result {
+// The variadic arguments of std.NameValue data type will be intepreted as follows:
+//
+// To set the initial status, set NameValue.Name to "status" and set NameValue.Value to a valid status
+// if the value is not a valid status, it will be ignored */
+//
+// To set a message prefix, set NameValue.Name to "prefix" and set NameValue.Value to a string value.
+//
+// To add a message, set NameValue.Name to "message" and set NameValue.Value to a valid message.
+// Depending on the current status (default is EXCEPTION), the message type is automatically set to that type
+func InitResult(args ...NameValue) Result {
 
 	res := Result{
 		Status: string(EXCEPTION),
@@ -48,17 +57,45 @@ func InitResult(args ...string) Result {
 
 	if ln := len(args); ln > 0 {
 
-		res.Status = args[0]
+		for i := 0; i < ln; i++ {
 
-		if ln > 1 {
-			for i := 1; i < len(args); i++ {
-				if res.Status == string(EXCEPTION) {
-					res.AddError(args[i])
-				} else {
-					res.AddInfo(args[i])
+			nm := strings.TrimSpace(args[i].Name)
+
+			// check if it is a valid status, ignore if not
+			// go to next value if valid
+			if strings.EqualFold(nm, `status`) {
+				nvs, ok := args[i].Value.(string)
+				if ok {
+					switch nvs {
+					case string(OK), string(EXCEPTION), string(VALID), string(INVALID), string(YES), string(NO):
+						res.Status = nvs
+						continue
+					}
+				}
+			}
+
+			if strings.EqualFold(nm, `prefix`) {
+				nvs, ok := args[i].Value.(string)
+				if ok {
+					res.mm.MessagePrefix = nvs
+					res.MessagePrefix = nvs
+					continue
+				}
+			}
+
+			if strings.EqualFold(nm, `message`) {
+				nvs, ok := args[i].Value.(string)
+				if ok {
+					if res.Status == string(EXCEPTION) {
+						res.AddError(nvs)
+					} else {
+						res.AddInfo(nvs)
+					}
+					continue
 				}
 			}
 		}
+
 	}
 
 	// Auto-detect function that called this function
@@ -80,7 +117,9 @@ func (r *Result) Return(status Status) Result {
 	r.Status = string(status)
 
 	if r.mm == nil {
-		r.mm = &MessageManager{}
+		r.mm = &MessageManager{
+			MessagePrefix: r.MessagePrefix,
+		}
 	}
 
 	r.Messages = r.mm.Messages
@@ -121,7 +160,9 @@ func (r *Result) No() bool {
 // MessageManager returns the internal message manager for further manipulation
 func (r *Result) MessageManager() *MessageManager {
 	if r.mm == nil {
-		r.mm = &MessageManager{}
+		r.mm = &MessageManager{
+			MessagePrefix: r.MessagePrefix,
+		}
 	}
 	return r.mm
 }
@@ -129,8 +170,12 @@ func (r *Result) MessageManager() *MessageManager {
 // AddInfo - adds an information message and returns itself
 func (r *Result) AddInfo(message ...string) Result {
 	if r.mm == nil {
-		r.mm = &MessageManager{}
+		r.mm = &MessageManager{
+			MessagePrefix: r.MessagePrefix,
+		}
 	}
+
+	r.mm.MessagePrefix = r.MessagePrefix
 	r.mm.AddInfo(message...)
 	r.Messages = r.mm.Messages
 
@@ -145,8 +190,12 @@ func (r *Result) AddInfof(format string, a ...interface{}) Result {
 // AddWarning - adds a warning message and returns itself
 func (r *Result) AddWarning(message ...string) Result {
 	if r.mm == nil {
-		r.mm = &MessageManager{}
+		r.mm = &MessageManager{
+			MessagePrefix: r.MessagePrefix,
+		}
 	}
+
+	r.mm.MessagePrefix = r.MessagePrefix
 	r.mm.AddWarning(message...)
 	r.Messages = r.mm.Messages
 
@@ -160,9 +209,14 @@ func (r *Result) AddWarningf(format string, a ...interface{}) Result {
 
 // AddError - adds an error message and returns itself
 func (r *Result) AddError(message ...string) Result {
+
 	if r.mm == nil {
-		r.mm = &MessageManager{}
+		r.mm = &MessageManager{
+			MessagePrefix: r.MessagePrefix,
+		}
 	}
+
+	r.mm.MessagePrefix = r.MessagePrefix
 	r.mm.AddError(message...)
 	r.Messages = r.mm.Messages
 
@@ -176,9 +230,14 @@ func (r *Result) AddErrorf(format string, a ...interface{}) Result {
 
 // AddErr - adds a real error and returns itself
 func (r *Result) AddErr(err error) Result {
+
 	if r.mm == nil {
-		r.mm = &MessageManager{}
+		r.mm = &MessageManager{
+			MessagePrefix: r.MessagePrefix,
+		}
 	}
+
+	r.mm.MessagePrefix = r.MessagePrefix
 	r.mm.AddError(err.Error())
 	r.Messages = r.mm.Messages
 

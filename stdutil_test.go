@@ -1,6 +1,7 @@
 package stdutil
 
 import (
+	"log"
 	"testing"
 )
 
@@ -33,4 +34,33 @@ func TestGenerateRandomString(t *testing.T) {
 		t.Logf("-------------------------------------------------------")
 	}
 	t.Logf("GenerateFull: %s", GenerateFull(32))
+}
+
+func TestResult(t *testing.T) {
+
+	res := InitResult(
+		NameValue{
+			Name:  "prefix",
+			Value: "SampleFunc",
+		},
+		NameValue{
+			Name:  "message",
+			Value: "This is a first message",
+		},
+		NameValue{
+			Name:  "message",
+			Value: "This is a second message",
+		},
+		NameValue{
+			Name:  "message",
+			Value: "This is a third message",
+		},
+	)
+
+	res.MessagePrefix = "WEH"
+	res.AddError("This is an error message")
+	res.AddInfo("This is an informational message")
+
+	log.Println(res.MessagesToString())
+
 }

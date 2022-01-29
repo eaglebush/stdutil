@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-//NameValue - a struct to manage value objects
+// NameValue - a struct to manage value objects
 type NameValue struct {
 	Name  string
 	Value interface{}
@@ -36,10 +36,8 @@ func (nvp *NameValues) Exists(name string) int {
 		nvp.prepare()
 	}
 
-	nn := strings.ToLower(name)
-
 	for i, nv := range nvp.Pair {
-		if nn == nv.Name {
+		if strings.EqualFold(name, nv.Name) {
 			return i
 		}
 	}
@@ -53,10 +51,8 @@ func (nvp *NameValues) String(name string) (string, bool) {
 		nvp.prepare()
 	}
 
-	nn := strings.ToLower(name)
-
 	for _, nv := range nvp.Pair {
-		if nn == nv.Name {
+		if strings.EqualFold(name, nv.Name) {
 			return AnyToString(nv.Value), true
 		}
 	}
@@ -71,10 +67,8 @@ func (nvp *NameValues) Int(name string) (int, bool) {
 		nvp.prepare()
 	}
 
-	nn := strings.ToLower(name)
-
 	for _, nv := range nvp.Pair {
-		if nn == nv.Name {
+		if strings.EqualFold(name, nv.Name) {
 			v, _ := strconv.Atoi(AnyToString(nv.Value))
 			return v, true
 		}
@@ -89,10 +83,8 @@ func (nvp *NameValues) Int64(name string) (int64, bool) {
 		nvp.prepare()
 	}
 
-	nn := strings.ToLower(name)
-
 	for _, nv := range nvp.Pair {
-		if nn == nv.Name {
+		if strings.EqualFold(name, nv.Name) {
 			v, _ := strconv.ParseInt(AnyToString(nv.Value), 10, 64)
 			return v, true
 		}
@@ -107,10 +99,8 @@ func (nvp *NameValues) Plain(name string) (interface{}, bool) {
 		nvp.prepare()
 	}
 
-	nn := strings.ToLower(name)
-
 	for _, nv := range nvp.Pair {
-		if nn == nv.Name {
+		if strings.EqualFold(name, nv.Name) {
 			return nv.Value, true
 		}
 	}
@@ -124,10 +114,8 @@ func (nvp *NameValues) Bool(name string) (bool, bool) {
 		nvp.prepare()
 	}
 
-	nn := strings.ToLower(name)
-
 	for _, nv := range nvp.Pair {
-		if nn == nv.Name {
+		if strings.EqualFold(name, nv.Name) {
 			vs := AnyToString(nv.Value)
 			return (vs == "true" || vs == "yes" || vs == "1" || vs == "-1" || vs == "on"), true
 		}
@@ -142,10 +130,8 @@ func (nvp *NameValues) Float64(name string) (float64, bool) {
 		nvp.prepare()
 	}
 
-	nn := strings.ToLower(name)
-
 	for _, nv := range nvp.Pair {
-		if nn == nv.Name {
+		if strings.EqualFold(name, nv.Name) {
 			v, _ := strconv.ParseFloat(AnyToString(nv.Value), 64)
 			return v, true
 		}
