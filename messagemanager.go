@@ -18,7 +18,7 @@ const (
 // MessageManager - a struct to create messages
 type MessageManager struct {
 	MessagePrefix string   `json:"prefix,omitempty"` // Prefix of the message to return
-	Messages      []string `json:"messages,omitempty"`
+	Messages      []string `json:"messages"`
 }
 
 // AddInfo - adds an information message
