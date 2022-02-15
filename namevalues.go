@@ -60,6 +60,24 @@ func (nvp *NameValues) String(name string) (string, bool) {
 	return "", false
 }
 
+// Strings returns the values as a string array
+func (nvp *NameValues) Strings(name string) []string {
+
+	if !nvp.prepared {
+		nvp.prepare()
+	}
+
+	str := make([]string, 0)
+
+	for _, nv := range nvp.Pair {
+		if strings.EqualFold(name, nv.Name) {
+			str = append(str, AnyToString(nv.Value))
+		}
+	}
+
+	return str
+}
+
 // Int returns the name value as int. The second argument returns the existence.
 func (nvp *NameValues) Int(name string) (int, bool) {
 
@@ -76,6 +94,25 @@ func (nvp *NameValues) Int(name string) (int, bool) {
 	return 0, false
 }
 
+// Ints returns the values as an int array
+func (nvp *NameValues) Ints(name string) []int {
+
+	if !nvp.prepared {
+		nvp.prepare()
+	}
+
+	str := make([]int, 0)
+
+	for _, nv := range nvp.Pair {
+		if strings.EqualFold(name, nv.Name) {
+			v, _ := strconv.Atoi(AnyToString(nv.Value))
+			str = append(str, v)
+		}
+	}
+
+	return str
+}
+
 // Int64 returns the name value as int64. The second argument returns the existence.
 func (nvp *NameValues) Int64(name string) (int64, bool) {
 
@@ -90,6 +127,25 @@ func (nvp *NameValues) Int64(name string) (int64, bool) {
 		}
 	}
 	return 0, false
+}
+
+// Int64s returns the values as an int64 array
+func (nvp *NameValues) Int64s(name string) []int64 {
+
+	if !nvp.prepared {
+		nvp.prepare()
+	}
+
+	str := make([]int64, 0)
+
+	for _, nv := range nvp.Pair {
+		if strings.EqualFold(name, nv.Name) {
+			v, _ := strconv.ParseInt(AnyToString(nv.Value), 10, 64)
+			str = append(str, v)
+		}
+	}
+
+	return str
 }
 
 // Plain returns the name value as interface{}. The second argument returns the existence.
@@ -123,6 +179,25 @@ func (nvp *NameValues) Bool(name string) (bool, bool) {
 	return false, false
 }
 
+// Bools returns the values as a boolean array
+func (nvp *NameValues) Bools(name string) []bool {
+
+	if !nvp.prepared {
+		nvp.prepare()
+	}
+
+	str := make([]bool, 0)
+
+	for _, nv := range nvp.Pair {
+		if strings.EqualFold(name, nv.Name) {
+			vs := AnyToString(nv.Value)
+			str = append(str, (vs == "true" || vs == "yes" || vs == "1" || vs == "-1" || vs == "on"))
+		}
+	}
+
+	return str
+}
+
 // Float64 returns the name value as float64. The second argument returns the existence.
 func (nvp *NameValues) Float64(name string) (float64, bool) {
 
@@ -137,6 +212,25 @@ func (nvp *NameValues) Float64(name string) (float64, bool) {
 		}
 	}
 	return 0, false
+}
+
+// Float64s returns the values as a float64 array
+func (nvp *NameValues) Float64s(name string) []float64 {
+
+	if !nvp.prepared {
+		nvp.prepare()
+	}
+
+	str := make([]float64, 0)
+
+	for _, nv := range nvp.Pair {
+		if strings.EqualFold(name, nv.Name) {
+			v, _ := strconv.ParseFloat(AnyToString(nv.Value), 64)
+			str = append(str, v)
+		}
+	}
+
+	return str
 }
 
 // **************************************************************
@@ -188,106 +282,6 @@ func (nvp *NameValues) PtrFloat64(name string) (*float64, bool) {
 // Deprecated: Use Exists() instead
 func (nvp *NameValues) KeyExists(name string) bool {
 	return nvp.Exists(name) != -1
-}
-
-// ValueString - get the struct value as string
-//
-// Deprecated: Use String() instead
-func (nvp *NameValues) ValueString(name string) string {
-	value, _ := nvp.String(name)
-	return value
-}
-
-// ValueInt - get the struct value as int
-//
-// Deprecated: Use Int() instead
-func (nvp *NameValues) ValueInt(name string) int {
-	value, _ := nvp.Int(name)
-	return value
-}
-
-// ValueInt64 - get the struct value as int64
-//
-// Deprecated: Use Int64() instead
-func (nvp *NameValues) ValueInt64(name string) int64 {
-	value, _ := nvp.Int64(name)
-	return value
-}
-
-// ValuePlain - get the struct value as interface{}
-//
-// Deprecated: Use Plain() instead
-func (nvp *NameValues) ValuePlain(name string) interface{} {
-	value, _ := nvp.Plain(name)
-	return value
-}
-
-// ValueBool - get the struct value as bool
-//
-// Deprecated: Use Bool() instead
-func (nvp *NameValues) ValueBool(name string) bool {
-	value, _ := nvp.Bool(name)
-	return value
-}
-
-// ValueFloat64 - get the struct value as int
-//
-// Deprecated: Use Float64() instead
-func (nvp *NameValues) ValueFloat64(name string) float64 {
-	value, _ := nvp.Float64(name)
-	return value
-}
-
-// **************************************************************
-//   Deprecated pointer functions
-// **************************************************************
-
-// ValuePtrString - get the struct value of string pointer
-//
-// Deprecated: Use PtrString() instead
-func (nvp *NameValues) ValuePtrString(name string) *string {
-	value, _ := nvp.String(name)
-	return &value
-}
-
-// ValuePtrInt - get the struct value as int pointer
-//
-// Deprecated: Use PtrInt() instead
-func (nvp *NameValues) ValuePtrInt(name string) *int {
-	value, _ := nvp.Int(name)
-	return &value
-}
-
-// ValuePtrInt64 - get the struct value as int pointer
-//
-// Deprecated: Use PtrInt64() instead
-func (nvp *NameValues) ValuePtrInt64(name string) *int64 {
-	value, _ := nvp.Int64(name)
-	return &value
-}
-
-// ValuePtrPlain - get the struct value as interface{} pointer
-//
-// Deprecated: Use PtrPlain() instead
-func (nvp *NameValues) ValuePtrPlain(name string) *interface{} {
-	value, _ := nvp.Plain(name)
-	return &value
-}
-
-//ValuePtrBool - get the struct value as bool as pointer
-//
-// Deprecated: Use PtrBool() instead
-func (nvp *NameValues) ValuePtrBool(name string) *bool {
-	value, _ := nvp.Bool(name)
-	return &value
-}
-
-// ValuePtrFloat64 - get the struct value as int as pointer
-//
-// Deprecated: Use PtrFloat64() instead
-func (nvp *NameValues) ValuePtrFloat64(name string) *float64 {
-	value, _ := nvp.Float64(name)
-	return &value
 }
 
 // **************************************************************
