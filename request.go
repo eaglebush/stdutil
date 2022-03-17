@@ -241,7 +241,7 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 
 	var (
 		usr, dom, app, dev string
-		iss, sub, jti      string
+		iss, sub, jti, tnt string
 		exp, nbf, iat      int64
 	)
 
@@ -306,6 +306,10 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 		jti = ifc.(string)
 	}
 
+	if ifc = clm["tnt"]; ifc != nil {
+		tnt = ifc.(string)
+	}
+
 	unixt := func(unixts int64) *jwt.Time {
 		epoch := time.Date(1970, time.January, 1, 0, 0, 0, 0, time.UTC)
 		tt := time.Unix(unixts, 0)
@@ -329,6 +333,7 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 		Domain:        dom,
 		ApplicationID: app,
 		DeviceID:      dev,
+		TenantID:      tnt,
 	}
 
 	HMAC := jwt.NewHS256([]byte(secretkey))
