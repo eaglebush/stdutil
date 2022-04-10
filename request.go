@@ -3,6 +3,7 @@ package stdutil
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -407,12 +408,12 @@ func GetRequestVarsOnly(r *http.Request) RequestVars {
 }
 
 // ValidateJWT validates JWT and returns information
-func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) JWTInfo {
+func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) (*JWTInfo, error) {
 
-	ji := JWTInfo{}
+	ji := &JWTInfo{}
 
 	if len(secretKey) == 0 {
-		return ji
+		return ji, fmt.Errorf(`Authorization header not set`)
 	}
 
 	var (
@@ -424,19 +425,19 @@ func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) JWTInfo 
 
 	// Get Authorization header
 	if jwth = r.Header.Get("Authorization"); len(jwth) == 0 {
-		return ji
+		return ji, fmt.Errorf(`Authorization header not set`)
 	}
 
 	if jwtp = strings.Split(jwth, " "); len(jwtp) < 2 {
-		return ji
+		return ji, fmt.Errorf(`Invalid authorization header`)
 	}
 
 	if !strings.EqualFold(strings.TrimSpace(jwtp[0]), "bearer") {
-		return ji
+		return ji, fmt.Errorf(`Invalid authorization bearer`)
 	}
 
 	if jwtfromck = strings.TrimSpace(jwtp[1]); len(jwtfromck) == 0 {
-		return ji
+		return ji, fmt.Errorf(`Invalid authorization token`)
 	}
 
 	// Parse JWT
@@ -458,7 +459,7 @@ func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) JWTInfo 
 	}
 
 	if err != nil {
-		return ji
+		return ji, err
 	}
 
 	ji.TokenAudience = pl.Audience
@@ -471,12 +472,16 @@ func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) JWTInfo 
 
 	ji.ValidAuthToken = true
 
-	return ji
+	return ji, nil
 }
 
 // GetRequestVars - get request variables and return JWT validation result
 func GetRequestVars(r *http.Request, secretKey string) RequestVars {
 	rv := GetRequestVarsOnly(r)
-	rv.JWTInfo = ValidateJWT(r, secretKey, false)
+	ji, err := ValidateJWT(r, secretKey, false)
+	if err != nil {
+		rv.JWTInfo = *ji
+	}
+
 	return rv
 }
