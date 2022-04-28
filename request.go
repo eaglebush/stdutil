@@ -480,8 +480,10 @@ func GetRequestVars(r *http.Request, secretKey string) RequestVars {
 	rv := GetRequestVarsOnly(r)
 	ji, err := ValidateJWT(r, secretKey, false)
 	if err != nil {
-		rv.JWTInfo = *ji
+		rv.ValidAuthToken = false
+		return rv
 	}
+	rv.JWTInfo = *ji
 
 	return rv
 }
