@@ -3,7 +3,82 @@ package stdutil
 import (
 	"log"
 	"testing"
+	"time"
 )
+
+func TestNullOrEmpty(t *testing.T) {
+	var (
+		sam1 string
+		sam2 int
+		sam3 time.Time
+		sam4 *string
+		sam5 *time.Time
+	)
+
+	sam1 = "ok"
+	sam2 = 0
+	sam3 = time.Now()
+
+	if IsNullOrEmpty(&sam1) {
+		t.Log("String empty ")
+	} else {
+		t.Log("String Not empty")
+	}
+
+	if IsNullOrEmpty(&sam2) {
+		t.Log("Int empty")
+	} else {
+		t.Log("Int Not empty")
+	}
+
+	if IsNullOrEmpty(&sam3) {
+		t.Log("Time empty")
+	} else {
+		t.Log("Time Not empty")
+	}
+
+	if IsNullOrEmpty(sam4) {
+		t.Log("String empty or null")
+	} else {
+		t.Log("String Not empty")
+	}
+
+	if IsNullOrEmpty(sam5) {
+		t.Log("Time empty or null")
+	} else {
+		t.Log("Time Not empty")
+	}
+
+	if IsEmpty(&sam1) {
+		t.Log("IsEmpty: String empty ")
+	} else {
+		t.Log("IsEmpty: String Not empty")
+	}
+
+	if IsEmpty(&sam2) {
+		t.Log("IsEmpty: Int empty")
+	} else {
+		t.Log("IsEmpty: Int Not empty")
+	}
+
+	if IsEmpty(&sam3) {
+		t.Log("IsEmpty: Time empty")
+	} else {
+		t.Log("IsEmpty: Time Not empty")
+	}
+
+	if IsEmpty(sam4) {
+		t.Log("IsEmpty: String empty or null")
+	} else {
+		t.Log("IsEmpty: String Not empty")
+	}
+
+	if IsEmpty(sam5) {
+		t.Log("IsEmpty: Time empty or null")
+	} else {
+		t.Log("IsEmpty: Time Not empty")
+	}
+}
 
 func TestStripEndingForwardSlash(t *testing.T) {
 	addr := "http://localhost:8000asdsadas/"

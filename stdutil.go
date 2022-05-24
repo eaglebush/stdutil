@@ -6,7 +6,14 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	ssd "github.com/shopspring/decimal"
+	"golang.org/x/exp/constraints"
 )
+
+type FieldTypeConstraint interface {
+	constraints.Ordered | time.Time | ssd.Decimal
+}
 
 // AnyToString - convert any variable to string
 func AnyToString(value interface{}) string {
@@ -150,7 +157,7 @@ func AnyToString(value interface{}) string {
 	return b
 }
 
-// Itos is a shortcut to AnyToString
+// Itos is a shortcut to AnyToString. I means Interface
 func Itos(value interface{}) string {
 	return AnyToString(value)
 }
@@ -162,10 +169,28 @@ func IntToInterfaceArray(values int) []interface{} {
 	return args
 }
 
-//IsNumeric - checks if a string is numeric
+// IsNumeric - checks if a string is numeric
 func IsNumeric(s string) bool {
 	_, err := strconv.ParseFloat(s, 64)
 	return err == nil
+}
+
+// IsNullOrEmpty checks for nullity and emptiness of a pointer variable
+// Currently supported data types are the ones in the constraints.Ordered,
+// time.Time and shopspring/decimal
+//
+// This function requires version 1.18+
+func IsNullOrEmpty[T FieldTypeConstraint](s *T) bool {
+	return s == nil || *s == GetZero[T]()
+}
+
+// IsNullOrEmpty checks for emptiness of a pointer variable ignoring nullity
+// Currently supported data types are the ones in the constraints.Ordered,
+// time.Time and shopspring/decimal
+//
+// This function requires version 1.18+
+func IsEmpty[T FieldTypeConstraint](s *T) bool {
+	return s != nil && *s == GetZero[T]()
 }
 
 // NameValuesToInterfaceArray - converts name values to interface array
@@ -354,4 +379,12 @@ func NewTime(initial *time.Time) (init *time.Time) {
 	}
 
 	return
+}
+
+// GetZero gets the zero value of the types defined as
+// constraints.Ordered, time.Time and shopspring/decimal
+// This function requires version 1.18+
+func GetZero[T FieldTypeConstraint]() T {
+	var result T
+	return result
 }
