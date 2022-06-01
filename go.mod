@@ -7,7 +7,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 )
 
-require github.com/shopspring/decimal v1.3.1 // indirect
+require github.com/shopspring/decimal v1.3.1
 
 require (
 	github.com/magefile/mage v1.9.0 // indirect

@@ -139,3 +139,31 @@ func TestResult(t *testing.T) {
 	log.Println(res.MessagesToString())
 
 }
+
+func TestNew(t *testing.T) {
+
+	var (
+		newString   *string
+		newInt      *int
+		newFloat    *float64
+		newString18 *string
+		newInt18    *int
+		newFloat18  *float64
+	)
+
+	t.Log("No new: ", newString, newInt, newFloat)
+
+	newString = NewString("NEW")
+	newInt = NewInt(100)
+	newFloat = NewFloat64(42.0)
+
+	t.Log("With New:", newString, newInt, newFloat)
+
+	t.Log("No new 1.8: ", newString18, newInt18, newFloat18)
+	newString18 = New("NEW")
+	newInt18 = New(100)
+	newFloat18 = New(42.0)
+
+	t.Log("With New 1.8:", newString18, newInt18, newFloat18)
+
+}

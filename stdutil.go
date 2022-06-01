@@ -180,8 +180,8 @@ func IsNumeric(s string) bool {
 // time.Time and shopspring/decimal
 //
 // This function requires version 1.18+
-func IsNullOrEmpty[T FieldTypeConstraint](s *T) bool {
-	return s == nil || *s == GetZero[T]()
+func IsNullOrEmpty[T FieldTypeConstraint](value *T) bool {
+	return value == nil || *value == GetZero[T]()
 }
 
 // IsNullOrEmpty checks for emptiness of a pointer variable ignoring nullity
@@ -189,11 +189,35 @@ func IsNullOrEmpty[T FieldTypeConstraint](s *T) bool {
 // time.Time and shopspring/decimal
 //
 // This function requires version 1.18+
-func IsEmpty[T FieldTypeConstraint](s *T) bool {
-	return s != nil && *s == GetZero[T]()
+func IsEmpty[T FieldTypeConstraint](value *T) bool {
+	return value != nil && *value == GetZero[T]()
 }
 
-// NameValuesToInterfaceArray - converts name values to interface array
+// Val gets the value of a pointer in order
+// Currently supported data types are the ones in the constraints.Ordered,
+// time.Time and shopspring/decimal
+//
+// This function requires version 1.18+
+func Val[T FieldTypeConstraint](value *T) T {
+	if value == nil {
+		return GetZero[T]()
+	}
+
+	return *value
+}
+
+// New initializes a variable and returns a pointer of its type
+// Currently supported data types are the ones in the constraints.Ordered,
+// time.Time and shopspring/decimal
+//
+// This function requires version 1.18+
+func New[T FieldTypeConstraint](value T) *T {
+	n := new(T)
+	*n = value
+	return n
+}
+
+// NameValuesToInterfaceArray converts name values to interface array
 func NameValuesToInterfaceArray(values NameValues) []interface{} {
 
 	args := make([]interface{}, len(values.Pair))
@@ -206,7 +230,7 @@ func NameValuesToInterfaceArray(values NameValues) []interface{} {
 	return args
 }
 
-// NameValuesToValidationExpressionArray - converts name values to ValidationExpression array
+// NameValuesToValidationExpressionArray converts name values to ValidationExpression array
 func NameValuesToValidationExpressionArray(values NameValues) []ValidationExpression {
 
 	args := make([]ValidationExpression, len(values.Pair))
@@ -221,7 +245,7 @@ func NameValuesToValidationExpressionArray(values NameValues) []ValidationExpres
 	return args
 }
 
-// InterpolateString - Interpolate string with the name value pairs
+// InterpolateString interpolates string with the name value pairs
 func InterpolateString(base string, keyValues NameValues) (string, []interface{}) {
 	retstr := base
 
@@ -315,6 +339,8 @@ func StripLeading(value string, offset int) string {
 }
 
 // NewString initializes a string pointer with an initial value
+//
+// Deprecated: Please use New()
 func NewString(initial string) (init *string) {
 	init = new(string)
 	*init = initial
@@ -322,6 +348,8 @@ func NewString(initial string) (init *string) {
 }
 
 // NewByte initializes a byte pointer with an initial value
+//
+// Deprecated: Please use New()
 func NewByte(initial byte) (init *byte) {
 	init = new(byte)
 	*init = initial
@@ -329,6 +357,8 @@ func NewByte(initial byte) (init *byte) {
 }
 
 // NewInt initializes an int pointer with an initial value
+//
+// Deprecated: Please use New()
 func NewInt(initial int) (init *int) {
 	init = new(int)
 	*init = initial
@@ -336,6 +366,8 @@ func NewInt(initial int) (init *int) {
 }
 
 // NewInt32 initializes an int32 pointer with an initial value
+//
+// Deprecated: Please use New()
 func NewInt32(initial int32) (init *int32) {
 	init = new(int32)
 	*init = initial
@@ -343,6 +375,8 @@ func NewInt32(initial int32) (init *int32) {
 }
 
 // NewInt64 initializes an int64 pointer with an initial value
+//
+// Deprecated: Please use New()
 func NewInt64(initial int64) (init *int64) {
 	init = new(int64)
 	*init = initial
@@ -350,6 +384,8 @@ func NewInt64(initial int64) (init *int64) {
 }
 
 // NewBool initializes a bool pointer with an initial value
+//
+// Deprecated: Please use New()
 func NewBool(initial bool) (init *bool) {
 	init = new(bool)
 	*init = initial
@@ -357,6 +393,8 @@ func NewBool(initial bool) (init *bool) {
 }
 
 // NewFloat32 initializes a float32 pointer with an initial value
+//
+// Deprecated: Please use New()
 func NewFloat32(initial float32) (init *float32) {
 	init = new(float32)
 	*init = initial
@@ -364,6 +402,8 @@ func NewFloat32(initial float32) (init *float32) {
 }
 
 // NewFloat64 initializes a float64 pointer with an initial value
+//
+// Deprecated: Please use New()
 func NewFloat64(initial float64) (init *float64) {
 	init = new(float64)
 	*init = initial
@@ -371,6 +411,8 @@ func NewFloat64(initial float64) (init *float64) {
 }
 
 // NewTime initializes a time.Time pointer with an initial value
+//
+// Deprecated: Please use New()
 func NewTime(initial *time.Time) (init *time.Time) {
 	init = new(time.Time)
 
@@ -383,6 +425,7 @@ func NewTime(initial *time.Time) (init *time.Time) {
 
 // GetZero gets the zero value of the types defined as
 // constraints.Ordered, time.Time and shopspring/decimal
+//
 // This function requires version 1.18+
 func GetZero[T FieldTypeConstraint]() T {
 	var result T
