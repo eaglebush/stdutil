@@ -340,7 +340,7 @@ func StripLeading(value string, offset int) string {
 
 // NewString initializes a string pointer with an initial value
 //
-// Deprecated: Please use New()
+// Deprecated: Please use New() instead.
 func NewString(initial string) (init *string) {
 	init = new(string)
 	*init = initial
@@ -349,7 +349,7 @@ func NewString(initial string) (init *string) {
 
 // NewByte initializes a byte pointer with an initial value
 //
-// Deprecated: Please use New()
+// Deprecated: Please use New() instead.
 func NewByte(initial byte) (init *byte) {
 	init = new(byte)
 	*init = initial
@@ -358,7 +358,7 @@ func NewByte(initial byte) (init *byte) {
 
 // NewInt initializes an int pointer with an initial value
 //
-// Deprecated: Please use New()
+// Deprecated: Please use New() instead.
 func NewInt(initial int) (init *int) {
 	init = new(int)
 	*init = initial
@@ -367,7 +367,7 @@ func NewInt(initial int) (init *int) {
 
 // NewInt32 initializes an int32 pointer with an initial value
 //
-// Deprecated: Please use New()
+// Deprecated: Please use New() instead.
 func NewInt32(initial int32) (init *int32) {
 	init = new(int32)
 	*init = initial
@@ -376,7 +376,7 @@ func NewInt32(initial int32) (init *int32) {
 
 // NewInt64 initializes an int64 pointer with an initial value
 //
-// Deprecated: Please use New()
+// Deprecated: Please use New() instead.
 func NewInt64(initial int64) (init *int64) {
 	init = new(int64)
 	*init = initial
@@ -385,7 +385,7 @@ func NewInt64(initial int64) (init *int64) {
 
 // NewBool initializes a bool pointer with an initial value
 //
-// Deprecated: Please use New()
+// Deprecated: Please use New() instead.
 func NewBool(initial bool) (init *bool) {
 	init = new(bool)
 	*init = initial
@@ -394,7 +394,7 @@ func NewBool(initial bool) (init *bool) {
 
 // NewFloat32 initializes a float32 pointer with an initial value
 //
-// Deprecated: Please use New()
+// Deprecated: Please use New() instead.
 func NewFloat32(initial float32) (init *float32) {
 	init = new(float32)
 	*init = initial
@@ -403,7 +403,7 @@ func NewFloat32(initial float32) (init *float32) {
 
 // NewFloat64 initializes a float64 pointer with an initial value
 //
-// Deprecated: Please use New()
+// Deprecated: Please use New() instead.
 func NewFloat64(initial float64) (init *float64) {
 	init = new(float64)
 	*init = initial
@@ -412,7 +412,7 @@ func NewFloat64(initial float64) (init *float64) {
 
 // NewTime initializes a time.Time pointer with an initial value
 //
-// Deprecated: Please use New()
+// Deprecated: Please use New() instead.
 func NewTime(initial *time.Time) (init *time.Time) {
 	init = new(time.Time)
 
