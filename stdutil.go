@@ -12,7 +12,7 @@ import (
 )
 
 type FieldTypeConstraint interface {
-	constraints.Ordered | time.Time | ssd.Decimal
+	constraints.Ordered | time.Time | ssd.Decimal | bool
 }
 
 // AnyToString - convert any variable to string
@@ -177,7 +177,7 @@ func IsNumeric(s string) bool {
 
 // IsNullOrEmpty checks for nullity and emptiness of a pointer variable
 // Currently supported data types are the ones in the constraints.Ordered,
-// time.Time and shopspring/decimal
+// time.Time, bool and shopspring/decimal
 //
 // This function requires version 1.18+
 func IsNullOrEmpty[T FieldTypeConstraint](value *T) bool {
@@ -186,7 +186,7 @@ func IsNullOrEmpty[T FieldTypeConstraint](value *T) bool {
 
 // IsNullOrEmpty checks for emptiness of a pointer variable ignoring nullity
 // Currently supported data types are the ones in the constraints.Ordered,
-// time.Time and shopspring/decimal
+// time.Time, bool and shopspring/decimal
 //
 // This function requires version 1.18+
 func IsEmpty[T FieldTypeConstraint](value *T) bool {
@@ -195,7 +195,7 @@ func IsEmpty[T FieldTypeConstraint](value *T) bool {
 
 // Val gets the value of a pointer in order
 // Currently supported data types are the ones in the constraints.Ordered,
-// time.Time and shopspring/decimal
+// time.Time, bool and shopspring/decimal
 //
 // This function requires version 1.18+
 func Val[T FieldTypeConstraint](value *T) T {
@@ -208,7 +208,7 @@ func Val[T FieldTypeConstraint](value *T) T {
 
 // New initializes a variable and returns a pointer of its type
 // Currently supported data types are the ones in the constraints.Ordered,
-// time.Time and shopspring/decimal
+// time.Time, bool and shopspring/decimal
 //
 // This function requires version 1.18+
 func New[T FieldTypeConstraint](value T) *T {
