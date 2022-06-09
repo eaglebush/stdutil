@@ -35,9 +35,9 @@ type ResultData struct {
 }
 
 // ResultAny - a result structure with an empty interface
-type ResultAny struct {
+type ResultAny[T any] struct {
 	Result
-	Data interface{} `json:"data,omitempty"`
+	Data any `json:"data,omitempty"`
 }
 
 func init() {
@@ -413,7 +413,7 @@ func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) (*JWTInf
 	ji := &JWTInfo{}
 
 	if len(secretKey) == 0 {
-		return ji, fmt.Errorf(`Authorization header not set`)
+		return ji, fmt.Errorf(`authorization header not set`)
 	}
 
 	var (
@@ -425,19 +425,19 @@ func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) (*JWTInf
 
 	// Get Authorization header
 	if jwth = r.Header.Get("Authorization"); len(jwth) == 0 {
-		return ji, fmt.Errorf(`Authorization header not set`)
+		return ji, fmt.Errorf(`authorization header not set`)
 	}
 
 	if jwtp = strings.Split(jwth, " "); len(jwtp) < 2 {
-		return ji, fmt.Errorf(`Invalid authorization header`)
+		return ji, fmt.Errorf(`invalid authorization header`)
 	}
 
 	if !strings.EqualFold(strings.TrimSpace(jwtp[0]), "bearer") {
-		return ji, fmt.Errorf(`Invalid authorization bearer`)
+		return ji, fmt.Errorf(`invalid authorization bearer`)
 	}
 
 	if jwtfromck = strings.TrimSpace(jwtp[1]); len(jwtfromck) == 0 {
-		return ji, fmt.Errorf(`Invalid authorization token`)
+		return ji, fmt.Errorf(`invalid authorization token`)
 	}
 
 	// Parse JWT
