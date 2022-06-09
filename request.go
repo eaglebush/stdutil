@@ -37,7 +37,7 @@ type ResultData struct {
 // ResultAny - a result structure with an empty interface
 type ResultAny[T any] struct {
 	Result
-	Data any `json:"data,omitempty"`
+	Data T `json:"data,omitempty"`
 }
 
 func init() {
