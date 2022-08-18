@@ -170,7 +170,7 @@ func DeleteJSON(endpoint string, headers map[string]string) ResultData {
 	return ExecuteJSONAPI("DELETE", endpoint, nil, false, headers, reqTimeOut)
 }
 
-//ParseQueryString - parse the query string into a column value
+// ParseQueryString - parse the query string into a column value
 func ParseQueryString(qs *string) NameValues {
 	rv, _ := url.ParseQuery(*qs)
 
@@ -413,7 +413,7 @@ func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) (*JWTInf
 	ji := &JWTInfo{}
 
 	if len(secretKey) == 0 {
-		return ji, fmt.Errorf(`authorization header not set`)
+		return ji, fmt.Errorf(`secret key not set`)
 	}
 
 	var (
@@ -476,14 +476,21 @@ func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) (*JWTInf
 }
 
 // GetRequestVars - get request variables and return JWT validation result
-func GetRequestVars(r *http.Request, secretKey string) RequestVars {
+func GetRequestVars(r *http.Request, secretKey string, validateTimes bool) (RequestVars, error) {
+
 	rv := GetRequestVarsOnly(r)
-	ji, err := ValidateJWT(r, secretKey, false)
+
+	// silently ignore OPTION methid
+	if strings.EqualFold(r.Method, "OPTION") {
+		return rv, nil
+	}
+
+	ji, err := ValidateJWT(r, secretKey, validateTimes)
 	if err != nil {
 		rv.ValidAuthToken = false
-		return rv
+		return rv, err
 	}
 	rv.JWTInfo = *ji
 
-	return rv
+	return rv, nil
 }

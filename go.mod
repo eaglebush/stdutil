@@ -1,6 +1,6 @@
 module github.com/eaglebush/stdutil
 
-go 1.18
+go 1.19
 
 require (
 	github.com/gbrlsnchs/jwt/v3 v3.0.1
