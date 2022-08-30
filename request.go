@@ -77,7 +77,6 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool
 		}
 	}
 
-	rd.Result.Return(OK)
 	return
 }
 
