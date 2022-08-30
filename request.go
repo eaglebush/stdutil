@@ -69,7 +69,9 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool
 
 	if len(data) != 0 {
 		if err = json.Unmarshal(data, &rd); err != nil {
+			// This is not marshable to resultdata, we'll try to send the real result
 			rd.Result.AddErr(err)
+			rd.Data = data
 			return
 		}
 	}
