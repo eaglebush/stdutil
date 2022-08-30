@@ -74,6 +74,7 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool
 		}
 	}
 
+	rd.Result.Return(OK)
 	return
 }
 
@@ -142,10 +143,10 @@ func ExecuteAPI(method string, endpoint string, payload []byte, gzipped bool, he
 	defer resp.Body.Close()
 
 	// Ignore error temporarily
-	data, _ := io.ReadAll(resp.Body)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
 
 	return data, nil
 }
