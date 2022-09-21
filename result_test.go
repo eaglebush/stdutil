@@ -45,3 +45,19 @@ func TestResultMessage(t *testing.T) {
 	t.Log(`Has Info Messages`, mm.HasInfos())
 
 }
+
+func TestInitResult(t *testing.T) {
+	res := InitResult(NameValue{
+		Name:  "prefix",
+		Value: "stdutil",
+	})
+
+	res.AddError("This is an error")
+	res.AddError("This is another error")
+	res.AddError("This is another significant error")
+
+	for _, m := range res.Messages {
+		t.Log(m)
+	}
+
+}
