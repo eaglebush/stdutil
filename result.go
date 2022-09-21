@@ -248,3 +248,12 @@ func (r *Result) AddErr(err error) Result {
 func (r *Result) MessagesToString() string {
 	return r.mm.ToString()
 }
+
+// RowsAffectedInfo - a function to simplify adding information for rows affected
+func (r *Result) RowsAffectedInfo(rowsaff int64) {
+	if rowsaff != 0 {
+		r.AddInfo(fmt.Sprintf("%d rows affected", rowsaff))
+	} else {
+		r.AddInfo("No rows affected")
+	}
+}
