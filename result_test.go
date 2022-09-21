@@ -1,6 +1,7 @@
 package stdutil
 
 import (
+	"errors"
 	"testing"
 )
 
@@ -55,6 +56,9 @@ func TestInitResult(t *testing.T) {
 	res.AddError("This is an error")
 	res.AddError("This is another error")
 	res.AddError("This is another significant error")
+
+	err := errors.New("This is an err")
+	res.AddErr(err)
 
 	for _, m := range res.Messages {
 		t.Log(m)
