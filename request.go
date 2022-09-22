@@ -413,6 +413,34 @@ func GetRequestVarsOnly(r *http.Request) RequestVars {
 // ValidateJWT validates JWT and returns information
 func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) (*JWTInfo, error) {
 
+	var (
+		jwtfromck, jwth string
+		jwtp            []string
+	)
+
+	// Get Authorization header
+	if jwth = r.Header.Get("Authorization"); len(jwth) == 0 {
+		return nil, fmt.Errorf(`authorization header not set`)
+	}
+
+	if jwtp = strings.Split(jwth, " "); len(jwtp) < 2 {
+		return nil, fmt.Errorf(`invalid authorization header`)
+	}
+
+	if !strings.EqualFold(strings.TrimSpace(jwtp[0]), "bearer") {
+		return nil, fmt.Errorf(`invalid authorization bearer`)
+	}
+
+	if jwtfromck = strings.TrimSpace(jwtp[1]); len(jwtfromck) == 0 {
+		return nil, fmt.Errorf(`invalid authorization token`)
+	}
+
+	return ParseJWT(jwtfromck, secretKey, validateTimes)
+}
+
+// ParseJWT validates, parses JWT and returns information
+func ParseJWT(token, secretKey string, validateTimes bool) (*JWTInfo, error) {
+
 	ji := &JWTInfo{}
 
 	if len(secretKey) == 0 {
@@ -420,28 +448,9 @@ func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) (*JWTInf
 	}
 
 	var (
-		jwtfromck, jwth string
-		jwtp            []string
-		pl              CustomPayload
-		err             error
+		pl  CustomPayload
+		err error
 	)
-
-	// Get Authorization header
-	if jwth = r.Header.Get("Authorization"); len(jwth) == 0 {
-		return ji, fmt.Errorf(`authorization header not set`)
-	}
-
-	if jwtp = strings.Split(jwth, " "); len(jwtp) < 2 {
-		return ji, fmt.Errorf(`invalid authorization header`)
-	}
-
-	if !strings.EqualFold(strings.TrimSpace(jwtp[0]), "bearer") {
-		return ji, fmt.Errorf(`invalid authorization bearer`)
-	}
-
-	if jwtfromck = strings.TrimSpace(jwtp[1]); len(jwtfromck) == 0 {
-		return ji, fmt.Errorf(`invalid authorization token`)
-	}
 
 	// Parse JWT
 	HMAC := jwt.NewHS256([]byte(secretKey))
@@ -456,9 +465,9 @@ func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) (*JWTInf
 		// Use jwt.ValidatePayload to build a jwt.VerifyOption.
 		// Validators are run in the order informed.
 		validator := jwt.ValidatePayload(&pl.Payload, iatValidator, expValidator, nbfValidator)
-		_, err = jwt.Verify([]byte(jwtfromck), HMAC, &pl, validator)
+		_, err = jwt.Verify([]byte(token), HMAC, &pl, validator)
 	} else {
-		_, err = jwt.Verify([]byte(jwtfromck), HMAC, &pl)
+		_, err = jwt.Verify([]byte(token), HMAC, &pl)
 	}
 
 	if err != nil {
@@ -471,7 +480,7 @@ func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) (*JWTInf
 	ji.TokenDeviceID = pl.DeviceID
 	ji.TokenApplicationID = pl.ApplicationID
 	ji.TokenTenantID = pl.TenantID
-	ji.TokenRaw = jwtfromck
+	ji.TokenRaw = token
 
 	ji.ValidAuthToken = true
 
