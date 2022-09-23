@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -370,7 +369,7 @@ func GetRequestVarsOnly(r *http.Request) RequestVars {
 		// We are receiving body as bytes to Unmarshall later depending on the type
 		b := func() []byte {
 			if r.Body != nil {
-				b, _ := ioutil.ReadAll(r.Body)
+				b, _ := io.ReadAll(r.Body)
 				defer r.Body.Close()
 				return b
 			}
@@ -506,3 +505,4 @@ func GetRequestVars(r *http.Request, secretKey string, validateTimes bool) (Requ
 
 	return rv, nil
 }
+
