@@ -18,7 +18,9 @@ type NameValues struct {
 }
 
 // **************************************************************
-//   New functions
+//
+//	New functions
+//
 // **************************************************************
 func (nvp *NameValues) prepare() {
 
@@ -274,17 +276,6 @@ func (nvp *NameValues) PtrFloat64(name string) (*float64, bool) {
 }
 
 // **************************************************************
-//   Deprecated functions
-// **************************************************************
-
-// KeyExists - checks if the key or name exists
-//
-// Deprecated: Use Exists() instead
-func (nvp *NameValues) KeyExists(name string) bool {
-	return nvp.Exists(name) != -1
-}
-
-// **************************************************************
 //   Miscellaneous functions
 // **************************************************************
 
@@ -293,9 +284,9 @@ func (nvp *NameValues) ToInterfaceArray() []interface{} {
 	return NameValuesToInterfaceArray(*nvp)
 }
 
-// ToValidationExpressionArray - converts name values to validation expression array
-func (nvp *NameValues) ToValidationExpressionArray() []ValidationExpression {
-	return NameValuesToValidationExpressionArray(*nvp)
+// ToVerifyExpressionArray - converts name values to verify expression array
+func (nvp *NameValues) ToVerifyExpressionArray() []VerifyExpression {
+	return NameValuesToVerifyExpressionArray(*nvp)
 }
 
 // Interpolate - interpolate string with values from with base string

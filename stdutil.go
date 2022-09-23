@@ -230,10 +230,10 @@ func NameValuesToInterfaceArray(values NameValues) []interface{} {
 	return args
 }
 
-// NameValuesToValidationExpressionArray converts name values to ValidationExpression array
-func NameValuesToValidationExpressionArray(values NameValues) []ValidationExpression {
+// NameValuesToVerifyExpressionArray converts name values to VerifyExpression array
+func NameValuesToVerifyExpressionArray(values NameValues) []VerifyExpression {
 
-	args := make([]ValidationExpression, len(values.Pair))
+	args := make([]VerifyExpression, len(values.Pair))
 	i := 0
 	for _, v := range values.Pair {
 		args[i].Name = AnyToString(v.Name)

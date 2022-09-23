@@ -1,6 +1,9 @@
 package stdutil
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // MessageType - result message types
 type MessageType string
@@ -28,11 +31,23 @@ func (r *MessageManager) AddInfo(Message ...string) {
 	}
 }
 
+// AddInfof adds a formatted information message
+func (r *MessageManager) AddInfof(format string, a ...interface{}) {
+	f := fmt.Sprintf(format, a...)
+	r.AddInfo(f)
+}
+
 // AddWarning - adds a warning message
 func (r *MessageManager) AddWarning(Message ...string) {
 	for _, m := range Message {
 		addMessage(&r.Messages, r.MessagePrefix, m, MsgWarn)
 	}
+}
+
+// AddWarningf adds a formatted warning message
+func (r *MessageManager) AddWarningf(format string, a ...interface{}) {
+	f := fmt.Sprintf(format, a...)
+	r.AddWarning(f)
 }
 
 // AddError - adds an error message
@@ -42,11 +57,23 @@ func (r *MessageManager) AddError(Message ...string) {
 	}
 }
 
+// AddErrorf adds a formatted error message
+func (r *MessageManager) AddErrorf(format string, a ...interface{}) {
+	f := fmt.Sprintf(format, a...)
+	r.AddError(f)
+}
+
 // AddFatal - adds a fatal error message
 func (r *MessageManager) AddFatal(Message ...string) {
 	for _, m := range Message {
 		addMessage(&r.Messages, r.MessagePrefix, m, MsgFatal)
 	}
+}
+
+// AddFatalf adds a formatted fatal error message
+func (r *MessageManager) AddFatalf(format string, a ...interface{}) {
+	f := fmt.Sprintf(format, a...)
+	r.AddFatal(f)
 }
 
 // AddAppMsg - adds an error message
@@ -56,9 +83,15 @@ func (r *MessageManager) AddAppMsg(Message ...string) {
 	}
 }
 
+// AddAppMsgf adds a formatted application message
+func (r *MessageManager) AddAppMsgf(format string, a ...interface{}) {
+	f := fmt.Sprintf(format, a...)
+	r.AddAppMsg(f)
+}
+
 // Fix - fix messages within an instance
 func (r *MessageManager) Fix() {
-	r.Messages = fixMessages(&r.Messages)
+	r.Messages = FixMessages(&r.Messages)
 }
 
 // HasErrors - Checks if the message array has errors
@@ -125,18 +158,7 @@ func AppendError(Messages *[]string, MessagePrefix string, Message ...string) {
 }
 
 // FixMessages - fix all unformatted messages to formatted messages
-func FixMessages(Messages *[]string) {
-	fixMessages(Messages)
-}
-
-// DominantMessageType - get dominant message type. App messages will be deleted
-func DominantMessageType(Messages *[]string) MessageType {
-	return getDominantMessageType(Messages)
-}
-
-// trims message from spaces
-func fixMessages(Messages *[]string) []string {
-
+func FixMessages(Messages *[]string) []string {
 	msgr := *Messages
 
 	for i, msg := range *Messages {
@@ -144,6 +166,11 @@ func fixMessages(Messages *[]string) []string {
 	}
 
 	return msgr
+}
+
+// DominantMessageType - get dominant message type. App messages will be deleted
+func DominantMessageType(Messages *[]string) MessageType {
+	return getDominantMessageType(Messages)
 }
 
 // add new message to the message array
@@ -167,7 +194,7 @@ func addMessage(Messages *[]string, MessagePrefix, Message string, Type MessageT
 
 // get dominant message
 func getDominantMessageType(Messages *[]string) MessageType {
-	fixMessages(Messages)
+	FixMessages(Messages)
 
 	nfo := 0
 	wrn := 0
