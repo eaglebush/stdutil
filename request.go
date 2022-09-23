@@ -173,13 +173,12 @@ func DeleteJSON(endpoint string, headers map[string]string) ResultData {
 }
 
 // ParseQueryString - parse the query string into a column value
-func ParseQueryString(qs *string) NameValues {
+func ParseQueryString(qs *string) []NameValue[string] {
 	rv, _ := url.ParseQuery(*qs)
 
-	ret := NameValues{}
-	ret.Pair = make([]NameValue, 0)
+	ret := make([]NameValue[string], 0)
 	for k, v := range rv {
-		ret.Pair = append(ret.Pair, NameValue{k, strings.Join(v[:], ",")})
+		ret = append(ret, NameValue[string]{k, strings.Join(v[:], ",")})
 	}
 
 	return ret
@@ -382,7 +381,7 @@ func GetRequestVarsOnly(r *http.Request) RequestVars {
 
 	// Query Strings
 	rv.Variables.QueryString = ParseQueryString(&r.URL.RawQuery)
-	rv.Variables.HasQueryString = len(rv.Variables.QueryString.Pair) > 0
+	rv.Variables.HasQueryString = len(rv.Variables.QueryString) > 0
 	rv.Variables.IsMultipart = (c1 == mulpart)
 
 	if rv.Variables.IsMultipart {
@@ -392,14 +391,10 @@ func GetRequestVarsOnly(r *http.Request) RequestVars {
 	}
 
 	// Get Form data
-	rv.Variables.FormData = NameValues{}
-	rv.Variables.FormData.Pair = make([]NameValue, 0)
+	rv.Variables.FormData = []NameValue[string]{}
 
 	for k, v := range r.PostForm {
-		rv.Variables.FormData.Pair = append(rv.Variables.FormData.Pair,
-			NameValue{
-				k, strings.Join(v[:], ","),
-			})
+		rv.Variables.FormData = append(rv.Variables.FormData, NameValue[string]{k, strings.Join(v[:], ",")})
 		rv.Variables.HasFormData = true
 	}
 
@@ -505,4 +500,3 @@ func GetRequestVars(r *http.Request, secretKey string, validateTimes bool) (Requ
 
 	return rv, nil
 }
-

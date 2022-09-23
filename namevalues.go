@@ -1,49 +1,36 @@
 package stdutil
 
 import (
-	"strconv"
 	"strings"
 )
 
-// NameValue - a struct to manage value objects
-type NameValue struct {
-	Name  string
-	Value interface{}
-}
-
 // NameValues - a struct to manage value structs
 type NameValues struct {
-	Pair     []NameValue
+	Pair     map[string]any
 	prepared bool
 }
 
-// **************************************************************
-//
-//	New functions
-//
-// **************************************************************
 func (nvp *NameValues) prepare() {
 
-	for i := range nvp.Pair {
-		nvp.Pair[i].Name = strings.ToLower(nvp.Pair[i].Name)
+	for n, _ := range nvp.Pair {
+		ln := strings.ToLower(n)
+		nvp.Pair[ln] = nvp.Pair[n]
+		delete(nvp.Pair, n)
 	}
 
 	nvp.prepared = true
 }
 
 // Exists checks if the key or name exists. It returns the index of the element if found, -1 if not found.
-func (nvp *NameValues) Exists(name string) int {
+func (nvp *NameValues) Exists(name string) bool {
 
 	if !nvp.prepared {
 		nvp.prepare()
 	}
 
-	for i, nv := range nvp.Pair {
-		if strings.EqualFold(name, nv.Name) {
-			return i
-		}
-	}
-	return -1
+	name = strings.ToLower(name)
+	_, exists := nvp.Pair[name]
+	return exists
 }
 
 // String returns the name value as string. The second argument returns the existence.
@@ -53,13 +40,10 @@ func (nvp *NameValues) String(name string) (string, bool) {
 		nvp.prepare()
 	}
 
-	for _, nv := range nvp.Pair {
-		if strings.EqualFold(name, nv.Name) {
-			return AnyToString(nv.Value), true
-		}
-	}
-
-	return "", false
+	name = strings.ToLower(name)
+	tmp, exists := nvp.Pair[name]
+	value, _ := tmp.(string)
+	return value, exists
 }
 
 // Strings returns the values as a string array
@@ -69,15 +53,8 @@ func (nvp *NameValues) Strings(name string) []string {
 		nvp.prepare()
 	}
 
-	str := make([]string, 0)
-
-	for _, nv := range nvp.Pair {
-		if strings.EqualFold(name, nv.Name) {
-			str = append(str, AnyToString(nv.Value))
-		}
-	}
-
-	return str
+	value, _ := nvp.String(name)
+	return []string{value}
 }
 
 // Int returns the name value as int. The second argument returns the existence.
@@ -87,13 +64,10 @@ func (nvp *NameValues) Int(name string) (int, bool) {
 		nvp.prepare()
 	}
 
-	for _, nv := range nvp.Pair {
-		if strings.EqualFold(name, nv.Name) {
-			v, _ := strconv.Atoi(AnyToString(nv.Value))
-			return v, true
-		}
-	}
-	return 0, false
+	name = strings.ToLower(name)
+	tmp, exists := nvp.Pair[name]
+	value, _ := tmp.(int)
+	return value, exists
 }
 
 // Ints returns the values as an int array
@@ -103,16 +77,8 @@ func (nvp *NameValues) Ints(name string) []int {
 		nvp.prepare()
 	}
 
-	str := make([]int, 0)
-
-	for _, nv := range nvp.Pair {
-		if strings.EqualFold(name, nv.Name) {
-			v, _ := strconv.Atoi(AnyToString(nv.Value))
-			str = append(str, v)
-		}
-	}
-
-	return str
+	value, _ := nvp.Int(name)
+	return []int{value}
 }
 
 // Int64 returns the name value as int64. The second argument returns the existence.
@@ -122,13 +88,10 @@ func (nvp *NameValues) Int64(name string) (int64, bool) {
 		nvp.prepare()
 	}
 
-	for _, nv := range nvp.Pair {
-		if strings.EqualFold(name, nv.Name) {
-			v, _ := strconv.ParseInt(AnyToString(nv.Value), 10, 64)
-			return v, true
-		}
-	}
-	return 0, false
+	name = strings.ToLower(name)
+	tmp, exists := nvp.Pair[name]
+	value, _ := tmp.(int64)
+	return value, exists
 }
 
 // Int64s returns the values as an int64 array
@@ -138,16 +101,8 @@ func (nvp *NameValues) Int64s(name string) []int64 {
 		nvp.prepare()
 	}
 
-	str := make([]int64, 0)
-
-	for _, nv := range nvp.Pair {
-		if strings.EqualFold(name, nv.Name) {
-			v, _ := strconv.ParseInt(AnyToString(nv.Value), 10, 64)
-			str = append(str, v)
-		}
-	}
-
-	return str
+	value, _ := nvp.Int64(name)
+	return []int64{value}
 }
 
 // Plain returns the name value as interface{}. The second argument returns the existence.
@@ -157,12 +112,9 @@ func (nvp *NameValues) Plain(name string) (interface{}, bool) {
 		nvp.prepare()
 	}
 
-	for _, nv := range nvp.Pair {
-		if strings.EqualFold(name, nv.Name) {
-			return nv.Value, true
-		}
-	}
-	return nil, false
+	name = strings.ToLower(name)
+	tmp, exists := nvp.Pair[name]
+	return tmp, exists
 }
 
 // Bool returns the name value as boolean. It automatically convers 'true', 'yes', '1', '-1' and 'on' to boolean The second argument returns the existence.
@@ -172,13 +124,8 @@ func (nvp *NameValues) Bool(name string) (bool, bool) {
 		nvp.prepare()
 	}
 
-	for _, nv := range nvp.Pair {
-		if strings.EqualFold(name, nv.Name) {
-			vs := AnyToString(nv.Value)
-			return (vs == "true" || vs == "yes" || vs == "1" || vs == "-1" || vs == "on"), true
-		}
-	}
-	return false, false
+	value, _ := nvp.String(name)
+	return (value == "true" || value == "yes" || value == "1" || value == "-1" || value == "on"), true
 }
 
 // Bools returns the values as a boolean array
@@ -188,16 +135,8 @@ func (nvp *NameValues) Bools(name string) []bool {
 		nvp.prepare()
 	}
 
-	str := make([]bool, 0)
-
-	for _, nv := range nvp.Pair {
-		if strings.EqualFold(name, nv.Name) {
-			vs := AnyToString(nv.Value)
-			str = append(str, (vs == "true" || vs == "yes" || vs == "1" || vs == "-1" || vs == "on"))
-		}
-	}
-
-	return str
+	value, _ := nvp.Bool(name)
+	return []bool{value}
 }
 
 // Float64 returns the name value as float64. The second argument returns the existence.
@@ -207,13 +146,10 @@ func (nvp *NameValues) Float64(name string) (float64, bool) {
 		nvp.prepare()
 	}
 
-	for _, nv := range nvp.Pair {
-		if strings.EqualFold(name, nv.Name) {
-			v, _ := strconv.ParseFloat(AnyToString(nv.Value), 64)
-			return v, true
-		}
-	}
-	return 0, false
+	name = strings.ToLower(name)
+	tmp, exists := nvp.Pair[name]
+	value, _ := tmp.(float64)
+	return value, exists
 }
 
 // Float64s returns the values as a float64 array
@@ -223,16 +159,8 @@ func (nvp *NameValues) Float64s(name string) []float64 {
 		nvp.prepare()
 	}
 
-	str := make([]float64, 0)
-
-	for _, nv := range nvp.Pair {
-		if strings.EqualFold(name, nv.Name) {
-			v, _ := strconv.ParseFloat(AnyToString(nv.Value), 64)
-			str = append(str, v)
-		}
-	}
-
-	return str
+	value, _ := nvp.Float64(name)
+	return []float64{value}
 }
 
 // **************************************************************

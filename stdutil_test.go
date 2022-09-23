@@ -114,19 +114,19 @@ func TestGenerateRandomString(t *testing.T) {
 func TestResult(t *testing.T) {
 
 	res := InitResult(
-		NameValue{
+		NameValue[string]{
 			Name:  "prefix",
 			Value: "SampleFunc",
 		},
-		NameValue{
+		NameValue[string]{
 			Name:  "message",
 			Value: "This is a first message",
 		},
-		NameValue{
+		NameValue[string]{
 			Name:  "message",
 			Value: "This is a second message",
 		},
-		NameValue{
+		NameValue[string]{
 			Name:  "message",
 			Value: "This is a third message",
 		},
@@ -153,12 +153,6 @@ func TestNew(t *testing.T) {
 
 	t.Log("No new: ", newString, newInt, newFloat)
 
-	newString = NewString("NEW")
-	newInt = NewInt(100)
-	newFloat = NewFloat64(42.0)
-
-	t.Log("With New:", newString, newInt, newFloat)
-
 	t.Log("No new 1.8: ", newString18, newInt18, newFloat18)
 	newString18 = New("NEW")
 	newInt18 = New(100)
@@ -166,4 +160,15 @@ func TestNew(t *testing.T) {
 
 	t.Log("With New 1.8:", newString18, newInt18, newFloat18)
 
+}
+
+func TestInterpolate(t *testing.T) {
+	str, obj := InterpolateString(`This is ${name}. Leader of the ${band} band.`, NameValues{
+		Pair: map[string]any{
+			"name": "Zaldy",
+			"band": "Razzie",
+		},
+	})
+
+	log.Println(str, obj)
 }

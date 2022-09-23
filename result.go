@@ -45,7 +45,7 @@ type Result struct {
 //
 // To add a message, set NameValue.Name to "message" and set NameValue.Value to a valid message.
 // Depending on the current status (default is EXCEPTION), the message type is automatically set to that type
-func InitResult(args ...NameValue) Result {
+func InitResult(args ...NameValue[string]) Result {
 
 	res := Result{
 		Status: string(EXCEPTION),
@@ -55,47 +55,32 @@ func InitResult(args ...NameValue) Result {
 
 	res.Messages = make([]string, 0)
 
-	if ln := len(args); ln > 0 {
+	for _, nv := range args {
 
-		for i := 0; i < ln; i++ {
-
-			nm := strings.TrimSpace(args[i].Name)
-
-			// check if it is a valid status, ignore if not
-			// go to next value if valid
-			if strings.EqualFold(nm, `status`) {
-				nvs, ok := args[i].Value.(string)
-				if ok {
-					switch nvs {
-					case string(OK), string(EXCEPTION), string(VALID), string(INVALID), string(YES), string(NO):
-						res.Status = nvs
-						continue
-					}
-				}
-			}
-
-			if strings.EqualFold(nm, `prefix`) {
-				nvs, ok := args[i].Value.(string)
-				if ok {
-					res.mm.MessagePrefix = nvs
-					res.MessagePrefix = nvs
-					continue
-				}
-			}
-
-			if strings.EqualFold(nm, `message`) {
-				nvs, ok := args[i].Value.(string)
-				if ok {
-					if res.Status == string(EXCEPTION) {
-						res.AddError(nvs)
-					} else {
-						res.AddInfo(nvs)
-					}
-					continue
-				}
+		// check if it is a valid status, ignore if not
+		// go to next value if valid
+		if strings.EqualFold(nv.Name, `status`) {
+			switch nv.Value {
+			case string(OK), string(EXCEPTION), string(VALID), string(INVALID), string(YES), string(NO):
+				res.Status = nv.Value
+				continue
 			}
 		}
 
+		if strings.EqualFold(nv.Name, `prefix`) {
+			res.mm.MessagePrefix = nv.Value
+			res.MessagePrefix = nv.Value
+			continue
+		}
+
+		if strings.EqualFold(nv.Name, `message`) {
+			if res.Status == string(EXCEPTION) {
+				res.AddError(nv.Value)
+			} else {
+				res.AddInfo(nv.Value)
+			}
+			continue
+		}
 	}
 
 	// Auto-detect function that called this function

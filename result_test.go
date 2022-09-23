@@ -48,7 +48,7 @@ func TestResultMessage(t *testing.T) {
 }
 
 func TestInitResult(t *testing.T) {
-	res := InitResult(NameValue{
+	res := InitResult(NameValue[string]{
 		Name:  "prefix",
 		Value: "stdutil",
 	})

@@ -12,7 +12,7 @@ import (
 )
 
 type FieldTypeConstraint interface {
-	constraints.Ordered | time.Time | ssd.Decimal | bool
+	constraints.Ordered | time.Time | ssd.Decimal | bool | byte
 }
 
 // AnyToString - convert any variable to string
@@ -222,8 +222,9 @@ func NameValuesToInterfaceArray(values NameValues) []interface{} {
 
 	args := make([]interface{}, len(values.Pair))
 	i := 0
+
 	for _, v := range values.Pair {
-		args[i] = v.Value
+		args[i] = v
 		i++
 	}
 
@@ -235,9 +236,9 @@ func NameValuesToVerifyExpressionArray(values NameValues) []VerifyExpression {
 
 	args := make([]VerifyExpression, len(values.Pair))
 	i := 0
-	for _, v := range values.Pair {
-		args[i].Name = AnyToString(v.Name)
-		args[i].Value = AnyToString(v.Value)
+	for k, v := range values.Pair {
+		args[i].Name = k
+		args[i].Value = v
 		args[i].Operator = `=`
 		i++
 	}
@@ -247,10 +248,9 @@ func NameValuesToVerifyExpressionArray(values NameValues) []VerifyExpression {
 
 // InterpolateString interpolates string with the name value pairs
 func InterpolateString(base string, keyValues NameValues) (string, []interface{}) {
+
 	retstr := base
-
 	hasmatch := false
-
 	pattern := `\$\{(\w*)\}` //search for ${*}
 	re := regexp.MustCompile(pattern)
 	matches := re.FindAllString(base, -1)
@@ -259,10 +259,8 @@ func InterpolateString(base string, keyValues NameValues) (string, []interface{}
 
 	for i, match := range matches {
 		hasmatch = false
-		for _, vs := range keyValues.Pair {
-			n := strings.ToLower(vs.Name)
-			v := vs.Value
-			if match == `${`+n+`}` {
+		for n, v := range keyValues.Pair {
+			if strings.EqualFold(match, `${`+n+`}`) {
 				retstr = strings.Replace(retstr, match, AnyToString(v), -1)
 				retif[i] = v
 				hasmatch = true
@@ -289,21 +287,23 @@ func ValidateEmail(email string) bool {
 // SortByKeyArray - reorder keys and values based on a keyOrder array sequence
 func SortByKeyArray(values *NameValues, keyOrder *[]string) NameValues {
 	ret := NameValues{}
-	ret.Pair = make([]NameValue, 0)
+	ret.Pair = make(map[string]any)
 
 	//If keyorder was specified, the order of keys will be sorted according to the specifications
 	ko := *keyOrder
-	if len(ko) > 0 {
-		for i := 0; i < len(ko); i++ {
-			for _, v := range values.Pair {
-				kv := v.Name
-				if strings.EqualFold(ko[i], kv) {
-					ret.Pair = append(ret.Pair, v)
-					break
-				}
+	if len(ko) == 0 {
+		return ret
+	}
+
+	for i := 0; i < len(ko); i++ {
+		for k, v := range values.Pair {
+			if strings.EqualFold(ko[i], k) {
+				ret.Pair[k] = v
+				break
 			}
 		}
 	}
+
 	return ret
 }
 
@@ -336,91 +336,6 @@ func StripLeading(value string, offset int) string {
 	}
 
 	return value
-}
-
-// NewString initializes a string pointer with an initial value
-//
-// Deprecated: Please use New() instead.
-func NewString(initial string) (init *string) {
-	init = new(string)
-	*init = initial
-	return
-}
-
-// NewByte initializes a byte pointer with an initial value
-//
-// Deprecated: Please use New() instead.
-func NewByte(initial byte) (init *byte) {
-	init = new(byte)
-	*init = initial
-	return
-}
-
-// NewInt initializes an int pointer with an initial value
-//
-// Deprecated: Please use New() instead.
-func NewInt(initial int) (init *int) {
-	init = new(int)
-	*init = initial
-	return
-}
-
-// NewInt32 initializes an int32 pointer with an initial value
-//
-// Deprecated: Please use New() instead.
-func NewInt32(initial int32) (init *int32) {
-	init = new(int32)
-	*init = initial
-	return
-}
-
-// NewInt64 initializes an int64 pointer with an initial value
-//
-// Deprecated: Please use New() instead.
-func NewInt64(initial int64) (init *int64) {
-	init = new(int64)
-	*init = initial
-	return
-}
-
-// NewBool initializes a bool pointer with an initial value
-//
-// Deprecated: Please use New() instead.
-func NewBool(initial bool) (init *bool) {
-	init = new(bool)
-	*init = initial
-	return
-}
-
-// NewFloat32 initializes a float32 pointer with an initial value
-//
-// Deprecated: Please use New() instead.
-func NewFloat32(initial float32) (init *float32) {
-	init = new(float32)
-	*init = initial
-	return
-}
-
-// NewFloat64 initializes a float64 pointer with an initial value
-//
-// Deprecated: Please use New() instead.
-func NewFloat64(initial float64) (init *float64) {
-	init = new(float64)
-	*init = initial
-	return
-}
-
-// NewTime initializes a time.Time pointer with an initial value
-//
-// Deprecated: Please use New() instead.
-func NewTime(initial *time.Time) (init *time.Time) {
-	init = new(time.Time)
-
-	if initial != nil {
-		init = initial
-	}
-
-	return
 }
 
 // GetZero gets the zero value of the types defined as
