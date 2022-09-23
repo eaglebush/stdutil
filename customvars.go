@@ -2,14 +2,14 @@ package stdutil
 
 //CustomVars - command struct
 type CustomVars struct {
-	Command        []string            // Commands represents the sub-paths in the URL request
-	Key            string              // The key of the the request
-	QueryString    []NameValue[string] // The query string values of the URL request
-	HasQueryString bool                // Indicates that the URL request has a query string
-	FormData       []NameValue[string] // The form values associated with the URL request, usually appear when the method is POST and PUT
-	HasFormData    bool                // Indicates that the URL request has form data
-	IsMultipart    bool                // Indicates that the URL request is a multi part request
-	DecodedCommand []NameValue[string] // Decoded commands from an encrypted values represented by q query string
+	Command        []string   // Commands represents the sub-paths in the URL request
+	Key            string     // The key of the the request
+	QueryString    NameValues // The query string values of the URL request
+	HasQueryString bool       // Indicates that the URL request has a query string
+	FormData       NameValues // The form values associated with the URL request, usually appear when the method is POST and PUT
+	HasFormData    bool       // Indicates that the URL request has form data
+	IsMultipart    bool       // Indicates that the URL request is a multi part request
+	DecodedCommand NameValues // Decoded commands from an encrypted values represented by q query string
 }
 
 // FirstCommand - get first command from route
