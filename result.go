@@ -21,18 +21,19 @@ const (
 
 // Result - standard result structure
 type Result struct {
-	Messages      []string     `json:"messages"`                // Accumulated messages as a result from Add methods. Do not append messages using append()
-	Status        string       `json:"status"`                  // OK, ERROR, VALID or any status
-	Operation     string       `json:"operation,omitempty"`     // Name of the operation / function that returned the result
-	TaskID        *string      `json:"task_id,omitempty"`       // ID of the request and of the result
-	WorkerID      *string      `json:"worker_id,omitempty"`     // ID of the worker that processed the data
-	FocusControl  *string      `json:"focus_control,omitempty"` // Control to focus when error was activated
-	Page          *int         `json:"page,omitempty"`          // Current Page
-	PageCount     *int         `json:"page_count,omitempty"`    // Page Count
-	PageSize      *int         `json:"page_size,omitempty"`     // Page Size
-	Tag           *interface{} `json:"tag,omitempty"`           // Miscellaneous result
-	MessagePrefix string       `json:"prefix,omitempty"`        // Prefix of the message to return
-	mm            *MessageManager
+	Messages      []string        `json:"messages"`                // Accumulated messages as a result from Add methods. Do not append messages using append()
+	Status        string          `json:"status"`                  // OK, ERROR, VALID or any status
+	Operation     string          `json:"operation,omitempty"`     // Name of the operation / function that returned the result
+	TaskID        *string         `json:"task_id,omitempty"`       // ID of the request and of the result
+	WorkerID      *string         `json:"worker_id,omitempty"`     // ID of the worker that processed the data
+	FocusControl  *string         `json:"focus_control,omitempty"` // Control to focus when error was activated
+	Page          *int            `json:"page,omitempty"`          // Current Page
+	PageCount     *int            `json:"page_count,omitempty"`    // Page Count
+	PageSize      *int            `json:"page_size,omitempty"`     // Page Size
+	Tag           *interface{}    `json:"tag,omitempty"`           // Miscellaneous result
+	MessagePrefix string          `json:"prefix,omitempty"`        // Prefix of the message to return
+	mm            *MessageManager // message manager
+	eventVerb     string          // event verb related to the name of the operation
 }
 
 // InitResult - initialize result for API query. This is the recommended initialization of this object.
@@ -91,6 +92,7 @@ func InitResult(args ...NameValue[string]) Result {
 				nm = nm[pos+1:]
 			}
 			res.Operation = strings.ToLower(nm)
+			res.eventVerb = res.Operation
 		}
 	}
 
@@ -227,6 +229,21 @@ func (r *Result) AddErr(err error) Result {
 	r.Messages = r.mm.Messages
 
 	return *r
+}
+
+// EventID returns the past tense of Operation
+func (r *Result) EventID() string {
+	ev := r.eventVerb
+	if ev == "" {
+		return "unknown"
+	}
+
+	// simple past tenser
+	if !strings.HasSuffix(ev, "e") {
+		return ev + "ed"
+	}
+
+	return ev + "d"
 }
 
 // ToString adds a formatted error message and returns itself
