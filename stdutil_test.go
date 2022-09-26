@@ -172,3 +172,19 @@ func TestInterpolate(t *testing.T) {
 
 	log.Println(str, obj)
 }
+
+func TestIn(t *testing.T) {
+
+	type SP string
+
+	const spA SP = "A"
+	const spB SP = "B"
+	const spC SP = "C"
+	const spX SP = "X"
+
+	seek := spX
+
+	if !In(seek, spA, spB, spC) {
+		log.Println("Seek parameter does not exist in the variadic parameter")
+	}
+}

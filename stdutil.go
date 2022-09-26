@@ -284,6 +284,16 @@ func ValidateEmail(email string) bool {
 	return re.MatchString(email)
 }
 
+// In checks if the seek parameter is in the list parameter
+func In[T comparable](seek T, list ...T) bool {
+	for _, li := range list {
+		if li == seek {
+			return true
+		}
+	}
+	return false
+}
+
 // SortByKeyArray - reorder keys and values based on a keyOrder array sequence
 func SortByKeyArray(values *NameValues, keyOrder *[]string) NameValues {
 	ret := NameValues{}
