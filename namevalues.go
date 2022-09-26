@@ -212,11 +212,6 @@ func (nvp *NameValues) ToInterfaceArray() []interface{} {
 	return NameValuesToInterfaceArray(*nvp)
 }
 
-// ToVerifyExpressionArray - converts name values to verify expression array
-func (nvp *NameValues) ToVerifyExpressionArray() []VerifyExpression {
-	return NameValuesToVerifyExpressionArray(*nvp)
-}
-
 // Interpolate - interpolate string with values from with base string
 func (nvp *NameValues) Interpolate(base string) (string, []interface{}) {
 	return InterpolateString(base, *nvp)

@@ -231,21 +231,6 @@ func NameValuesToInterfaceArray(values NameValues) []interface{} {
 	return args
 }
 
-// NameValuesToVerifyExpressionArray converts name values to VerifyExpression array
-func NameValuesToVerifyExpressionArray(values NameValues) []VerifyExpression {
-
-	args := make([]VerifyExpression, len(values.Pair))
-	i := 0
-	for k, v := range values.Pair {
-		args[i].Name = k
-		args[i].Value = v
-		args[i].Operator = `=`
-		i++
-	}
-
-	return args
-}
-
 // InterpolateString interpolates string with the name value pairs
 func InterpolateString(base string, keyValues NameValues) (string, []interface{}) {
 
