@@ -1,6 +1,7 @@
 package stdutil
 
 import (
+	"strconv"
 	"strings"
 )
 
@@ -53,11 +54,6 @@ func (nvp *NameValues) String(name string) (string, bool) {
 
 // Strings returns the values as a string array
 func (nvp *NameValues) Strings(name string) []string {
-
-	if !nvp.prepared {
-		nvp.prepare()
-	}
-
 	value, _ := nvp.String(name)
 	return []string{value}
 }
@@ -69,19 +65,20 @@ func (nvp *NameValues) Int(name string) (int, bool) {
 		nvp.prepare()
 	}
 
+	var value int
+
 	name = strings.ToLower(name)
 	tmp, exists := nvp.Pair[name]
-	value, _ := tmp.(int)
+	if exists {
+		val, _ := strconv.ParseInt(tmp.(string), 10, 32)
+		value = int(val)
+	}
+
 	return value, exists
 }
 
 // Ints returns the values as an int array
 func (nvp *NameValues) Ints(name string) []int {
-
-	if !nvp.prepared {
-		nvp.prepare()
-	}
-
 	value, _ := nvp.Int(name)
 	return []int{value}
 }
@@ -93,19 +90,19 @@ func (nvp *NameValues) Int64(name string) (int64, bool) {
 		nvp.prepare()
 	}
 
+	var value int64
+
 	name = strings.ToLower(name)
 	tmp, exists := nvp.Pair[name]
-	value, _ := tmp.(int64)
+	if exists {
+		value, _ = strconv.ParseInt(tmp.(string), 10, 64)
+	}
+
 	return value, exists
 }
 
 // Int64s returns the values as an int64 array
 func (nvp *NameValues) Int64s(name string) []int64 {
-
-	if !nvp.prepared {
-		nvp.prepare()
-	}
-
 	value, _ := nvp.Int64(name)
 	return []int64{value}
 }
@@ -124,22 +121,12 @@ func (nvp *NameValues) Plain(name string) (interface{}, bool) {
 
 // Bool returns the name value as boolean. It automatically convers 'true', 'yes', '1', '-1' and 'on' to boolean The second argument returns the existence.
 func (nvp *NameValues) Bool(name string) (bool, bool) {
-
-	if !nvp.prepared {
-		nvp.prepare()
-	}
-
 	value, _ := nvp.String(name)
 	return (value == "true" || value == "yes" || value == "1" || value == "-1" || value == "on"), true
 }
 
 // Bools returns the values as a boolean array
 func (nvp *NameValues) Bools(name string) []bool {
-
-	if !nvp.prepared {
-		nvp.prepare()
-	}
-
 	value, _ := nvp.Bool(name)
 	return []bool{value}
 }
@@ -151,19 +138,19 @@ func (nvp *NameValues) Float64(name string) (float64, bool) {
 		nvp.prepare()
 	}
 
+	var value float64
+
 	name = strings.ToLower(name)
 	tmp, exists := nvp.Pair[name]
-	value, _ := tmp.(float64)
+	if exists {
+		value, _ = strconv.ParseFloat(tmp.(string), 64)
+	}
+
 	return value, exists
 }
 
 // Float64s returns the values as a float64 array
 func (nvp *NameValues) Float64s(name string) []float64 {
-
-	if !nvp.prepared {
-		nvp.prepare()
-	}
-
 	value, _ := nvp.Float64(name)
 	return []float64{value}
 }
