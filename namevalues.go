@@ -19,7 +19,10 @@ func (nvp *NameValues) prepare() {
 		delete(nvp.Pair, n)
 	}
 
-	nvp.Pair = np
+	for n := range np {
+		nvp.Pair[n] = np[n]
+	}
+
 	nvp.prepared = true
 }
 
