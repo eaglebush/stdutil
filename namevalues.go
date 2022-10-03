@@ -12,12 +12,14 @@ type NameValues struct {
 
 func (nvp *NameValues) prepare() {
 
+	np := make(map[string]any)
 	for n := range nvp.Pair {
 		ln := strings.ToLower(n)
-		nvp.Pair[ln] = nvp.Pair[n]
+		np[ln] = nvp.Pair[n]
 		delete(nvp.Pair, n)
 	}
 
+	nvp.Pair = np
 	nvp.prepared = true
 }
 
