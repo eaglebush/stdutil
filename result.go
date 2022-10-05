@@ -206,13 +206,13 @@ func (r *Result) AddErr(err error) Result {
 }
 
 // AppendError copies the messages of the Result parameter and append the current message
-func (r *Result) AppendError(rs Result, message ...string) Result {
+func (r *Result) AppendError(rs Result, message []string) Result {
 
 	for _, n := range rs.ln.Notes() {
 		r.ln.Append(n)
 	}
 
-	if len(message) == 0 {
+	if len(message) > 0 {
 		r.AddError(message...)
 	}
 
@@ -240,13 +240,13 @@ func (r *Result) AppendErrorf(rs Result, format string, a ...interface{}) Result
 }
 
 // AppendInfo copies the messages of the Result parameter and append the current message
-func (r *Result) AppendInfo(rs Result, message ...string) Result {
+func (r *Result) AppendInfo(rs Result, message []string) Result {
 
 	for _, n := range rs.ln.Notes() {
 		r.ln.Append(n)
 	}
 
-	if len(message) == 0 {
+	if len(message) > 0 {
 		r.AddInfo(message...)
 	}
 
@@ -264,13 +264,13 @@ func (r *Result) AppendInfof(rs Result, format string, a ...interface{}) Result 
 }
 
 // AppendWarning copies the messages of the Result parameter and append the current message
-func (r *Result) AppendWarning(rs Result, message ...string) Result {
+func (r *Result) AppendWarning(rs Result, message []string) Result {
 
 	for _, n := range rs.ln.Notes() {
 		r.ln.Append(n)
 	}
 
-	if len(message) == 0 {
+	if len(message) > 0 {
 		r.AddWarning(message...)
 	}
 
