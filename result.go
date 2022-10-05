@@ -212,7 +212,9 @@ func (r *Result) AppendError(rs Result, message ...string) Result {
 		r.ln.Append(n)
 	}
 
-	r.AddError(message...)
+	if len(message) == 0 {
+		r.AddError(message...)
+	}
 
 	return *r
 }
@@ -224,9 +226,7 @@ func (r *Result) AppendErr(rs Result, err error) Result {
 		r.ln.Append(n)
 	}
 
-	r.AddErr(err)
-
-	return *r
+	return r.AddErr(err)
 }
 
 // AppendErrorf copies the messages of the Result parameter and append a formatted error message
@@ -246,7 +246,9 @@ func (r *Result) AppendInfo(rs Result, message ...string) Result {
 		r.ln.Append(n)
 	}
 
-	r.AddInfo(message...)
+	if len(message) == 0 {
+		r.AddInfo(message...)
+	}
 
 	return *r
 }
@@ -268,7 +270,9 @@ func (r *Result) AppendWarning(rs Result, message ...string) Result {
 		r.ln.Append(n)
 	}
 
-	r.AddWarning(message...)
+	if len(message) == 0 {
+		r.AddWarning(message...)
+	}
 
 	return *r
 }
