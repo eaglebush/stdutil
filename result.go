@@ -287,6 +287,14 @@ func (r *Result) AppendWarningf(rs Result, format string, a ...interface{}) Resu
 	return r.AddWarningf(format, a...)
 }
 
+// Stuff messages of a result. The Result messages may contain different types of message
+func (r *Result) Stuff(rs Result) Result {
+	for _, n := range rs.ln.Notes() {
+		r.ln.Append(n)
+	}
+	return *r
+}
+
 // EventID returns the past tense of Operation
 func (r *Result) EventID() string {
 	ev := r.eventVerb
