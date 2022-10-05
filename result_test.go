@@ -114,20 +114,20 @@ func TestMessageMix(t *testing.T) {
 	res4.AddWarning("This is a warning")
 	res4.AddError("This is an error")
 
-	res.AppendInfo(res1, []string{"This is a new info, appending to WHERE group"})
-	res.AppendInfo(res2, []string{"This is a new info, appending to WHAT group"})
-	res.AppendInfo(res3, []string{"This is a new info, appending to HOW group"})
-	res.AppendInfo(res4, []string{"This is a new info, appending to WHO group"})
+	res.AppendInfo(res1, "This is a new info, appending to WHERE group")
+	res.AppendInfo(res2, "This is a new info, appending to WHAT group")
+	res.AppendInfo(res3, "This is a new info, appending to HOW group")
+	res.AppendInfo(res4, "This is a new info, appending to WHO group")
 
-	res.AppendWarning(res1, []string{"This is a new warning, appending to WHERE group"})
-	res.AppendWarning(res2, []string{"This is a new warning, appending to WHAT group"})
-	res.AppendWarning(res3, []string{"This is a new warning, appending to HOW group"})
-	res.AppendWarning(res4, []string{"This is a new warning, appending to WHO group"})
+	res.AppendWarning(res1, "This is a new warning, appending to WHERE group")
+	res.AppendWarning(res2, "This is a new warning, appending to WHAT group")
+	res.AppendWarning(res3, "This is a new warning, appending to HOW group")
+	res.AppendWarning(res4, "This is a new warning, appending to WHO group")
 
-	res.AppendError(res1, []string{"This is a new error, appending to WHERE group"})
-	res.AppendError(res2, []string{"This is a new error, appending to WHAT group"})
-	res.AppendError(res3, []string{"This is a new error, appending to HOW group"})
-	res.AppendError(res4, []string{"This is a new error, appending to WHO group"})
+	res.AppendError(res1, "This is a new error, appending to WHERE group")
+	res.AppendError(res2, "This is a new error, appending to WHAT group")
+	res.AppendError(res3, "This is a new error, appending to HOW group")
+	res.AppendError(res4, "This is a new error, appending to WHO group")
 
 	for _, m := range res.Messages {
 		t.Log(m)
