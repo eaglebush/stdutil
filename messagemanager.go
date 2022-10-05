@@ -19,6 +19,8 @@ const (
 )
 
 // MessageManager - a struct to create messages
+//
+// Deprecated: Use livenote.LiveNote instead (github.com/narsilworks/livenote)
 type MessageManager struct {
 	MessagePrefix string   `json:"prefix,omitempty"` // Prefix of the message to return
 	Messages      []string `json:"messages"`

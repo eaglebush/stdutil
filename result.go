@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
+
+	"github.com/narsilworks/livenote"
 )
 
 // Status type
@@ -21,19 +23,20 @@ const (
 
 // Result - standard result structure
 type Result struct {
-	Messages      []string        `json:"messages"`                // Accumulated messages as a result from Add methods. Do not append messages using append()
-	Status        string          `json:"status"`                  // OK, ERROR, VALID or any status
-	Operation     string          `json:"operation,omitempty"`     // Name of the operation / function that returned the result
-	TaskID        *string         `json:"task_id,omitempty"`       // ID of the request and of the result
-	WorkerID      *string         `json:"worker_id,omitempty"`     // ID of the worker that processed the data
-	FocusControl  *string         `json:"focus_control,omitempty"` // Control to focus when error was activated
-	Page          *int            `json:"page,omitempty"`          // Current Page
-	PageCount     *int            `json:"page_count,omitempty"`    // Page Count
-	PageSize      *int            `json:"page_size,omitempty"`     // Page Size
-	Tag           *interface{}    `json:"tag,omitempty"`           // Miscellaneous result
-	MessagePrefix string          `json:"prefix,omitempty"`        // Prefix of the message to return
-	mm            *MessageManager // message manager
-	eventVerb     string          // event verb related to the name of the operation
+	Messages      []string     `json:"messages"`                // Accumulated messages as a result from Add methods. Do not append messages using append()
+	Status        string       `json:"status"`                  // OK, ERROR, VALID or any status
+	Operation     string       `json:"operation,omitempty"`     // Name of the operation / function that returned the result
+	TaskID        *string      `json:"task_id,omitempty"`       // ID of the request and of the result
+	WorkerID      *string      `json:"worker_id,omitempty"`     // ID of the worker that processed the data
+	FocusControl  *string      `json:"focus_control,omitempty"` // Control to focus when error was activated
+	Page          *int         `json:"page,omitempty"`          // Current Page
+	PageCount     *int         `json:"page_count,omitempty"`    // Page Count
+	PageSize      *int         `json:"page_size,omitempty"`     // Page Size
+	Tag           *interface{} `json:"tag,omitempty"`           // Miscellaneous result
+	MessagePrefix string       `json:"prefix,omitempty"`        // Prefix of the message to return
+
+	ln        livenote.LiveNote // Internal note
+	eventVerb string            // event verb related to the name of the operation
 }
 
 // InitResult - initialize result for API query. This is the recommended initialization of this object.
@@ -50,9 +53,8 @@ func InitResult(args ...NameValue[string]) Result {
 
 	res := Result{
 		Status: string(EXCEPTION),
+		ln:     livenote.LiveNote{},
 	}
-
-	res.mm = &MessageManager{}
 
 	res.Messages = make([]string, 0)
 
@@ -69,8 +71,8 @@ func InitResult(args ...NameValue[string]) Result {
 		}
 
 		if strings.EqualFold(nv.Name, `prefix`) {
-			res.mm.MessagePrefix = nv.Value
 			res.MessagePrefix = nv.Value
+			res.ln.Prefix = nv.Value // set default prefix for livenote
 			continue
 		}
 
@@ -99,18 +101,14 @@ func InitResult(args ...NameValue[string]) Result {
 	return res
 }
 
+// MessageManager returns the internal message manager
+func (r *Result) MessageManager() *livenote.LiveNote {
+	return &r.ln
+}
+
 // Return a status
 func (r *Result) Return(status Status) Result {
 	r.Status = string(status)
-
-	if r.mm == nil {
-		r.mm = &MessageManager{
-			MessagePrefix: r.MessagePrefix,
-		}
-	}
-
-	r.Messages = r.mm.Messages
-
 	return *r
 }
 
@@ -144,28 +142,17 @@ func (r *Result) No() bool {
 	return r.Status == string(NO)
 }
 
-// MessageManager returns the internal message manager for further manipulation
-func (r *Result) MessageManager() *MessageManager {
-	if r.mm == nil {
-		r.mm = &MessageManager{
-			MessagePrefix: r.MessagePrefix,
-		}
-	}
-	return r.mm
-}
-
-// AddInfo - adds an information message and returns itself
+// AddInfo adds an information message and returns itself
 func (r *Result) AddInfo(message ...string) Result {
-	if r.mm == nil {
-		r.mm = &MessageManager{
-			MessagePrefix: r.MessagePrefix,
-		}
+	// add message
+	r.ln.AddInfo(message...)
+
+	// get current notes to update the messages
+	nts := r.ln.Notes()
+	r.Messages = make([]string, 0, len(nts))
+	for _, n := range nts {
+		r.Messages = append(r.Messages, n.ToString())
 	}
-
-	r.mm.MessagePrefix = r.MessagePrefix
-	r.mm.AddInfo(message...)
-	r.Messages = r.mm.Messages
-
 	return *r
 }
 
@@ -176,16 +163,15 @@ func (r *Result) AddInfof(format string, a ...interface{}) Result {
 
 // AddWarning - adds a warning message and returns itself
 func (r *Result) AddWarning(message ...string) Result {
-	if r.mm == nil {
-		r.mm = &MessageManager{
-			MessagePrefix: r.MessagePrefix,
-		}
+	// add message
+	r.ln.AddWarning(message...)
+
+	// get current notes to update the messages
+	nts := r.ln.Notes()
+	r.Messages = make([]string, 0, len(nts))
+	for _, n := range nts {
+		r.Messages = append(r.Messages, n.ToString())
 	}
-
-	r.mm.MessagePrefix = r.MessagePrefix
-	r.mm.AddWarning(message...)
-	r.Messages = r.mm.Messages
-
 	return *r
 }
 
@@ -194,19 +180,17 @@ func (r *Result) AddWarningf(format string, a ...interface{}) Result {
 	return r.AddWarning(fmt.Sprintf(format, a...))
 }
 
-// AddError - adds an error message and returns itself
+// AddError adds an error message and returns itself
 func (r *Result) AddError(message ...string) Result {
+	// add message
+	r.ln.AddError(message...)
 
-	if r.mm == nil {
-		r.mm = &MessageManager{
-			MessagePrefix: r.MessagePrefix,
-		}
+	// get current notes to update the messages
+	nts := r.ln.Notes()
+	r.Messages = make([]string, 0, len(nts))
+	for _, n := range nts {
+		r.Messages = append(r.Messages, n.ToString())
 	}
-
-	r.mm.MessagePrefix = r.MessagePrefix
-	r.mm.AddError(message...)
-	r.Messages = r.mm.Messages
-
 	return *r
 }
 
@@ -217,16 +201,42 @@ func (r *Result) AddErrorf(format string, a ...interface{}) Result {
 
 // AddErr - adds a real error and returns itself
 func (r *Result) AddErr(err error) Result {
+	r.AddError(err.Error())
+	return *r
+}
 
-	if r.mm == nil {
-		r.mm = &MessageManager{
-			MessagePrefix: r.MessagePrefix,
-		}
+// AppendError copies the messages of the Result parameter and append the current message
+func (r *Result) AppendError(rs Result, message ...string) Result {
+
+	for _, n := range rs.ln.Notes() {
+		r.ln.Append(n)
 	}
 
-	r.mm.MessagePrefix = r.MessagePrefix
-	r.mm.AddError(err.Error())
-	r.Messages = r.mm.Messages
+	r.AddError(message...)
+
+	return *r
+}
+
+// AppendInfo copies the messages of the Result parameter and append the current message
+func (r *Result) AppendInfo(rs Result, message ...string) Result {
+
+	for _, n := range rs.ln.Notes() {
+		r.ln.Append(n)
+	}
+
+	r.AddInfo(message...)
+
+	return *r
+}
+
+// AppendWarning copies the messages of the Result parameter and append the current message
+func (r *Result) AppendWarning(rs Result, message ...string) Result {
+
+	for _, n := range rs.ln.Notes() {
+		r.ln.Append(n)
+	}
+
+	r.AddWarning(message...)
 
 	return *r
 }
@@ -248,7 +258,13 @@ func (r *Result) EventID() string {
 
 // ToString adds a formatted error message and returns itself
 func (r *Result) MessagesToString() string {
-	return r.mm.ToString()
+	return r.ln.ToString()
+}
+
+// SetPrefix changes the prefix
+func (r *Result) SetPrefix(pfx string) {
+	r.ln.Prefix = pfx
+	r.MessagePrefix = pfx
 }
 
 // RowsAffectedInfo - a function to simplify adding information for rows affected
