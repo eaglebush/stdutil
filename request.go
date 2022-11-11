@@ -30,13 +30,13 @@ type CustomPayload struct {
 // ResultData - a result structure and a JSON raw message
 type ResultData struct {
 	Result
-	Data json.RawMessage `json:"data,omitempty"`
+	Data json.RawMessage `json:"data"`
 }
 
 // ResultAny - a result structure with an empty interface
 type ResultAny[T any] struct {
 	Result
-	Data T `json:"data,omitempty"`
+	Data T `json:"data"`
 }
 
 func init() {
