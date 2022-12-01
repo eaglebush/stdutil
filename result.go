@@ -146,13 +146,7 @@ func (r *Result) No() bool {
 func (r *Result) AddInfo(message string) Result {
 	// add message
 	r.ln.AddInfo(message)
-
-	// get current notes to update the messages
-	nts := r.ln.Notes()
-	r.Messages = make([]string, 0, len(nts))
-	for _, n := range nts {
-		r.Messages = append(r.Messages, n.ToString())
-	}
+	r.updateMessage()
 	return *r
 }
 
@@ -165,13 +159,7 @@ func (r *Result) AddInfof(format string, a ...interface{}) Result {
 func (r *Result) AddWarning(message string) Result {
 	// add message
 	r.ln.AddWarning(message)
-
-	// get current notes to update the messages
-	nts := r.ln.Notes()
-	r.Messages = make([]string, 0, len(nts))
-	for _, n := range nts {
-		r.Messages = append(r.Messages, n.ToString())
-	}
+	r.updateMessage()
 	return *r
 }
 
@@ -184,13 +172,7 @@ func (r *Result) AddWarningf(format string, a ...interface{}) Result {
 func (r *Result) AddError(message string) Result {
 	// add message
 	r.ln.AddError(message)
-
-	// get current notes to update the messages
-	nts := r.ln.Notes()
-	r.Messages = make([]string, 0, len(nts))
-	for _, n := range nts {
-		r.Messages = append(r.Messages, n.ToString())
-	}
+	r.updateMessage()
 	return *r
 }
 
@@ -283,6 +265,7 @@ func (r *Result) Stuff(rs Result) Result {
 	for _, n := range rs.ln.Notes() {
 		r.ln.Append(n)
 	}
+	r.updateMessage()
 	return *r
 }
 
@@ -310,6 +293,15 @@ func (r *Result) MessagesToString() string {
 func (r *Result) SetPrefix(pfx string) {
 	r.ln.Prefix = pfx
 	r.MessagePrefix = pfx
+}
+
+func (r *Result) updateMessage() {
+	// get current notes to update the messages
+	nts := r.ln.Notes()
+	r.Messages = make([]string, 0, len(nts))
+	for _, n := range nts {
+		r.Messages = append(r.Messages, n.ToString())
+	}
 }
 
 // RowsAffectedInfo - a function to simplify adding information for rows affected
