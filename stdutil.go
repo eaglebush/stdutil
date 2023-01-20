@@ -1,6 +1,7 @@
 package stdutil
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -15,7 +16,7 @@ type FieldTypeConstraint interface {
 	constraints.Ordered | time.Time | ssd.Decimal | bool | byte
 }
 
-// AnyToString - convert any variable to string
+// AnyToString converts any variable to string
 func AnyToString(value interface{}) string {
 	var b string
 
@@ -162,14 +163,14 @@ func Itos(value interface{}) string {
 	return AnyToString(value)
 }
 
-// IntToInterfaceArray - converts a name value array to interface array
+// IntToInterfaceArray converts a name value array to interface array
 func IntToInterfaceArray(values int) []interface{} {
 	args := make([]interface{}, 1)
 	args[0] = values
 	return args
 }
 
-// IsNumeric - checks if a string is numeric
+// IsNumeric checks if a string is numeric
 func IsNumeric(s string) bool {
 	_, err := strconv.ParseFloat(s, 64)
 	return err == nil
@@ -269,6 +270,19 @@ func ValidateEmail(email string) bool {
 	return re.MatchString(email)
 }
 
+// ValidateCode validates an entry for code
+func ValidateCode(code string) error {
+	if code == "" {
+		return errors.New("code is empty")
+	}
+
+	if strings.Contains(code, " ") {
+		return errors.New(`code contains spaces`)
+	}
+
+	return nil
+}
+
 // In checks if the seek parameter is in the list parameter
 func In[T comparable](seek T, list ...T) bool {
 	for _, li := range list {
@@ -279,7 +293,7 @@ func In[T comparable](seek T, list ...T) bool {
 	return false
 }
 
-// SortByKeyArray - reorder keys and values based on a keyOrder array sequence
+// SortByKeyArray reorders keys and values based on a keyOrder array sequence
 func SortByKeyArray(values *NameValues, keyOrder *[]string) NameValues {
 	ret := NameValues{}
 	ret.Pair = make(map[string]any)
@@ -302,7 +316,7 @@ func SortByKeyArray(values *NameValues, keyOrder *[]string) NameValues {
 	return ret
 }
 
-// StripEndingForwardSlash - remove the ending forward slash of a string
+// StripEndingForwardSlash removes the ending forward slash of a string
 func StripEndingForwardSlash(value string) string {
 	v := strings.TrimSpace(value)
 	v = strings.ReplaceAll(v, `\`, `/`)
@@ -313,7 +327,7 @@ func StripEndingForwardSlash(value string) string {
 	return v
 }
 
-// StripTrailing - strip string of trailing characters after the length
+// StripTrailing strips string of trailing characters after the length
 func StripTrailing(value string, length int) string {
 
 	if len(value) > length {
@@ -323,7 +337,7 @@ func StripTrailing(value string, length int) string {
 	return value
 }
 
-// StripLeading - strip string of leading characters by an offset
+// StripLeading strips string of leading characters by an offset
 func StripLeading(value string, offset int) string {
 
 	if len(value) > offset {
