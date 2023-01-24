@@ -283,6 +283,47 @@ func ValidateCode(code string) error {
 	return nil
 }
 
+// ValidateMinLength validates string against minimum specified length
+func ValidateMinLength(value *string, min int) bool {
+	if value == nil {
+		return false
+	}
+
+	ln := len(*value)
+	return ln < min
+}
+
+// ValidateMinLength validates string against maximum specified length
+func ValidateMaxLength(value *string, max int) bool {
+	if value == nil {
+		return false
+	}
+
+	// unset max will return true; means no maximum
+	if max == 0 {
+		return true
+	}
+
+	ln := len(*value)
+	return ln > max
+}
+
+// ValidateMinMaxLength validates string against minimum and maximum specified length
+func ValidateMinMaxLength(value *string, min, max int) (bool, error) {
+	if value == nil {
+		return false, errors.New("text has no value")
+	}
+
+	if !ValidateMinLength(value, min) {
+		return false, fmt.Errorf("text is shorter than %d characters", min)
+	}
+	if !ValidateMaxLength(value, max) {
+		return false, fmt.Errorf("text is longer than %d characters", max)
+	}
+
+	return true, nil
+}
+
 // In checks if the seek parameter is in the list parameter
 func In[T comparable](seek T, list ...T) bool {
 	for _, li := range list {
