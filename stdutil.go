@@ -17,10 +17,10 @@ type FieldTypeConstraint interface {
 }
 
 type StringValidationOptions struct {
-	Empty bool
-	Null  bool
-	Min   int
-	Max   int
+	Empty bool // Allow empty string
+	Null  bool // Allow null
+	Min   int  // Minimum length
+	Max   int  // Maximun length
 }
 
 // AnyToString converts any variable to string
