@@ -284,44 +284,53 @@ func ValidateCode(code string) error {
 }
 
 // ValidateMinLength validates string against minimum specified length
-func ValidateMinLength(value *string, min int) bool {
+func ValidateMinLength(value *string, min int) error {
 	if value == nil {
-		return false
+		return fmt.Errorf("must be provided")
 	}
 
 	ln := len(*value)
-	return ln < min
+	if ln < min {
+		return fmt.Errorf("shorter than %d characters", min)
+	}
+
+	return nil
 }
 
 // ValidateMinLength validates string against maximum specified length
-func ValidateMaxLength(value *string, max int) bool {
+func ValidateMaxLength(value *string, max int) error {
 	if value == nil {
-		return false
+		return fmt.Errorf("must be provided")
 	}
 
 	// unset max will return true; means no maximum
 	if max == 0 {
-		return true
+		return nil
 	}
 
 	ln := len(*value)
-	return ln > max
+	if ln > max {
+		return fmt.Errorf("longer than %d characters", max)
+	}
+
+	return nil
 }
 
 // ValidateMinMaxLength validates string against minimum and maximum specified length
-func ValidateMinMaxLength(value *string, min, max int) (bool, error) {
+func ValidateMinMaxLength(value *string, min, max int) error {
+
 	if value == nil {
-		return false, errors.New("text has no value")
+		return fmt.Errorf("must be provided")
 	}
 
-	if !ValidateMinLength(value, min) {
-		return false, fmt.Errorf("text is shorter than %d characters", min)
+	if err := ValidateMinLength(value, min); err != nil {
+		return err
 	}
-	if !ValidateMaxLength(value, max) {
-		return false, fmt.Errorf("text is longer than %d characters", max)
+	if err := ValidateMaxLength(value, max); err != nil {
+		return err
 	}
 
-	return true, nil
+	return nil
 }
 
 // In checks if the seek parameter is in the list parameter
