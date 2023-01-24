@@ -291,7 +291,7 @@ func ValidateMinLength(value *string, min int) error {
 
 	ln := len(*value)
 	if ln < min {
-		return fmt.Errorf("shorter than %d characters", min)
+		return fmt.Errorf("is shorter than %d characters", min)
 	}
 
 	return nil
@@ -310,7 +310,7 @@ func ValidateMaxLength(value *string, max int) error {
 
 	ln := len(*value)
 	if ln > max {
-		return fmt.Errorf("longer than %d characters", max)
+		return fmt.Errorf("is longer than %d characters", max)
 	}
 
 	return nil
