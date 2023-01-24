@@ -16,6 +16,13 @@ type FieldTypeConstraint interface {
 	constraints.Ordered | time.Time | ssd.Decimal | bool | byte
 }
 
+type StringValidationOptions struct {
+	Empty bool
+	Null  bool
+	Min   int
+	Max   int
+}
+
 // AnyToString converts any variable to string
 func AnyToString(value interface{}) string {
 	var b string
@@ -283,51 +290,38 @@ func ValidateCode(code string) error {
 	return nil
 }
 
-// ValidateMinLength validates string against minimum specified length
-func ValidateMinLength(value *string, min int) error {
+// ValidateString validates an input string against the string validation options
+func ValidateString(value *string, opts *StringValidationOptions) error {
+
+	// If options were not set, this string is valid
+	// If value is nil and the Null option is false, we raise an error
+	// If value is empty and the Empty option is false, we raise an error
+	if opts == nil {
+		return nil
+	}
+
 	if value == nil {
-		return fmt.Errorf("must be provided")
-	}
-
-	ln := len(*value)
-	if ln < min {
-		return fmt.Errorf("is shorter than %d characters", min)
-	}
-
-	return nil
-}
-
-// ValidateMinLength validates string against maximum specified length
-func ValidateMaxLength(value *string, max int) error {
-	if value == nil {
-		return fmt.Errorf("must be provided")
-	}
-
-	// unset max will return true; means no maximum
-	if max == 0 {
+		if !opts.Null {
+			return fmt.Errorf("must be provided (nil)")
+		}
 		return nil
 	}
 
 	ln := len(*value)
-	if ln > max {
-		return fmt.Errorf("is longer than %d characters", max)
+
+	if ln == 0 {
+		if !opts.Empty {
+			return fmt.Errorf("must be provided (empty)")
+		}
+		return nil
 	}
 
-	return nil
-}
-
-// ValidateMinMaxLength validates string against minimum and maximum specified length
-func ValidateMinMaxLength(value *string, min, max int) error {
-
-	if value == nil {
-		return fmt.Errorf("must be provided")
+	if opts.Min > 0 && ln < opts.Min {
+		return fmt.Errorf("is shorter than %d characters", opts.Min)
 	}
 
-	if err := ValidateMinLength(value, min); err != nil {
-		return err
-	}
-	if err := ValidateMaxLength(value, max); err != nil {
-		return err
+	if opts.Max > 0 && ln > opts.Max {
+		return fmt.Errorf("is longer than %d characters", opts.Max)
 	}
 
 	return nil
