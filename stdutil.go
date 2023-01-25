@@ -273,9 +273,13 @@ func InterpolateString(base string, keyValues NameValues) (string, []interface{}
 }
 
 // ValidateEmail - validate an e-mail address
-func ValidateEmail(email string) error {
+func ValidateEmail(email *string) error {
+	if email == nil || *email == "" {
+		return fmt.Errorf("is an invalid email address")
+	}
+
 	re := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-	if !re.MatchString(email) {
+	if !re.MatchString(*email) {
 		return fmt.Errorf("is an invalid email address")
 	}
 	return nil
