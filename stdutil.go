@@ -178,12 +178,6 @@ func IntToInterfaceArray(values int) []interface{} {
 	return args
 }
 
-// IsNumeric checks if a string is numeric
-func IsNumeric(s string) bool {
-	_, err := strconv.ParseFloat(s, 64)
-	return err == nil
-}
-
 // IsNullOrEmpty checks for nullity and emptiness of a pointer variable
 // Currently supported data types are the ones in the constraints.Ordered,
 // time.Time, bool and shopspring/decimal
@@ -282,6 +276,19 @@ func ValidateEmail(email *string) error {
 	if !re.MatchString(*email) {
 		return fmt.Errorf("is an invalid email address")
 	}
+	return nil
+}
+
+// ValidateNumeric checks if a string is numeric
+func ValidateNumeric(value *string) error {
+	if value == nil {
+		return fmt.Errorf("is empty")
+	}
+
+	if _, err := strconv.ParseFloat(*value, 64); err != nil {
+		return err
+	}
+
 	return nil
 }
 
