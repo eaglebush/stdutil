@@ -1,7 +1,6 @@
 package stdutil
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -17,10 +16,11 @@ type FieldTypeConstraint interface {
 }
 
 type StringValidationOptions struct {
-	Empty bool // Allow empty string
-	Null  bool // Allow null
-	Min   int  // Minimum length
-	Max   int  // Maximun length
+	Empty    bool // Allow empty string. Default: false, will raise an error if the string is empty
+	Null     bool // Allow null. Default: false, will raise an error if the string is null
+	Min      int  // Minimum length. Default: 0
+	Max      int  // Maximum length. Default: 0
+	NoSpaces bool // Do not allow spaces in the string. Default: false. Setting to true will raise an error if the string has spaces
 }
 
 // AnyToString converts any variable to string
@@ -277,19 +277,6 @@ func ValidateEmail(email string) bool {
 	return re.MatchString(email)
 }
 
-// ValidateCode validates an entry for code
-func ValidateCode(code string) error {
-	if code == "" {
-		return errors.New("code is empty")
-	}
-
-	if strings.Contains(code, " ") {
-		return errors.New(`code contains spaces`)
-	}
-
-	return nil
-}
-
 // ValidateString validates an input string against the string validation options
 func ValidateString(value *string, opts *StringValidationOptions) error {
 
@@ -322,6 +309,10 @@ func ValidateString(value *string, opts *StringValidationOptions) error {
 
 	if opts.Max > 0 && ln > opts.Max {
 		return fmt.Errorf("is longer than %d characters", opts.Max)
+	}
+
+	if opts.NoSpaces && strings.Contains(*value, " ") {
+		return fmt.Errorf("contains spaces")
 	}
 
 	return nil
