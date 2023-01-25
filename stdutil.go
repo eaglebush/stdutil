@@ -286,7 +286,7 @@ func ValidateNumeric(value *string) error {
 	}
 
 	if _, err := strconv.ParseFloat(*value, 64); err != nil {
-		return err
+		return fmt.Errorf(`is not a number (%s)`, err)
 	}
 
 	return nil
