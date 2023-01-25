@@ -21,6 +21,7 @@ type StringValidationOptions struct {
 	Min      int  // Minimum length. Default: 0
 	Max      int  // Maximum length. Default: 0
 	NoSpaces bool // Do not allow spaces in the string. Default: false. Setting to true will raise an error if the string has spaces
+	Extended []func(value *string) error
 }
 
 // AnyToString converts any variable to string
@@ -272,9 +273,12 @@ func InterpolateString(base string, keyValues NameValues) (string, []interface{}
 }
 
 // ValidateEmail - validate an e-mail address
-func ValidateEmail(email string) bool {
+func ValidateEmail(email string) error {
 	re := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-	return re.MatchString(email)
+	if !re.MatchString(email) {
+		return fmt.Errorf("is an invalid email address")
+	}
+	return nil
 }
 
 // ValidateString validates an input string against the string validation options
@@ -313,6 +317,12 @@ func ValidateString(value *string, opts *StringValidationOptions) error {
 
 	if opts.NoSpaces && strings.Contains(*value, " ") {
 		return fmt.Errorf("contains spaces")
+	}
+
+	for _, f := range opts.Extended {
+		if err := f(value); err != nil {
+			return err
+		}
 	}
 
 	return nil
