@@ -3,6 +3,8 @@ package stdutil
 import (
 	"strconv"
 	"strings"
+
+	"golang.org/x/exp/constraints"
 )
 
 // NameValues - a struct to manage value structs
@@ -37,6 +39,51 @@ func (nvp *NameValues) Exists(name string) bool {
 	name = strings.ToLower(name)
 	_, exists := nvp.Pair[name]
 	return exists
+}
+
+// Value gets the value from the collection of NameValues by name
+//
+// This function requires version 1.18+
+func Value[T constraints.Ordered | bool](nvs NameValues, name string) T {
+	if !nvs.prepared {
+		nvs.prepare()
+	}
+
+	name = strings.ToLower(name)
+	tmp := nvs.Pair[name]
+
+	tpt := any(*new(T))
+	value := *new(T)
+
+	switch t := tmp.(type) {
+	case string:
+		switch tpt.(type) {
+		case int:
+			val, _ := strconv.ParseInt(t, 10, 32)
+			value = any(int(val)).(T)
+		case int64:
+			val, _ := strconv.ParseInt(t, 10, 64)
+			value = any(val).(T)
+		case bool:
+			val, _ := strconv.ParseBool(t)
+			value = any(val).(T)
+		default:
+			value = tmp.(T)
+		}
+	default:
+		value = t.(T)
+	}
+
+	return value
+}
+
+// Value gets the value from the collection of NameValues by name as pointer
+//
+// This function requires version 1.18+
+func ValuePtr[T constraints.Ordered | bool](nvs NameValues, name string) *T {
+
+	value := Value[T](nvs, name)
+	return &value
 }
 
 // String returns the name value as string. The second argument returns the existence.
