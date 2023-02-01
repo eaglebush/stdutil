@@ -41,10 +41,10 @@ func (nvp *NameValues) Exists(name string) bool {
 	return exists
 }
 
-// Value gets the value from the collection of NameValues by name
+// NameValueGet gets the value from the collection of NameValues by name
 //
 // This function requires version 1.18+
-func Value[T constraints.Ordered | bool](nvs NameValues, name string) T {
+func NameValueGet[T constraints.Ordered | bool](nvs NameValues, name string) T {
 	if !nvs.prepared {
 		nvs.prepare()
 	}
@@ -55,6 +55,8 @@ func Value[T constraints.Ordered | bool](nvs NameValues, name string) T {
 	tpt := any(*new(T))
 	value := *new(T)
 
+	// If the value is a string and the inferred type is otherwise
+	// try to convert, else just convery via inferred type
 	switch t := tmp.(type) {
 	case string:
 		switch tpt.(type) {
@@ -66,6 +68,12 @@ func Value[T constraints.Ordered | bool](nvs NameValues, name string) T {
 			value = any(val).(T)
 		case bool:
 			val, _ := strconv.ParseBool(t)
+			value = any(val).(T)
+		case float32:
+			val, _ := strconv.ParseFloat(t, 32)
+			value = any(val).(T)
+		case float64:
+			val, _ := strconv.ParseFloat(t, 64)
 			value = any(val).(T)
 		default:
 			value = tmp.(T)
