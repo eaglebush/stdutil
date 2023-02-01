@@ -85,12 +85,12 @@ func NameValueGet[T constraints.Ordered | bool](nvs NameValues, name string) T {
 	return value
 }
 
-// Value gets the value from the collection of NameValues by name as pointer
+// NameValueGetPtr gets the value from the collection of NameValues by name as pointer
 //
 // This function requires version 1.18+
-func ValuePtr[T constraints.Ordered | bool](nvs NameValues, name string) *T {
+func NameValueGetPtr[T constraints.Ordered | bool](nvs NameValues, name string) *T {
 
-	value := Value[T](nvs, name)
+	value := NameValueGet[T](nvs, name)
 	return &value
 }
 
