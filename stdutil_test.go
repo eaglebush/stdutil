@@ -4,6 +4,8 @@ import (
 	"log"
 	"testing"
 	"time"
+
+	ssd "github.com/shopspring/decimal"
 )
 
 func TestNullOrEmpty(t *testing.T) {
@@ -187,4 +189,42 @@ func TestIn(t *testing.T) {
 	if !In(seek, spA, spB, spC) {
 		log.Println("Seek parameter does not exist in the variadic parameter")
 	}
+}
+
+func TestValidateDecimal(t *testing.T) {
+
+	vo :=
+		DecimalValidationOptions{
+			Null:  true,
+			Empty: true,
+			Min:   New(ssd.NewFromFloat32(30.49)),
+			Max:   New(ssd.NewFromFloat32(30.51)),
+		}
+
+	//d := ssd.NewFromFloat(30.48)
+	//var d ssd.Decimal
+
+	if err := ValidateDecimal(nil, &vo); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+func TestValidateNumeric(t *testing.T) {
+
+	vo :=
+		NumericValidationOptions[int]{
+			Null:  false,
+			Empty: false,
+			Min:   30,
+			Max:   50,
+		}
+
+	d := 0
+	//var d ssd.Decimal
+
+	if err := ValidateNumeric(&d, &vo); err != nil {
+		t.Fatal(err)
+	}
+
 }

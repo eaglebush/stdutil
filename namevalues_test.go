@@ -14,15 +14,15 @@ func TestNameValues(t *testing.T) {
 		},
 	}
 
-	vs := Value[string](nvs, "name")
+	vs := NameValueGet[string](nvs, "name")
 	t.Log(vs)
 
-	vb := Value[bool](nvs, "active")
+	vb := NameValueGet[bool](nvs, "active")
 	t.Log(vb)
 
-	vi := Value[int](nvs, "age")
+	vi := NameValueGet[int](nvs, "age")
 	t.Log(vi)
 
-	vm := Value[bool](nvs, "man")
+	vm := NameValueGet[bool](nvs, "man")
 	t.Log(vm)
 }
