@@ -33,6 +33,7 @@ type TimeValidationOptions struct {
 	Empty    bool       // Allow zero time Default: false, will raise an error if the time is zero
 	Min      *time.Time // Minimum time. Default: nil
 	Max      *time.Time // Maximum time. Default: nil
+	DateOnly bool       // Compare dates only. Default: false
 	Extended []func(value *time.Time) error
 }
 
@@ -388,6 +389,21 @@ func ValidateTime(value *time.Time, opts *TimeValidationOptions) error {
 			return fmt.Errorf("must be provided (empty)")
 		}
 		return nil
+	}
+
+	if opts.DateOnly {
+		dv := *value
+		*value = time.Date(dv.Year(), dv.Month(), dv.Day(), 0, 0, 0, 0, dv.Location())
+
+		if opts.Min != nil {
+			dc := opts.Min
+			*opts.Min = time.Date(dc.Year(), dc.Month(), dc.Day(), 0, 0, 0, 0, dc.Location())
+		}
+
+		if opts.Max != nil {
+			dc := opts.Max
+			*opts.Max = time.Date(dc.Year(), dc.Month(), dc.Day(), 0, 0, 0, 0, dc.Location())
+		}
 	}
 
 	if opts.Min != nil && value.Before(*opts.Min) {
