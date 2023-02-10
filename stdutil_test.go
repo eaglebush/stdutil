@@ -228,3 +228,12 @@ func TestValidateNumeric(t *testing.T) {
 	}
 
 }
+
+func TestBuildSeries(t *testing.T) {
+	series := BuildSeries(100, SeriesOptions{
+		Prefix: "PF",
+		Suffix: "EX",
+		Length: 0,
+	})
+	t.Log(series)
+}

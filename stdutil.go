@@ -53,6 +53,12 @@ type DecimalValidationOptions struct {
 	Extended []func(value *ssd.Decimal) error
 }
 
+type SeriesOptions struct {
+	Prefix string
+	Suffix string
+	Length int
+}
+
 // AnyToString converts any variable to string
 func AnyToString(value interface{}) string {
 	var b string
@@ -501,6 +507,19 @@ func ValidateDecimal(value *ssd.Decimal, opts *DecimalValidationOptions) error {
 	}
 
 	return nil
+}
+
+// BuildSeries builds series based on options
+func BuildSeries(series int, opt SeriesOptions) string {
+
+	// If length is specified, we get the difference between suffix and prefix
+	if opt.Length > 0 {
+		diff := opt.Length - (len(opt.Prefix) + len(opt.Suffix))
+		ds := `%0` + strconv.Itoa(diff) + `d`
+		return fmt.Sprintf(`%s`+ds+`%s`, opt.Prefix, series, opt.Suffix)
+	}
+
+	return fmt.Sprintf(`%s%d%s`, opt.Prefix, series, opt.Suffix)
 }
 
 // In checks if the seek parameter is in the list parameter
