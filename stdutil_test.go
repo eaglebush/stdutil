@@ -165,7 +165,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestInterpolate(t *testing.T) {
-	str, obj := InterpolateString(`This is ${name}. Leader of the ${band} band.`, NameValues{
+	str, obj := Interpolate(`This is ${name}. Leader of the ${band} band.`, NameValues{
 		Pair: map[string]any{
 			"name": "Zaldy",
 			"band": "Razzie",
@@ -236,4 +236,9 @@ func TestBuildSeries(t *testing.T) {
 		Length: 0,
 	})
 	t.Log(series)
+}
+
+func TestInterfaceArray(t *testing.T) {
+	arr := ToInterfaceArray(time.Now())
+	t.Log(arr)
 }

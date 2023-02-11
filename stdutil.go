@@ -54,9 +54,9 @@ type DecimalValidationOptions struct {
 }
 
 type SeriesOptions struct {
-	Prefix string
-	Suffix string
-	Length int
+	Prefix string // Prefix of series
+	Suffix string // Suffix of series
+	Length int    // Fixed length of the series
 }
 
 // AnyToString converts any variable to string
@@ -206,11 +206,11 @@ func Itos(value interface{}) string {
 	return AnyToString(value)
 }
 
-// IntToInterfaceArray converts a name value array to interface array
-func IntToInterfaceArray(values int) []interface{} {
-	args := make([]interface{}, 1)
-	args[0] = values
-	return args
+// ToInterfaceArray converts a value to interface array
+//
+// This function requires version 1.18+
+func ToInterfaceArray[T FieldTypeConstraint](values T) []interface{} {
+	return []interface{}{values}
 }
 
 // IsNullOrEmpty checks for nullity and emptiness of a pointer variable
@@ -269,8 +269,8 @@ func NameValuesToInterfaceArray(values NameValues) []interface{} {
 	return args
 }
 
-// InterpolateString interpolates string with the name value pairs
-func InterpolateString(base string, keyValues NameValues) (string, []interface{}) {
+// Interpolate interpolates string with the name value pairs
+func Interpolate(base string, keyValues NameValues) (string, []interface{}) {
 
 	retstr := base
 	hasmatch := false
@@ -532,16 +532,20 @@ func In[T comparable](seek T, list ...T) bool {
 	return false
 }
 
-// SortByKeyArray reorders keys and values based on a keyOrder array sequence
-func SortByKeyArray(values *NameValues, keyOrder *[]string) NameValues {
-	ret := NameValues{}
-	ret.Pair = make(map[string]any)
+// SortByKey reorders keys and values based on a keyOrder array sequence
+func SortByKey(values *NameValues, keyOrder *[]string) NameValues {
 
-	//If keyorder was specified, the order of keys will be sorted according to the specifications
+	if keyOrder == nil {
+		return *values
+	}
+
 	ko := *keyOrder
 	if len(ko) == 0 {
-		return ret
+		return *values
 	}
+
+	ret := NameValues{}
+	ret.Pair = make(map[string]any)
 
 	for i := 0; i < len(ko); i++ {
 		for k, v := range values.Pair {
@@ -561,8 +565,9 @@ func StripEndingForwardSlash(value string) string {
 	v = strings.ReplaceAll(v, `\`, `/`)
 	ix := strings.LastIndex(v, `/`)
 	if ix == (len(v) - 1) {
-		v = v[0:ix]
+		return v[0:ix]
 	}
+
 	return v
 }
 

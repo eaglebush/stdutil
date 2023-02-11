@@ -261,10 +261,10 @@ func (nvp *NameValues) ToInterfaceArray() []interface{} {
 
 // Interpolate - interpolate string with values from with base string
 func (nvp *NameValues) Interpolate(base string) (string, []interface{}) {
-	return InterpolateString(base, *nvp)
+	return Interpolate(base, *nvp)
 }
 
-// SortByKeyArray - sort name values by key order array
-func (nvp *NameValues) SortByKeyArray(keyOrder *[]string) NameValues {
-	return SortByKeyArray(nvp, keyOrder)
+// SortByKey sort name values by key order array
+func (nvp *NameValues) SortByKey(keyOrder *[]string) NameValues {
+	return SortByKey(nvp, keyOrder)
 }
