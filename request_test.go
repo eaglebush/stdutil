@@ -14,16 +14,20 @@ func TestExecuteAPIPOST(t *testing.T) {
 		"sessionid": "eyJhbGciOiJIUzI1NiIsImRldmljZWlkIjoiIiwiZG9tYWluIjoiIiwidHlwIjoiSldUIiwidXNlciI6InphbGR5LmJhZ3Vpbm9uIn0.eyJuYmYiOjE1NzgyNzU3MDV9.8NbRqiIIQ6Kx03Zo_aOyf_5rFnhYQtM8O990TEv0_aM"
 	}`
 
-	exapi := PostJSON("http://hulk.vdimdci.com.ph/api/appshub/auth/svalid/", []byte(payload), false, nil)
+	exapi := PostJSON("https://appcore.vdimdci.com.ph/api/auth/svalid/", []byte(payload), false, nil)
 	fmt.Println(exapi)
 }
 
 func TestExecuteAPIGET(t *testing.T) {
-	hdr := make(map[string]string, 1)
+	hdr := make(map[string]string)
 	hdr["Cookie"] = "APPSHUB-WF-login=zaldy.baguinon; APPSHUB-WF-appdomain=MDCI"
+	hdr["Authorization"] = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJLZWFudS1VcGxvYWRlciIsImV4cCI6MCwibmJmIjoxNjc1MzE0MTg0LCJpYXQiOjAsInVzciI6ImphbWVzLmx1bWliYW9AbWRjaS5jb20ucGgiLCJkb20iOiJNRENJIiwiYXBwIjoiS2VhbnUtVXBsb2FkZXIiLCJkZXYiOiIyS1JzS3Z4Y2NuOUp0RjNxbDIxMmN1MmhwS1MifQ.961xUrBObQfN6fkO_s7OYhFTqKC_aMrr1OKVwvPhkLU"
 
-	exapi := GetJSON("http://hulk.vdimdci.com.ph/api/appshub/user/19", hdr)
-	fmt.Printf("%v", exapi)
+	exapi := GetJSON("http://appcore.vdimdci.com.ph/api/user/88", hdr)
+	if !exapi.OK() {
+		t.Fail()
+	}
+	fmt.Printf("%v", string(exapi.Data))
 }
 
 func TestJWTParse(t *testing.T) {
