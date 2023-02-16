@@ -55,27 +55,27 @@ func NewStreamEventChannel(application, service, module, stream string) EventCha
 }
 
 // GetEventSubjectMatch seeks the list of event channels by module
-func GetEventSubjectMatch(subject string, evtchans []EventChannel) EventChannel {
+func GetEventSubjectMatch(subject string, evtchans []EventChannel) *EventChannel {
 
 	for _, e := range evtchans {
 		if strings.EqualFold(subject, e.ToString()) {
-			return e
+			return &e
 		}
 	}
 
-	return EventChannel{}
+	return nil
 }
 
 // GetEventModuleMatch seeks the list of event channels by module
-func GetEventModuleMatch(module string, evtchans []EventChannel) EventChannel {
+func GetEventModuleMatch(module string, evtchans []EventChannel) *EventChannel {
 
 	for _, e := range evtchans {
 		if strings.EqualFold(module, e.Module) {
-			return e
+			return &e
 		}
 	}
 
-	return EventChannel{}
+	return nil
 }
 
 // ToString composes the event channel to a proper channel name
