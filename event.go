@@ -6,9 +6,10 @@ import (
 
 // EventChannel is a struct to describe the channel where the event is contained
 type EventChannel struct {
-	Application string
-	Service     string
-	Module      string
+	Application string // Application. This would form as the first segment
+	Service     string // Service. This would form as the second segment
+	Module      string // Module. This would form as the last segment
+	Stream      string // Stream. The stream name when using a JetStream subscription
 }
 
 // EventData contains the data of the event.
@@ -25,7 +26,7 @@ type Event struct {
 }
 
 // NewEventChannel properly creates a new event channel
-func NewEventChannel(application string, service string, module string) EventChannel {
+func NewEventChannel(application, service, module string) EventChannel {
 
 	application = strings.ReplaceAll(strings.ToLower(application), `.`, ``)
 	service = strings.ReplaceAll(strings.ToLower(service), `.`, ``)
@@ -35,6 +36,21 @@ func NewEventChannel(application string, service string, module string) EventCha
 		Application: application,
 		Service:     service,
 		Module:      module,
+	}
+}
+
+// NewStreamEventChannel properly creates a new event channel with stream name
+func NewStreamEventChannel(application, service, module, stream string) EventChannel {
+
+	application = strings.ReplaceAll(strings.ToLower(application), `.`, ``)
+	service = strings.ReplaceAll(strings.ToLower(service), `.`, ``)
+	module = strings.ReplaceAll(strings.ToLower(module), `.`, ``)
+
+	return EventChannel{
+		Application: application,
+		Service:     service,
+		Module:      module,
+		Stream:      stream,
 	}
 }
 
