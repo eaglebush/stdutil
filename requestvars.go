@@ -7,14 +7,14 @@ import (
 
 // JWTInfo contains the information about JWT
 type JWTInfo struct {
-	ValidAuthToken     bool     // Indicates that the request has a valid JWT token
-	TokenRaw           string   // Raw JWT token
-	TokenApplicationID string   // Application ID from the JWT token
-	TokenAudience      []string // Audience intended by the token
-	TokenDeviceID      string   // The device id where the token came from
-	TokenDomain        string   // The application domain that the token is intended for
-	TokenTenantID      string   // Tenant ID from the JWT token
-	TokenUserName      string   // User account authenticated and produced the token
+	Valid         bool     // Indicates that the request has a valid JWT token
+	Raw           string   // Raw JWT token
+	ApplicationID string   // Application ID from the JWT token
+	Audience      []string // Audience intended by the token
+	DeviceID      string   // The device id where the token came from
+	Domain        string   // The application domain that the token is intended for
+	TenantID      string   // Tenant ID from the JWT token
+	UserName      string   // User account authenticated and produced the token
 }
 
 // RequestVars - contains necessary request variables
