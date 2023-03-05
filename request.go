@@ -475,15 +475,15 @@ func ParseJWT(token, secretKey string, validateTimes bool) (*JWTInfo, error) {
 		return ji, err
 	}
 
-	ji.TokenAudience = pl.Audience
-	ji.TokenUserName = pl.UserName
-	ji.TokenDomain = pl.Domain
-	ji.TokenDeviceID = pl.DeviceID
-	ji.TokenApplicationID = pl.ApplicationID
-	ji.TokenTenantID = pl.TenantID
-	ji.TokenRaw = token
+	ji.Audience = pl.Audience
+	ji.UserName = pl.UserName
+	ji.Domain = pl.Domain
+	ji.DeviceID = pl.DeviceID
+	ji.ApplicationID = pl.ApplicationID
+	ji.TenantID = pl.TenantID
+	ji.Raw = token
 
-	ji.ValidAuthToken = true
+	ji.Valid = true
 
 	return ji, nil
 }
@@ -500,7 +500,7 @@ func GetRequestVars(r *http.Request, secretKey string, validateTimes bool) (Requ
 
 	ji, err := ValidateJWT(r, secretKey, validateTimes)
 	if err != nil {
-		rv.ValidAuthToken = false
+		rv.Valid = false
 		return rv, err
 	}
 	rv.JWTInfo = *ji
