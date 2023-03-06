@@ -492,6 +492,7 @@ func ParseJWT(token, secretKey string, validateTimes bool) (*JWTInfo, error) {
 func GetRequestVars(r *http.Request, secretKey string, validateTimes bool) (RequestVars, error) {
 
 	rv := GetRequestVarsOnly(r)
+	rv.Token = nil
 
 	// silently ignore OPTION methid
 	if strings.EqualFold(r.Method, "OPTION") {
@@ -500,10 +501,9 @@ func GetRequestVars(r *http.Request, secretKey string, validateTimes bool) (Requ
 
 	ji, err := ValidateJWT(r, secretKey, validateTimes)
 	if err != nil {
-		rv.Valid = false
 		return rv, err
 	}
-	rv.JWTInfo = *ji
+	rv.Token = ji
 
 	return rv, nil
 }
