@@ -77,9 +77,18 @@ func NameValueGet[T constraints.Ordered | bool](nvs NameValues, name string) T {
 			value = any(val).(T)
 		default:
 			value = tmp.(T)
+			if tmp != nil {
+				value = tmp.(T)
+			} else {
+				value = GetZero[T]()
+			}
 		}
 	default:
-		value = t.(T)
+		if t != nil {
+			value = t.(T)
+		} else {
+			value = GetZero[T]()
+		}
 	}
 
 	return value
