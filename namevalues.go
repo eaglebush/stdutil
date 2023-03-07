@@ -76,7 +76,6 @@ func NameValueGet[T constraints.Ordered | bool](nvs NameValues, name string) T {
 			val, _ := strconv.ParseFloat(t, 64)
 			value = any(val).(T)
 		default:
-			value = tmp.(T)
 			if tmp != nil {
 				value = tmp.(T)
 			} else {

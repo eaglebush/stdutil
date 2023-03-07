@@ -591,6 +591,40 @@ func StripLeading(value string, offset int) string {
 	return value
 }
 
+// Elem returns the element of an array as specified by the index
+//
+// If the index exceeds the length of an array, it will return a non-nil value of the type.
+// To monitor if the element exists, define a boolean value in the exists parameter
+//
+// This function requires version 1.18+
+func Elem[T any](array *[]T, index int, exists *bool) T {
+
+	var result T
+
+	if exists != nil {
+		*exists = false
+	}
+
+	if array == nil {
+		return result
+	}
+
+	arrl := len(*array)
+	if arrl == 0 {
+		return result
+	}
+	arrl--
+
+	if arrl >= index {
+		if exists != nil {
+			*exists = true
+		}
+		return (*array)[index]
+	}
+
+	return result
+}
+
 // GetZero gets the zero value of the types defined as
 // constraints.Ordered, time.Time and shopspring/decimal
 //

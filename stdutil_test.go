@@ -242,3 +242,20 @@ func TestInterfaceArray(t *testing.T) {
 	arr := ToInterfaceArray(time.Now())
 	t.Log(arr)
 }
+
+func TestGetElement(t *testing.T) {
+
+	arrs := []string{
+		"Aruba",
+		"Jamaica",
+		"Bahamas",
+	}
+
+	var exists bool
+
+	str := Elem(&arrs, 4, &exists)
+	t.Logf(`Value: %s, Exists: %t`, str, exists)
+
+	str = Elem(&arrs, 2, &exists)
+	t.Logf(`Value: %s, Exists: %t`, str, exists)
+}
