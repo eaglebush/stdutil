@@ -625,6 +625,17 @@ func Elem[T any](array *[]T, index int, exists *bool) T {
 	return result
 }
 
+// ElemPtr returns a pointer to the element of an array as specified by the index
+//
+// If the index exceeds the length of an array, it will return a non-nil value of the type.
+// To monitor if the element exists, define a boolean value in the exists parameter
+//
+// This function requires version 1.18+
+func ElemPtr[T any](array *[]T, index int, exists *bool) *T {
+	r := Elem(array, index, exists)
+	return &r
+}
+
 // GetZero gets the zero value of the types defined as
 // constraints.Ordered, time.Time and shopspring/decimal
 //

@@ -258,4 +258,7 @@ func TestGetElement(t *testing.T) {
 
 	str = Elem(&arrs, 2, &exists)
 	t.Logf(`Value: %s, Exists: %t`, str, exists)
+
+	strp := ElemPtr(&arrs, 1, &exists)
+	t.Logf(`Value: %s, Exists: %t`, *strp, exists)
 }
