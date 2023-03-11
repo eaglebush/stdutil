@@ -16,8 +16,8 @@ import (
 )
 
 var (
-	reqTimeOut      int
-	customTransport *http.Transport
+	reqTimeOut int
+	ct         *http.Transport
 )
 
 // CustomPayload - payload for JWT
@@ -44,10 +44,10 @@ type ResultAny[T any] struct {
 
 func init() {
 	reqTimeOut = 30
-	customTransport = http.DefaultTransport.(*http.Transport).Clone()
-	customTransport.MaxIdleConns = 100
-	customTransport.MaxConnsPerHost = 100
-	customTransport.MaxIdleConnsPerHost = 100
+	ct = http.DefaultTransport.(*http.Transport).Clone()
+	ct.MaxIdleConns = 100
+	ct.MaxConnsPerHost = 100
+	ct.MaxIdleConnsPerHost = 100
 }
 
 // SetRequestTimeOut sets the new timeout value
@@ -98,30 +98,23 @@ func ExecuteAPI(method string, endpoint string, payload []byte, gzipped bool, he
 	nr.Close = true
 
 	for k, v := range headers {
-
 		k = strings.ToLower(k)
-
 		if k != "cookie" {
 			nr.Header.Add(k, v)
 			continue
 		}
-
 		// split values with semi-colons
 		for _, nvs := range strings.Split(v, `;`) {
 			if nv := strings.Split(nvs, `=`); len(nv) > 1 {
-				nv[0] = strings.TrimSpace(nv[0])
-				nv[1] = strings.TrimSpace(nv[1])
-
 				nr.AddCookie(&http.Cookie{
-					Name:  nv[0],
-					Value: nv[1],
+					Name:  strings.TrimSpace(nv[0]),
+					Value: strings.TrimSpace(nv[1]),
 				})
 			}
 		}
 	}
 
 	nr.Header.Add("Connection", "keep-alive")
-
 	if nr.Method == "GET" {
 		if ce := nr.Header.Get("Content-Encoding"); ce != "" {
 			nr.Header.Set("Accept-Encoding", ce)
@@ -138,7 +131,7 @@ func ExecuteAPI(method string, endpoint string, payload []byte, gzipped bool, he
 
 	cli := http.Client{
 		Timeout:   time.Second * time.Duration(timeout),
-		Transport: customTransport,
+		Transport: ct,
 	}
 	resp, err := cli.Do(nr)
 	if err != nil {
@@ -176,22 +169,19 @@ func DeleteJSON(endpoint string, headers map[string]string) ResultData {
 
 // ParseQueryString parses the query string into a column value
 func ParseQueryString(qs *string) NameValues {
-
 	ret := NameValues{
 		Pair: make(map[string]any),
 	}
-
 	rv, _ := url.ParseQuery(*qs)
 	for k, v := range rv {
 		ret.Pair[k] = strings.Join(v[:], ",")
 	}
-
 	return ret
 }
 
 // ParseRouteVars parses custom routes from a mux handler
 func ParseRouteVars(r *http.Request) (Command []string, Key string) {
-	cmd := make([]string, 0)
+	cmd := make([]string, 0, 10)
 	key := ""
 
 	m := mux.CurrentRoute(r)
@@ -209,10 +199,10 @@ func ParseRouteVars(r *http.Request) (Command []string, Key string) {
 
 	pathlen := len(path)
 
-	/* If path length is 1, we might have a key. But if the path is not a number, it might be a command  */
+	// If path length is 1, we might have a key.
+	// But if the path is not a number, it might be a command
 	if pathlen == 1 {
-		pth := path[0]
-		if len(pth) > 0 {
+		if pth := path[0]; len(pth) > 0 {
 			if hasTrailingSlash {
 				cmd = append(cmd, strings.ToLower(pth))
 			} else {
@@ -221,7 +211,9 @@ func ParseRouteVars(r *http.Request) (Command []string, Key string) {
 		}
 	}
 
-	/* If path length is greater than 1, we transfer all paths to the cmd array except the last one. The last one will be checked if it has a trailing slash */
+	// If path length is greater than 1, we transfer all paths
+	// to the cmd array except the last one. The last one will
+	// be checked if it has a trailing slash
 	if pathlen > 1 {
 		for i, ck := range path {
 			if i < pathlen-1 && len(ck) > 0 {
@@ -229,12 +221,11 @@ func ParseRouteVars(r *http.Request) (Command []string, Key string) {
 			}
 		}
 
-		pth := path[pathlen-1]
-		if len(pth) > 0 {
+		if pth := path[pathlen-1]; len(pth) > 0 {
 			if hasTrailingSlash {
 				cmd = append(cmd, strings.ToLower(pth))
 			} else {
-				key = pth //key will not be set to lower case
+				key = pth
 			}
 		}
 	}
@@ -245,7 +236,6 @@ func ParseRouteVars(r *http.Request) (Command []string, Key string) {
 // BuildAccessToken builds a JWT token
 func BuildAccessToken(header *map[string]interface{}, claims *map[string]interface{}, secretkey string) string {
 	clm := *claims
-
 	var (
 		usr, dom, app, dev string
 		iss, sub, jti, tnt string
@@ -253,7 +243,6 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 	)
 
 	aud := jwt.Audience{}
-
 	var ifc interface{}
 
 	if ifc = clm["iss"]; ifc != nil {
@@ -344,7 +333,6 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 	}
 
 	HMAC := jwt.NewHS256([]byte(secretkey))
-
 	token, err := jwt.Sign(pl, HMAC)
 	if err != nil {
 		return ""
@@ -402,8 +390,8 @@ func GetRequestVarsOnly(r *http.Request) RequestVars {
 
 	for k, v := range r.PostForm {
 		rv.Variables.FormData.Pair[k] = strings.Join(v[:], ",")
-		rv.Variables.HasFormData = true
 	}
+	rv.Variables.HasFormData = len(rv.Variables.FormData.Pair) > 0
 
 	// Get route commands
 	rv.Variables.Command, rv.Variables.Key = ParseRouteVars(r)
@@ -415,8 +403,9 @@ func GetRequestVarsOnly(r *http.Request) RequestVars {
 func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) (*JWTInfo, error) {
 
 	var (
-		jwtfromck, jwth string
-		jwtp            []string
+		jwtfromck,
+		jwth string
+		jwtp []string
 	)
 
 	// Get Authorization header

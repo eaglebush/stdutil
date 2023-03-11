@@ -69,14 +69,11 @@ func (rv *RequestVars) IsPostOrPut() bool {
 
 // IsJSONGood checks if the request has body and attempts to marshal to Json
 func (rv *RequestVars) IsJSONGood(v interface{}) error {
-
 	if !rv.HasBody {
 		return ErrRVNoBody
 	}
-
 	if err := json.Unmarshal(rv.Body, &v); err != nil {
 		return err
 	}
-
 	return nil
 }
