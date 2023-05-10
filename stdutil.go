@@ -344,7 +344,7 @@ func ValidateString(value *string, opts *StringValidationOptions) error {
 		return nil
 	}
 
-	ln := len(*value)
+	ln := len([]rune(*value))
 
 	if ln == 0 {
 		if !opts.Empty {
@@ -564,6 +564,7 @@ func StripEndingForwardSlash(value string) string {
 	v := strings.TrimSpace(value)
 	v = strings.ReplaceAll(v, `\`, `/`)
 	ix := strings.LastIndex(v, `/`)
+
 	if ix == (len(v) - 1) {
 		return v[0:ix]
 	}
@@ -574,8 +575,9 @@ func StripEndingForwardSlash(value string) string {
 // StripTrailing strips string of trailing characters after the length
 func StripTrailing(value string, length int) string {
 
-	if len(value) > length {
-		return value[0:length]
+	str := []rune(value)
+	if len(str) > length {
+		return string(str[0:length])
 	}
 
 	return value
@@ -584,8 +586,9 @@ func StripTrailing(value string, length int) string {
 // StripLeading strips string of leading characters by an offset
 func StripLeading(value string, offset int) string {
 
-	if len(value) > offset {
-		return value[offset:]
+	str := []rune(value)
+	if len(str) > offset {
+		return string(str[offset:])
 	}
 
 	return value
