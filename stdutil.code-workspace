@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"sarif-viewer.connectToGithubCodeScanning": "off",
+		"gopls": {
+			"ui.codelenses": {
+				"gc_details": true,
+				"generate": true
+			},
+			"ui.diagnostic.annotations": {
+				"escape": true
+			},
+			"ui.semanticTokens": true
+		},
+		"go.useLanguageServer": true
+	}
+}
