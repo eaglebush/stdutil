@@ -262,3 +262,14 @@ func TestGetElement(t *testing.T) {
 	strp := ElemPtr(&arrs, 1, &exists)
 	t.Logf(`Value: %s, Exists: %t`, *strp, exists)
 }
+
+func TestNull(t *testing.T) {
+	var a any
+	value := Null[string](a, "actual")
+	t.Logf(`Value: %s`, value)
+
+	var valstr string
+	var b *string
+	valstr = Null[string](b, "actual")
+	t.Logf(`Value: %p`, &valstr)
+}

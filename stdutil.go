@@ -240,7 +240,6 @@ func Val[T FieldTypeConstraint](value *T) T {
 	if value == nil {
 		return GetZero[T]()
 	}
-
 	return *value
 }
 
@@ -253,6 +252,33 @@ func New[T FieldTypeConstraint](value T) *T {
 	n := new(T)
 	*n = value
 	return n
+}
+
+// Null accepts a value to test and the default value
+// if it fails. It returns a non-pointer value of T.
+//
+// This function requires version 1.18+
+func Null[T any](testValue any, defaultValue any) T {
+	var def T
+	if defaultValue == nil {
+		defaultValue = def
+	}
+	if testValue == nil {
+		if defaultValue == nil {
+			return def
+		}
+		return defaultValue.(T)
+	}
+	return def
+}
+
+// NullPtr accepts a value to test and the default value
+// if it fails. It returns a pointer value of T.
+//
+// This function requires version 1.18+
+func NullPtr[T any](testValue any, defaultValue any) *T {
+	val := Null[T](testValue, defaultValue)
+	return &val
 }
 
 // NameValuesToInterfaceArray converts name values to interface array
