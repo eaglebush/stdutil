@@ -189,74 +189,60 @@ func (r *Result) AddErr(err error) Result {
 
 // AppendError copies the messages of the Result parameter and append the current message
 func (r *Result) AppendError(rs Result, message string) Result {
-
 	for _, n := range rs.ln.Notes() {
 		r.ln.Append(n)
 	}
-
 	r.AddError(message)
 	return *r
 }
 
 // AppendErr copies the messages of the Result parameter and append an error message
 func (r *Result) AppendErr(rs Result, err error) Result {
-
 	for _, n := range rs.ln.Notes() {
 		r.ln.Append(n)
 	}
-
 	return r.AddErr(err)
 }
 
 // AppendErrorf copies the messages of the Result parameter and append a formatted error message
 func (r *Result) AppendErrorf(rs Result, format string, a ...interface{}) Result {
-
 	for _, n := range rs.ln.Notes() {
 		r.ln.Append(n)
 	}
-
 	return r.AddErrorf(format, a...)
 }
 
 // AppendInfo copies the messages of the Result parameter and append the current message
 func (r *Result) AppendInfo(rs Result, message string) Result {
-
 	for _, n := range rs.ln.Notes() {
 		r.ln.Append(n)
 	}
-
 	r.AddInfo(message)
 	return *r
 }
 
 // AppendInfof copies the messages of the Result parameter and append a formatted information message
 func (r *Result) AppendInfof(rs Result, format string, a ...interface{}) Result {
-
 	for _, n := range rs.ln.Notes() {
 		r.ln.Append(n)
 	}
-
 	return r.AddInfof(format, a...)
 }
 
 // AppendWarning copies the messages of the Result parameter and append the current message
 func (r *Result) AppendWarning(rs Result, message string) Result {
-
 	for _, n := range rs.ln.Notes() {
 		r.ln.Append(n)
 	}
-
 	r.AddWarning(message)
 	return *r
 }
 
 // AppendWarningf copies the messages of the Result parameter and append a formatted warning message
 func (r *Result) AppendWarningf(rs Result, format string, a ...interface{}) Result {
-
 	for _, n := range rs.ln.Notes() {
 		r.ln.Append(n)
 	}
-
 	return r.AddWarningf(format, a...)
 }
 
@@ -275,12 +261,10 @@ func (r *Result) EventID() string {
 	if ev == "" {
 		return "unknown"
 	}
-
 	// simple past tenser
 	if !strings.HasSuffix(ev, "e") {
 		return ev + "ed"
 	}
-
 	return ev + "d"
 }
 

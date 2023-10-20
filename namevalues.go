@@ -97,14 +97,12 @@ func NameValueGet[T constraints.Ordered | bool](nvs NameValues, name string) T {
 //
 // This function requires version 1.18+
 func NameValueGetPtr[T constraints.Ordered | bool](nvs NameValues, name string) *T {
-
 	value := NameValueGet[T](nvs, name)
 	return &value
 }
 
 // String returns the name value as string. The second argument returns the existence.
 func (nvp *NameValues) String(name string) (string, bool) {
-
 	if !nvp.prepared {
 		nvp.prepare()
 	}
@@ -123,20 +121,16 @@ func (nvp *NameValues) Strings(name string) []string {
 
 // Int returns the name value as int. The second argument returns the existence.
 func (nvp *NameValues) Int(name string) (int, bool) {
-
 	if !nvp.prepared {
 		nvp.prepare()
 	}
-
 	var value int
-
 	name = strings.ToLower(name)
 	tmp, exists := nvp.Pair[name]
 	if exists {
 		val, _ := strconv.ParseInt(tmp.(string), 10, 32)
 		value = int(val)
 	}
-
 	return value, exists
 }
 
@@ -148,19 +142,15 @@ func (nvp *NameValues) Ints(name string) []int {
 
 // Int64 returns the name value as int64. The second argument returns the existence.
 func (nvp *NameValues) Int64(name string) (int64, bool) {
-
 	if !nvp.prepared {
 		nvp.prepare()
 	}
-
 	var value int64
-
 	name = strings.ToLower(name)
 	tmp, exists := nvp.Pair[name]
 	if exists {
 		value, _ = strconv.ParseInt(tmp.(string), 10, 64)
 	}
-
 	return value, exists
 }
 
@@ -172,11 +162,9 @@ func (nvp *NameValues) Int64s(name string) []int64 {
 
 // Plain returns the name value as interface{}. The second argument returns the existence.
 func (nvp *NameValues) Plain(name string) (interface{}, bool) {
-
 	if !nvp.prepared {
 		nvp.prepare()
 	}
-
 	name = strings.ToLower(name)
 	tmp, exists := nvp.Pair[name]
 	return tmp, exists
@@ -196,19 +184,15 @@ func (nvp *NameValues) Bools(name string) []bool {
 
 // Float64 returns the name value as float64. The second argument returns the existence.
 func (nvp *NameValues) Float64(name string) (float64, bool) {
-
 	if !nvp.prepared {
 		nvp.prepare()
 	}
-
 	var value float64
-
 	name = strings.ToLower(name)
 	tmp, exists := nvp.Pair[name]
 	if exists {
 		value, _ = strconv.ParseFloat(tmp.(string), 64)
 	}
-
 	return value, exists
 }
 

@@ -108,13 +108,11 @@ func (r MessageManager) HasErrors() bool {
 
 // HasWarnings - Checks if the message array has warnings
 func (r MessageManager) HasWarnings() bool {
-
 	for _, msg := range r.Messages {
 		if strings.HasPrefix(strings.ToUpper(msg), string(MsgWarn)+DelimMsgType) {
 			return true
 		}
 	}
-
 	return false
 }
 
@@ -152,21 +150,19 @@ func AppendWarning(Messages *[]string, MessagePrefix string, Message ...string) 
 	}
 }
 
-// AppendError - appends an error message
+// AppendError appends an error message
 func AppendError(Messages *[]string, MessagePrefix string, Message ...string) {
 	for _, m := range Message {
 		addMessage(Messages, MessagePrefix, m, MsgError)
 	}
 }
 
-// FixMessages - fix all unformatted messages to formatted messages
+// FixMessages fixs all unformatted messages to formatted messages
 func FixMessages(Messages *[]string) []string {
 	msgr := *Messages
-
 	for i, msg := range *Messages {
 		msgr[i] = strings.TrimSpace(msg)
 	}
-
 	return msgr
 }
 

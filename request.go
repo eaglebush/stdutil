@@ -61,13 +61,10 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool
 	rd = ResultData{
 		Result: InitResult(),
 	}
-
 	if headers == nil {
 		headers = make(map[string]string)
 	}
-
 	headers["Content-Type"] = "application/json"
-
 	data, err := ExecuteAPI(method, endpoint, payload, gzipped, headers, timeout)
 	if err != nil {
 		rd.Result.AddErr(err)
@@ -269,39 +266,30 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 			aud = jwt.Audience([]string{ifc.(string)})
 		}
 	}
-
 	if ifc = clm["exp"]; ifc != nil {
 		exp = ifc.(int64)
 	}
-
 	if ifc = clm["nbf"]; ifc != nil {
 		nbf = ifc.(int64)
 	}
-
 	if ifc = clm["iat"]; ifc != nil {
 		iat = ifc.(int64)
 	}
-
 	if ifc = clm["usr"]; ifc != nil {
 		usr = ifc.(string)
 	}
-
 	if ifc = clm["dom"]; ifc != nil {
 		dom = ifc.(string)
 	}
-
 	if ifc = clm["app"]; ifc != nil {
 		app = ifc.(string)
 	}
-
 	if ifc = clm["dev"]; ifc != nil {
 		dev = ifc.(string)
 	}
-
 	if ifc = clm["jti"]; ifc != nil {
 		jti = ifc.(string)
 	}
-
 	if ifc = clm["tnt"]; ifc != nil {
 		tnt = ifc.(string)
 	}
@@ -345,7 +333,6 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 func GetRequestVarsOnly(r *http.Request) RequestVars {
 
 	rv := &RequestVars{}
-
 	const (
 		mulpart string = "multipart/form-data"
 		furlenc string = "application/x-www-form-urlencoded"
@@ -412,19 +399,15 @@ func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) (*JWTInf
 	if jwth = r.Header.Get("Authorization"); len(jwth) == 0 {
 		return nil, fmt.Errorf(`authorization header not set`)
 	}
-
 	if jwtp = strings.Split(jwth, " "); len(jwtp) < 2 {
 		return nil, fmt.Errorf(`invalid authorization header`)
 	}
-
 	if !strings.EqualFold(strings.TrimSpace(jwtp[0]), "bearer") {
 		return nil, fmt.Errorf(`invalid authorization bearer`)
 	}
-
 	if jwtfromck = strings.TrimSpace(jwtp[1]); len(jwtfromck) == 0 {
 		return nil, fmt.Errorf(`invalid authorization token`)
 	}
-
 	return ParseJWT(jwtfromck, secretKey, validateTimes)
 }
 

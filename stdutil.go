@@ -332,7 +332,6 @@ func ValidateEmail(email *string) error {
 	if email == nil || *email == "" {
 		return fmt.Errorf("is an invalid email address")
 	}
-
 	re := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 	if !re.MatchString(*email) {
 		return fmt.Errorf("is an invalid email address")
@@ -345,11 +344,9 @@ func IsStringNumeric(value *string) error {
 	if value == nil {
 		return fmt.Errorf("is empty")
 	}
-
 	if _, err := strconv.ParseFloat(*value, 64); err != nil {
 		return fmt.Errorf(`is not a number (%s)`, err)
 	}
-
 	return nil
 }
 
@@ -362,35 +359,28 @@ func ValidateString(value *string, opts *StringValidationOptions) error {
 	if opts == nil {
 		return nil
 	}
-
 	if value == nil {
 		if !opts.Null {
 			return fmt.Errorf("must be provided (nil)")
 		}
 		return nil
 	}
-
 	ln := len([]rune(*value))
-
 	if ln == 0 {
 		if !opts.Empty {
 			return fmt.Errorf("must be provided (empty)")
 		}
 		return nil
 	}
-
 	if opts.Min > 0 && ln < opts.Min {
 		return fmt.Errorf("is shorter than %d characters", opts.Min)
 	}
-
 	if opts.Max > 0 && ln > opts.Max {
 		return fmt.Errorf("is longer than %d characters", opts.Max)
 	}
-
 	if opts.NoSpaces && strings.Contains(*value, " ") {
 		return fmt.Errorf("contains spaces")
 	}
-
 	for _, f := range opts.Extended {
 		if err := f(value); err != nil {
 			return err
@@ -408,14 +398,12 @@ func ValidateTime(value *time.Time, opts *TimeValidationOptions) error {
 	if opts == nil {
 		return nil
 	}
-
 	if value == nil {
 		if !opts.Null {
 			return fmt.Errorf("must be provided (nil)")
 		}
 		return nil
 	}
-
 	if value.IsZero() {
 		if !opts.Empty {
 			return fmt.Errorf("must be provided (empty)")
@@ -572,7 +560,6 @@ func SortByKey(values *NameValues, keyOrder *[]string) NameValues {
 
 	ret := NameValues{}
 	ret.Pair = make(map[string]any)
-
 	for i := 0; i < len(ko); i++ {
 		for k, v := range values.Pair {
 			if strings.EqualFold(ko[i], k) {
@@ -581,7 +568,6 @@ func SortByKey(values *NameValues, keyOrder *[]string) NameValues {
 			}
 		}
 	}
-
 	return ret
 }
 
@@ -590,33 +576,27 @@ func StripEndingForwardSlash(value string) string {
 	v := strings.TrimSpace(value)
 	v = strings.ReplaceAll(v, `\`, `/`)
 	ix := strings.LastIndex(v, `/`)
-
 	if ix == (len(v) - 1) {
 		return v[0:ix]
 	}
-
 	return v
 }
 
 // StripTrailing strips string of trailing characters after the length
 func StripTrailing(value string, length int) string {
-
 	str := []rune(value)
 	if len(str) > length {
 		return string(str[0:length])
 	}
-
 	return value
 }
 
 // StripLeading strips string of leading characters by an offset
 func StripLeading(value string, offset int) string {
-
 	str := []rune(value)
 	if len(str) > offset {
 		return string(str[offset:])
 	}
-
 	return value
 }
 

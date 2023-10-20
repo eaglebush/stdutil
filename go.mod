@@ -10,9 +10,9 @@ require (
 require github.com/shopspring/decimal v1.3.1
 
 require (
-	github.com/magefile/mage v1.9.0 // indirect
+	github.com/magefile/mage v1.15.0 // indirect
 	github.com/narsilworks/livenote v0.0.0-20221005012144-3207cca02df2
-	golang.org/x/crypto v0.0.0-20190927123631-a832865fa7ad // indirect
-	golang.org/x/exp v0.0.0-20220518171630-0b5c67f07fdf
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	golang.org/x/crypto v0.14.0 // indirect
+	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
+	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 )
