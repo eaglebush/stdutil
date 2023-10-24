@@ -82,6 +82,23 @@ func TestNullOrEmpty(t *testing.T) {
 	}
 }
 
+func TestIsEmpty(t *testing.T) {
+	var teststr *string
+	if IsEmpty(teststr) {
+		t.Log(`String is empty`)
+	}
+
+	teststr = new(string)
+	if IsEmpty(teststr) {
+		t.Log(`String is empty`)
+	}
+
+	*teststr = "Hi"
+	if IsEmpty(teststr) {
+		t.Log(`String is empty`)
+	}
+}
+
 func TestStripEndingForwardSlash(t *testing.T) {
 	addr := "http://localhost:8000asdsadas/"
 	addr = StripEndingForwardSlash(addr)

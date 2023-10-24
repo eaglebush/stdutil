@@ -228,6 +228,13 @@ func IsNullOrEmpty[T FieldTypeConstraint](value *T) bool {
 //
 // This function requires version 1.18+
 func IsEmpty[T FieldTypeConstraint](value *T) bool {
+	// if value == nil {
+	// 	return false
+	// }
+	// if *value == GetZero[T]() {
+	// 	return true
+	// }
+	// return false
 	return value != nil && *value == GetZero[T]()
 }
 
