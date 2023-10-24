@@ -261,6 +261,22 @@ func New[T FieldTypeConstraint](value T) *T {
 	return n
 }
 
+// NonNullComp compares two parameters when both are not nil.
+// When one or both of the parameters is nil, the function returns -1
+// When the parameters are equal, the function returns 0.
+// Else it returns 1
+//
+// This function requires version 1.18+
+func NonNullComp[T FieldTypeConstraint](param1 *T, param2 *T) int {
+	if param1 == nil || param2 == nil {
+		return -1
+	}
+	if *param1 == *param2 {
+		return 0
+	}
+	return 1
+}
+
 // Null accepts a value to test and the default value
 // if it fails. It returns a non-pointer value of T.
 //

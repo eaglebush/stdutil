@@ -290,3 +290,59 @@ func TestNull(t *testing.T) {
 	valstr = Null[string](b, "actual")
 	t.Logf(`Value: %p`, &valstr)
 }
+
+func TestNonNullComp(t *testing.T) {
+	var (
+		p1  *string
+		p2  *string
+		res int
+	)
+
+	p2 = new(string)
+	res = NonNullComp(p1, p2)
+	if res == -1 {
+		t.Log(`One of the parameters is invalid`)
+	} else {
+		if res == 0 {
+			t.Log(`Parameters are equal`)
+		} else if res == 1 {
+			t.Log(`Parameters are not equal`)
+		}
+	}
+
+	p1 = new(string)
+	res = NonNullComp(p1, p2)
+	if res == -1 {
+		t.Log(`One of the parameters is invalid`)
+	} else {
+		if res == 0 {
+			t.Log(`Parameters are equal`)
+		} else if res == 1 {
+			t.Log(`Parameters are not equal`)
+		}
+	}
+
+	*p2 = "Hi"
+	res = NonNullComp(p1, p2)
+	if res == -1 {
+		t.Log(`One of the parameters is invalid`)
+	} else {
+		if res == 0 {
+			t.Log(`Parameters are equal`)
+		} else if res == 1 {
+			t.Log(`Parameters are not equal`)
+		}
+	}
+
+	*p1 = "Hi"
+	res = NonNullComp(p1, p2)
+	if res == -1 {
+		t.Log(`One of the parameters is invalid`)
+	} else {
+		if res == 0 {
+			t.Log(`Parameters are equal`)
+		} else if res == 1 {
+			t.Log(`Parameters are not equal`)
+		}
+	}
+}
