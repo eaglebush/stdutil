@@ -1,84 +1,72 @@
 package stdutil
 
 import (
+	"encoding/json"
 	"strings"
 )
 
-// EventChannel is a struct to describe the channel where the event is contained
-type EventChannel struct {
+var (
+	ra func(s, old, new string) string = strings.ReplaceAll
+	lw func(string) string             = strings.ToLower
+)
+
+// EventSubject is a struct to describe the subject event
+type EventSubject struct {
 	Application string // Application. This would form as the first segment
 	Service     string // Service. This would form as the second segment
 	Module      string // Module. This would form as the last segment
-	Stream      string // Stream. The stream name when using a JetStream subscription
 }
 
-// EventData contains the data of the event.
-type EventData struct {
-	ID    string      `json:"id,omitempty"`
-	Index int64       `json:"index,omitempty"`
-	Data  interface{} `json:"data,omitempty"`
-}
-
-// Event contains the channel and the event data
+// Event contains the address and the event data
 type Event struct {
-	Channel string    `json:"channel,omitempty"`
-	Data    EventData `json:"data,omitempty"`
+	Index   int64       `json:"index,omitempty"`   // Optional. Index of this data to return to later
+	Subject string      `json:"subject,omitempty"` // Subject of the event
+	Data    interface{} `json:"data,omitempty"`    // Data of the event
 }
 
-// NewEventChannel properly creates a new event channel
-func NewEventChannel(application, service, module string) EventChannel {
-
-	application = strings.ReplaceAll(strings.ToLower(application), `.`, ``)
-	service = strings.ReplaceAll(strings.ToLower(service), `.`, ``)
-	module = strings.ReplaceAll(strings.ToLower(module), `.`, ``)
-
-	return EventChannel{
-		Application: application,
-		Service:     service,
-		Module:      module,
+// NewEventSubjectBase properly creates a new event base.
+func NewEventSubjectBase(application, service, module string) EventSubject {
+	return EventSubject{
+		Application: ra(lw(application), `.`, `-`),
+		Service:     ra(lw(service), `.`, `-`),
+		Module:      ra(lw(module), `.`, `-`),
 	}
 }
 
-// NewStreamEventChannel properly creates a new event channel with stream name
-func NewStreamEventChannel(application, service, module, stream string) EventChannel {
-
-	application = strings.ReplaceAll(strings.ToLower(application), `.`, ``)
-	service = strings.ReplaceAll(strings.ToLower(service), `.`, ``)
-	module = strings.ReplaceAll(strings.ToLower(module), `.`, ``)
-
-	return EventChannel{
-		Application: application,
-		Service:     service,
-		Module:      module,
-		Stream:      stream,
-	}
-}
-
-// GetEventSubjectMatch seeks the list of event channels by module
-func GetEventSubjectMatch(subject string, evtchans []EventChannel) *EventChannel {
-
-	for _, e := range evtchans {
-		if strings.EqualFold(subject, e.ToString()) {
+// GetEventSubjectMatch seeks the list of event by subject
+func GetEventSubjectMatch(subject string, evtChans []EventSubject) *EventSubject {
+	for _, e := range evtChans {
+		if strings.EqualFold(subject, e.ToString(nil)) {
 			return &e
 		}
 	}
-
 	return nil
 }
 
-// GetEventModuleMatch seeks the list of event channels by module
-func GetEventModuleMatch(module string, evtchans []EventChannel) *EventChannel {
-
-	for _, e := range evtchans {
+// GetEventModuleMatch seeks the list of events by module
+func GetEventModuleMatch(module string, evtChans []EventSubject) *EventSubject {
+	for _, e := range evtChans {
 		if strings.EqualFold(module, e.Module) {
 			return &e
 		}
 	}
-
 	return nil
 }
 
-// ToString composes the event channel to a proper channel name
-func (ec *EventChannel) ToString() string {
-	return strings.ToLower(ec.Application) + `.` + strings.ToLower(ec.Service) + `.` + strings.ToLower(ec.Module)
+// ToString converts an EventSubject to a readable string
+func (ec EventSubject) ToString(eventVerb *string) string {
+	if eventVerb == nil || *eventVerb == "" {
+		return lw(ec.Application) + `.` + lw(ec.Service) + `.` + lw(ec.Module)
+	}
+	return lw(ec.Application) + `.` + lw(ec.Service) + `.` + lw(ec.Module) + `.` + *eventVerb
+}
+
+// BuildEvent builds an event based on the inputs
+func BuildEvent(subject EventSubject, eventVerb string, data interface{}, index int64) ([]byte, error) {
+	return json.Marshal(
+		Event{
+			Index:   index,
+			Subject: subject.ToString(&eventVerb),
+			Data:    data,
+		})
 }
