@@ -292,7 +292,7 @@ func Null[T any](testValue any, defaultValue any) T {
 		}
 		return defaultValue.(T)
 	}
-	return def
+	return testValue.(T)
 }
 
 // NullPtr accepts a value to test and the default value
