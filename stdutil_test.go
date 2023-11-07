@@ -281,12 +281,15 @@ func TestGetElement(t *testing.T) {
 }
 
 func TestNull(t *testing.T) {
+	// Non pointer string
 	var a any
 	value := Null[string](a, "actual")
 	t.Logf(`Value: %s`, value)
 
+	// Pointer string
 	var valstr string
-	var b *string
+	b := new(string)
+	*b = "test"
 	valstr = Null[string](b, "actual")
 	t.Logf(`Value: %p`, &valstr)
 }

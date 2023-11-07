@@ -2,6 +2,7 @@ package stdutil
 
 import (
 	"fmt"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -282,17 +283,28 @@ func NonNullComp[T FieldTypeConstraint](param1 *T, param2 *T) int {
 //
 // This function requires version 1.18+
 func Null[T any](testValue any, defaultValue any) T {
-	var def T
+	var (
+		def T
+	)
 	if defaultValue == nil {
 		defaultValue = def
 	}
 	if testValue == nil {
-		if defaultValue == nil {
-			return def
-		}
 		return defaultValue.(T)
 	}
-	return testValue.(T)
+	vo := reflect.ValueOf(testValue)
+	if k := vo.Kind(); k == reflect.Map ||
+		k == reflect.Func ||
+		k == reflect.Ptr ||
+		k == reflect.Slice ||
+		k == reflect.Interface {
+		if vo.IsZero() && vo.IsNil() {
+			return defaultValue.(T)
+		}
+		ifv := vo.Elem().Interface()
+		return ifv.(T)
+	}
+	return def
 }
 
 // NullPtr accepts a value to test and the default value
