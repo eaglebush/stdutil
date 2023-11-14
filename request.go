@@ -2,6 +2,7 @@ package stdutil
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -91,13 +92,16 @@ func ExecuteAPI(method string, endpoint string, payload []byte, gzipped bool, he
 	if err != nil {
 		return nil, err
 	}
-
 	nr.Close = true
 
+	nr.Header.Set("User-Agent", "stdutil")
+	nr.Header.Set("Connection", "keep-alive")
+	nr.Header.Set("Accept", "*/*")
+	nr.Header.Set("Accept-Encoding", "gzip, deflate, br")
 	for k, v := range headers {
 		k = strings.ToLower(k)
 		if k != "cookie" {
-			nr.Header.Add(k, v)
+			nr.Header.Set(k, v)
 			continue
 		}
 		// split values with semi-colons
@@ -108,13 +112,6 @@ func ExecuteAPI(method string, endpoint string, payload []byte, gzipped bool, he
 					Value: strings.TrimSpace(nv[1]),
 				})
 			}
-		}
-	}
-
-	nr.Header.Add("Connection", "keep-alive")
-	if nr.Method == "GET" {
-		if ce := nr.Header.Get("Content-Encoding"); ce != "" {
-			nr.Header.Set("Accept-Encoding", ce)
 		}
 	}
 
@@ -136,7 +133,37 @@ func ExecuteAPI(method string, endpoint string, payload []byte, gzipped bool, he
 	}
 	defer resp.Body.Close()
 
-	data, err := io.ReadAll(resp.Body)
+	var data []byte
+
+	// Get headers
+	ce := resp.Header.Get("Content-Encoding")
+	if ce == "gzip" {
+		raw, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		gzr, err := gzip.NewReader(bytes.NewBuffer(raw))
+		if err != nil {
+			return nil, err
+		}
+		defer gzr.Close()
+
+		for {
+			uz := make([]byte, 1024)
+			cnt, err := gzr.Read(uz)
+			if err != nil {
+				return data, nil
+			}
+			if cnt == 0 {
+				break
+			}
+			data = append(data, uz[0:cnt]...)
+		}
+
+		return data, nil
+	}
+
+	data, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

@@ -30,6 +30,19 @@ func TestExecuteAPIGET(t *testing.T) {
 	fmt.Printf("%v", string(exapi.Data))
 }
 
+func TestExecuteAPIGET2(t *testing.T) {
+	hdr := make(map[string]string)
+	//hdr["Cookie"] = "APPSHUB-WF-login=zaldy.baguinon; APPSHUB-WF-appdomain=MDCI"
+	//hdr["Authorization"] = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJLZWFudS1VcGxvYWRlciIsImV4cCI6MCwibmJmIjoxNjc1MzE0MTg0LCJpYXQiOjAsInVzciI6ImphbWVzLmx1bWliYW9AbWRjaS5jb20ucGgiLCJkb20iOiJNRENJIiwiYXBwIjoiS2VhbnUtVXBsb2FkZXIiLCJkZXYiOiIyS1JzS3Z4Y2NuOUp0RjNxbDIxMmN1MmhwS1MifQ.961xUrBObQfN6fkO_s7OYhFTqKC_aMrr1OKVwvPhkLU"
+
+	//exapi := GetJSON("http://inform.vdimdci.com.ph/api/email/?num=50", hdr)
+	exapi := GetJSON("http://localhost:15001/email/?num=50", hdr)
+	if !exapi.OK() {
+		t.Fail()
+	}
+	fmt.Printf("%v", string(exapi.Data))
+}
+
 func TestJWTParse(t *testing.T) {
 	jwtfromck := []byte("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJBUFBTSFVCLUFVVEgiLCJuYmYiOjE1NzkxNjE4OTgsInVzciI6InphbGR5LmJhZ3Vpbm9uIiwiZG9tIjoiTURDSSIsImRldiI6IjFXU3hhQ0h1V2VYSDREN0tXd0dZSkZlTTRwRiIsImFwcCI6IkFQUFNIVUItQVVUSCJ9.SKU6lfcVO5JAk81zvDYxvcOl6IUY7Kg_QJW4IFS3xso")
 
