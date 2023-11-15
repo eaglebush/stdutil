@@ -131,7 +131,9 @@ func ExecuteAPI(method string, endpoint string, payload []byte, compressed bool,
 		return nil, err
 	}
 	defer resp.Body.Close()
-
+	if resp.StatusCode != http.StatusOK {
+		return nil, err
+	}
 	var data []byte
 
 	if !resp.Uncompressed {
