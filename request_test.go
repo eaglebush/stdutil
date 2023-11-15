@@ -35,8 +35,8 @@ func TestExecuteAPIGET2(t *testing.T) {
 	//hdr["Cookie"] = "APPSHUB-WF-login=zaldy.baguinon; APPSHUB-WF-appdomain=MDCI"
 	//hdr["Authorization"] = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJLZWFudS1VcGxvYWRlciIsImV4cCI6MCwibmJmIjoxNjc1MzE0MTg0LCJpYXQiOjAsInVzciI6ImphbWVzLmx1bWliYW9AbWRjaS5jb20ucGgiLCJkb20iOiJNRENJIiwiYXBwIjoiS2VhbnUtVXBsb2FkZXIiLCJkZXYiOiIyS1JzS3Z4Y2NuOUp0RjNxbDIxMmN1MmhwS1MifQ.961xUrBObQfN6fkO_s7OYhFTqKC_aMrr1OKVwvPhkLU"
 
-	//exapi := GetJSON("http://inform.vdimdci.com.ph/api/email/?num=50", hdr)
-	exapi := GetJSON("http://localhost:15001/email/?num=50", hdr)
+	exapi := GetJSON("http://inform.vdimdci.com.ph/api/email/?num=50", hdr)
+	//exapi := GetJSON("http://localhost:15001/email/?num=50", hdr)
 	if !exapi.OK() {
 		t.Fail()
 	}

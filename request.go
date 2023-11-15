@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,6 +16,9 @@ import (
 	"github.com/gbrlsnchs/jwt/v3"
 	"github.com/gorilla/mux"
 )
+
+const REQUEST_VERSION string = "1.0.0.0"
+const REQUEST_MODIFIED string = "15112023"
 
 var (
 	reqTimeOut int
@@ -57,7 +61,7 @@ func SetRequestTimeout(timeout int) {
 }
 
 // ExecuteJSONAPI wraps http operation that change or read data and returns a custom result
-func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool, headers map[string]string, timeout int) (rd ResultData) {
+func ExecuteJSONAPI(method string, endpoint string, payload []byte, compressed bool, headers map[string]string, timeout int) (rd ResultData) {
 
 	rd = ResultData{
 		Result: InitResult(),
@@ -66,45 +70,46 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, gzipped bool
 		headers = make(map[string]string)
 	}
 	headers["Content-Type"] = "application/json"
-	data, err := ExecuteAPI(method, endpoint, payload, gzipped, headers, timeout)
+	data, err := ExecuteAPI(method, endpoint, payload, compressed, headers, timeout)
 	if err != nil {
 		rd.Result.AddErr(err)
 		return
 	}
-
 	if len(data) == 0 {
 		return
 	}
-
 	if err = json.Unmarshal(data, &rd); err != nil {
 		// This is not marshable to resultdata, we'll try to send the real result
 		rd.Result.AddErr(err)
 		rd.Data = data
 	}
-
 	return
 }
 
 // ExecuteAPI wraps http operation that change or read data and returns a byte array
-func ExecuteAPI(method string, endpoint string, payload []byte, gzipped bool, headers map[string]string, timeout int) ([]byte, error) {
+func ExecuteAPI(method string, endpoint string, payload []byte, compressed bool, headers map[string]string, timeout int) ([]byte, error) {
 
 	nr, err := http.NewRequest(method, endpoint, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, err
 	}
 	nr.Close = true
-
-	nr.Header.Set("User-Agent", "stdutil")
+	nr.Header.Set("User-Agent", fmt.Sprintf("stdutil.request/%s-%s", REQUEST_VERSION, REQUEST_MODIFIED))
 	nr.Header.Set("Connection", "keep-alive")
 	nr.Header.Set("Accept", "*/*")
-	nr.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	if compressed {
+		nr.Header.Set("Accept-Encoding", "gzip, deflate, br")
+		switch strings.ToUpper(nr.Method) {
+		case "POST", "PUT", "PATCH":
+			nr.Header.Add("Content-Encoding", "gzip")
+		}
+	}
 	for k, v := range headers {
 		k = strings.ToLower(k)
 		if k != "cookie" {
 			nr.Header.Set(k, v)
 			continue
 		}
-		// split values with semi-colons
 		for _, nvs := range strings.Split(v, `;`) {
 			if nv := strings.Split(nvs, `=`); len(nv) > 1 {
 				nr.AddCookie(&http.Cookie{
@@ -114,15 +119,9 @@ func ExecuteAPI(method string, endpoint string, payload []byte, gzipped bool, he
 			}
 		}
 	}
-
-	if gzipped && nr.Method != "GET" {
-		nr.Header.Add("Content-Encoding", "gzip")
-	}
-
 	if timeout == 0 {
 		timeout = 30
 	}
-
 	cli := http.Client{
 		Timeout:   time.Second * time.Duration(timeout),
 		Transport: ct,
@@ -135,39 +134,42 @@ func ExecuteAPI(method string, endpoint string, payload []byte, gzipped bool, he
 
 	var data []byte
 
-	// Get headers
-	ce := resp.Header.Get("Content-Encoding")
-	if ce == "gzip" {
-		raw, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return nil, err
-		}
-		gzr, err := gzip.NewReader(bytes.NewBuffer(raw))
-		if err != nil {
-			return nil, err
-		}
-		defer gzr.Close()
-
-		for {
-			uz := make([]byte, 1024)
-			cnt, err := gzr.Read(uz)
+	if !resp.Uncompressed {
+		ce := resp.Header.Get("Content-Encoding")
+		if ce == "gzip" {
+			raw, err := io.ReadAll(resp.Body)
 			if err != nil {
-				return data, nil
+				return nil, err
 			}
-			if cnt == 0 {
-				break
+			gzr, err := gzip.NewReader(bytes.NewBuffer(raw))
+			if err != nil {
+				return nil, err
 			}
-			data = append(data, uz[0:cnt]...)
+			defer gzr.Close()
+			for {
+				uz := make([]byte, 1024)
+				cnt, err := gzr.Read(uz)
+				if err != nil {
+					if !errors.Is(err, io.ErrUnexpectedEOF) {
+						return nil, err
+					}
+					break
+				}
+				if cnt == 0 {
+					break
+				}
+				data = append(data, uz[0:cnt]...)
+			}
+			return data, nil
 		}
-
-		return data, nil
 	}
 
 	data, err = io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		if !errors.Is(err, io.ErrUnexpectedEOF) {
+			return nil, err
+		}
 	}
-
 	return data, nil
 }
 
@@ -179,6 +181,11 @@ func PostJSON(endpoint string, payload []byte, gzipped bool, headers map[string]
 // PutJSON wraps http.Put with custom result
 func PutJSON(endpoint string, payload []byte, gzipped bool, headers map[string]string) ResultData {
 	return ExecuteJSONAPI("PUT", endpoint, payload, gzipped, headers, reqTimeOut)
+}
+
+// PatchJSON wraps http.Patch with custom result
+func PatchJSON(endpoint string, payload []byte, gzipped bool, headers map[string]string) ResultData {
+	return ExecuteJSONAPI("PATCH", endpoint, payload, gzipped, headers, reqTimeOut)
 }
 
 // GetJSON wraps http.Get with custom result
