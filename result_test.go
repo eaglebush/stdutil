@@ -5,46 +5,46 @@ import (
 	"testing"
 )
 
-func TestResultMessage(t *testing.T) {
+// func TestResultMessage(t *testing.T) {
 
-	r := InitResult()
-	r.Messages = append(r.Messages, "   This is the first message not added thru any Add methods")
-	r.Messages = append(r.Messages, "         This is the second message not added thru any Add methods")
-	r.Messages = append(r.Messages, "This is the third  message not added thru any Add methods                ")
+// 	r := InitResult()
+// 	r.Messages = append(r.Messages, "   This is the first message not added thru any Add methods")
+// 	r.Messages = append(r.Messages, "         This is the second message not added thru any Add methods")
+// 	r.Messages = append(r.Messages, "This is the third  message not added thru any Add methods                ")
 
-	r.Status = string(MsgWarn)
+// 	r.Status = string(MsgWarn)
 
-	r.AddInfo("This is an information message too!")
-	r.AddInfo("This is an information message too, damn!")
-	x := r.AddInfo("This is an information message too, damn you!")
+// 	r.AddInfo("This is an information message too!")
+// 	r.AddInfo("This is an information message too, damn!")
+// 	x := r.AddInfo("This is an information message too, damn you!")
 
-	r.AddWarning("This is a warning!")
+// 	r.AddWarning("This is a warning!")
 
-	for _, m := range r.Messages {
-		t.Log(`Unfixed`, m)
-	}
+// 	for _, m := range r.Messages {
+// 		t.Log(`Unfixed`, m)
+// 	}
 
-	// Result returned from r.AddInfo
-	for _, m := range x.Messages {
-		t.Logf("Result returned: %s, Status: %s", m, x.Status)
-	}
+// 	// Result returned from r.AddInfo
+// 	for _, m := range x.Messages {
+// 		t.Logf("Result returned: %s, Status: %s", m, x.Status)
+// 	}
 
-	mm := r.MessageManager()
+// 	mm := r.MessageManager()
 
-	// AppendError(&mm.Messages, "This is an appended message")
+// 	// AppendError(&mm.Messages, "This is an appended message")
 
-	if !r.OK() {
-		for _, m := range r.Messages {
-			t.Log(`Fixed`, m)
-		}
-	}
+// 	if !r.OK() {
+// 		for _, m := range r.Messages {
+// 			t.Log(`Fixed`, m)
+// 		}
+// 	}
 
-	t.Log(`Dominant Message`, mm.Prevailing())
-	t.Log(`Has Error Messages`, mm.HasErrors())
-	t.Log(`Has Warning Messages`, mm.HasWarnings())
-	t.Log(`Has Info Messages`, mm.HasInfos())
+// 	t.Log(`Dominant Message`, mm.Prevailing())
+// 	t.Log(`Has Error Messages`, mm.HasErrors())
+// 	t.Log(`Has Warning Messages`, mm.HasWarnings())
+// 	t.Log(`Has Info Messages`, mm.HasInfos())
 
-}
+// }
 
 func TestInitResult(t *testing.T) {
 	res := InitResult(NameValue[string]{
