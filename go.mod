@@ -11,7 +11,7 @@ require github.com/shopspring/decimal v1.3.1
 
 require (
 	github.com/magefile/mage v1.15.0 // indirect
-	github.com/narsilworks/livenote v0.0.0-20240112080211-28aba88aca7f
+	github.com/narsilworks/livenote v0.0.0-20240112081037-0ff0e9b4a11a
 	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/exp v0.0.0-20240110193028-0dcbfd608b1e
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect

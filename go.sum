@@ -7,8 +7,8 @@ github.com/gorilla/mux v1.8.1/go.mod h1:AKf9I4AEqPTmMytcMc0KkNouC66V3BtZ4qD5fmWS
 github.com/magefile/mage v1.9.0/go.mod h1:z5UZb/iS3GoOSn0JgWuiw7dxlurVYTu+/jHXqQg881A=
 github.com/magefile/mage v1.15.0 h1:BvGheCMAsG3bWUDbZ8AyXXpCNwU9u5CB6sM+HNb9HYg=
 github.com/magefile/mage v1.15.0/go.mod h1:z5UZb/iS3GoOSn0JgWuiw7dxlurVYTu+/jHXqQg881A=
-github.com/narsilworks/livenote v0.0.0-20240112080211-28aba88aca7f h1:C19qaaF5PaObApqyxCcCLrfmsnaQbF1D3BZreMRnWGs=
-github.com/narsilworks/livenote v0.0.0-20240112080211-28aba88aca7f/go.mod h1:7Et2D3zXgcmjA5uzDXPJ86NzaDWrvL4B58KeoV1oDpc=
+github.com/narsilworks/livenote v0.0.0-20240112081037-0ff0e9b4a11a h1:tpsEosTuq0no9agwS1dxmge7YtgLmzMl/9v1UqK4jys=
+github.com/narsilworks/livenote v0.0.0-20240112081037-0ff0e9b4a11a/go.mod h1:7Et2D3zXgcmjA5uzDXPJ86NzaDWrvL4B58KeoV1oDpc=
 github.com/shopspring/decimal v1.3.1 h1:2Usl1nmF/WZucqkFZhnfFYxxxu8LG21F6nPQBE5gKV8=
 github.com/shopspring/decimal v1.3.1/go.mod h1:DKyhrW/HYNuLGql+MJL6WCR6knT2jwCFRcu2hWCYk4o=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
