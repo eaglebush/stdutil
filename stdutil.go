@@ -486,34 +486,28 @@ func ValidateNumeric[T NumericConstraint](value *T, opts *NumericValidationOptio
 	if opts == nil {
 		return nil
 	}
-
 	if value == nil {
 		if !opts.Null {
 			return fmt.Errorf("must be provided (nil)")
 		}
 		return nil
 	}
-
 	if *value == 0 {
 		if !opts.Empty {
 			return fmt.Errorf("must be provided (empty)")
 		}
 	}
-
 	if opts.Min > 0 && *value < opts.Min {
 		return fmt.Errorf("is lesser than %v minimum value", opts.Min)
 	}
-
 	if opts.Max > 0 && *value > opts.Max {
 		return fmt.Errorf("is greater than %v maximum value", opts.Max)
 	}
-
 	for _, f := range opts.Extended {
 		if err := f(value); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
@@ -525,36 +519,29 @@ func ValidateDecimal(value *ssd.Decimal, opts *DecimalValidationOptions) error {
 	if opts == nil {
 		return nil
 	}
-
 	if value == nil {
 		if !opts.Null {
 			return fmt.Errorf("must be provided (nil)")
 		}
 		return nil
 	}
-
 	if value.IsZero() {
 		if !opts.Empty {
 			return fmt.Errorf("must be provided (empty)")
 		}
 	}
-
 	zero := ssd.NewFromInt(0)
-
 	if opts.Min != nil && opts.Min.GreaterThan(zero) && value.LessThan(*opts.Min) {
 		return fmt.Errorf("is lesser than %v minimum value", *opts.Min)
 	}
-
 	if opts.Max != nil && opts.Max.GreaterThan(zero) && value.GreaterThan(*opts.Max) {
 		return fmt.Errorf("is greater than %v maximum value", *opts.Max)
 	}
-
 	for _, f := range opts.Extended {
 		if err := f(value); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
