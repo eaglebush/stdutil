@@ -99,7 +99,7 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, compressed b
 		msg := m[3:]
 		if strings.HasPrefix(msg, "[") {
 			if endBr := strings.Index(msg, "]"); endBr != -1 {
-				rd.MessagePrefix = msg[1:endBr]
+				rd.ln.Prefix = msg[1:endBr]
 				msg = msg[endBr+3:]
 			}
 		}
