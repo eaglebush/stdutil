@@ -95,9 +95,16 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, compressed b
 		if m == "" {
 			continue
 		}
-		start := m[0:3]
-		msg := m[4:]
-		switch start {
+		msgType := m[0:3]
+		msg := m[3:]
+		if strings.HasPrefix(msg, "[") {
+			if endBr := strings.Index(msg, "]"); endBr != -1 {
+				rd.MessagePrefix = msg[1:endBr]
+				msg, _ = strings.CutPrefix(msg, "]")
+			}
+		}
+
+		switch msgType {
 		case string(livenote.Warn):
 			rd.Result.AddWarning(msg)
 		case string(livenote.Error):
