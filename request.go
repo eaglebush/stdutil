@@ -15,6 +15,7 @@ import (
 
 	"github.com/gbrlsnchs/jwt/v3"
 	"github.com/gorilla/mux"
+	"github.com/narsilworks/livenote"
 )
 
 const REQUEST_VERSION string = "1.0.0.0"
@@ -78,11 +79,36 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, compressed b
 	if len(data) == 0 {
 		return
 	}
-	if err = json.Unmarshal(data, &rd); err != nil {
-		// This is not marshable to resultdata, we'll try to send the real result
+
+	// Create a temporary result data for unmarshalling purposes
+	// The internal LiveNote field is not populated when unmarshalling
+	trd := ResultData{}
+	if err = json.Unmarshal(data, &trd); err != nil {
 		rd.Result.AddErr(err)
-		rd.Data = data
+		rd.Data = data // This is not marshable to resultdata, we'll try to send the real result
+		return
 	}
+
+	// Assign temp to result
+	rd.Data = trd.Data
+	for _, m := range trd.Messages {
+		if m == "" {
+			continue
+		}
+		start := m[0:3]
+		msg := m[4:]
+		switch start {
+		case string(livenote.Warn):
+			rd.Result.AddWarning(msg)
+		case string(livenote.Error):
+			rd.Result.AddError(msg)
+		case string(livenote.Fatal):
+			rd.Result.AddError(msg)
+		case string(livenote.App):
+			rd.Result.ln.AddAppMsg(msg)
+		}
+	}
+
 	return
 }
 
