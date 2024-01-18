@@ -108,6 +108,9 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, compressed b
 			rd.Result.ln.AddAppMsg(msg)
 		}
 	}
+	if !rd.Result.ln.HasErrors() {
+		rd.Return(OK)
+	}
 
 	return
 }
