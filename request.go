@@ -95,6 +95,7 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, compressed b
 		if m == "" {
 			continue
 		}
+
 		msgType := m[0:3]
 		msg := m[3:]
 		if strings.HasPrefix(msg, "[") {
