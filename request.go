@@ -91,11 +91,11 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, compressed b
 
 	// Assign temp to result
 	rd.Data = trd.Data
+	rd.Return(Status(trd.Status))
 	for _, m := range trd.Messages {
 		if m == "" {
 			continue
 		}
-
 		msgType := m[0:3]
 		msg := m[3:]
 		if strings.HasPrefix(msg, "[") {
@@ -104,7 +104,6 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, compressed b
 				msg = msg[endBr+3:]
 			}
 		}
-
 		switch msgType {
 		case string(livenote.Warn):
 			rd.Result.AddWarning(msg)
@@ -115,9 +114,6 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, compressed b
 		case string(livenote.App):
 			rd.Result.ln.AddAppMsg(msg)
 		}
-	}
-	if !rd.Result.ln.HasErrors() {
-		rd.Return(OK)
 	}
 
 	return
