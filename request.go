@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gbrlsnchs/jwt/v3"
@@ -61,17 +62,20 @@ func SetRequestTimeout(timeout int) {
 	reqTimeOut = timeout
 }
 
-// ExecuteJSONAPI wraps http operation that change or read data and returns a custom result
-func ExecuteJSONAPI(method string, endpoint string, payload []byte, compressed bool, headers map[string]string, timeout int) (rd ResultData) {
+// ExecuteJsonAPI wraps http operation that change or read data and returns a custom result
+func ExecuteJsonAPI(method string, endPoint string, payload []byte, compressed bool, header map[string]string, timeOut int, rw *sync.RWMutex) (rd ResultData) {
 
 	rd = ResultData{
 		Result: InitResult(),
 	}
-	if headers == nil {
-		headers = make(map[string]string)
+	if header == nil {
+		header = make(map[string]string)
 	}
-	headers["Content-Type"] = "application/json"
-	data, err := ExecuteAPI(method, endpoint, payload, compressed, headers, timeout)
+	if rw == nil {
+		rw = &sync.RWMutex{}
+	}
+	SafeMapWrite(&header, "Content-Type", "application/json", rw)
+	data, err := ExecuteAPI(method, endPoint, payload, compressed, header, timeOut)
 	if err != nil {
 		rd.Result.AddErr(err)
 		return
@@ -120,9 +124,9 @@ func ExecuteJSONAPI(method string, endpoint string, payload []byte, compressed b
 }
 
 // ExecuteAPI wraps http operation that change or read data and returns a byte array
-func ExecuteAPI(method string, endpoint string, payload []byte, compressed bool, headers map[string]string, timeout int) ([]byte, error) {
+func ExecuteAPI(method string, endPoint string, payload []byte, compressed bool, header map[string]string, timeOut int) ([]byte, error) {
 
-	nr, err := http.NewRequest(method, endpoint, bytes.NewBuffer(payload))
+	nr, err := http.NewRequest(method, endPoint, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +141,7 @@ func ExecuteAPI(method string, endpoint string, payload []byte, compressed bool,
 			nr.Header.Add("Content-Encoding", "gzip")
 		}
 	}
-	for k, v := range headers {
+	for k, v := range header {
 		k = strings.ToLower(k)
 		if k != "cookie" {
 			nr.Header.Set(k, v)
@@ -152,11 +156,11 @@ func ExecuteAPI(method string, endpoint string, payload []byte, compressed bool,
 			}
 		}
 	}
-	if timeout == 0 {
-		timeout = 30
+	if timeOut == 0 {
+		timeOut = 30
 	}
 	cli := http.Client{
-		Timeout:   time.Second * time.Duration(timeout),
+		Timeout:   time.Second * time.Duration(timeOut),
 		Transport: ct,
 	}
 	resp, err := cli.Do(nr)
@@ -208,29 +212,29 @@ func ExecuteAPI(method string, endpoint string, payload []byte, compressed bool,
 	return data, nil
 }
 
-// PostJSON wraps http.Post with custom result
-func PostJSON(endpoint string, payload []byte, gzipped bool, headers map[string]string) ResultData {
-	return ExecuteJSONAPI("POST", endpoint, payload, gzipped, headers, reqTimeOut)
+// PostJson wraps http.Post with custom result
+func PostJson(endpoint string, payload []byte, gzipped bool, headers map[string]string, rw *sync.RWMutex) ResultData {
+	return ExecuteJsonAPI("POST", endpoint, payload, gzipped, headers, reqTimeOut, rw)
 }
 
-// PutJSON wraps http.Put with custom result
-func PutJSON(endpoint string, payload []byte, gzipped bool, headers map[string]string) ResultData {
-	return ExecuteJSONAPI("PUT", endpoint, payload, gzipped, headers, reqTimeOut)
+// PutJson wraps http.Put with custom result
+func PutJson(endpoint string, payload []byte, gzipped bool, headers map[string]string, rw *sync.RWMutex) ResultData {
+	return ExecuteJsonAPI("PUT", endpoint, payload, gzipped, headers, reqTimeOut, rw)
 }
 
-// PatchJSON wraps http.Patch with custom result
-func PatchJSON(endpoint string, payload []byte, gzipped bool, headers map[string]string) ResultData {
-	return ExecuteJSONAPI("PATCH", endpoint, payload, gzipped, headers, reqTimeOut)
+// PatchJson wraps http.Patch with custom result
+func PatchJson(endpoint string, payload []byte, gzipped bool, headers map[string]string, rw *sync.RWMutex) ResultData {
+	return ExecuteJsonAPI("PATCH", endpoint, payload, gzipped, headers, reqTimeOut, rw)
 }
 
-// GetJSON wraps http.Get with custom result
-func GetJSON(endpoint string, headers map[string]string) ResultData {
-	return ExecuteJSONAPI("GET", endpoint, nil, false, headers, reqTimeOut)
+// GetJson wraps http.Get with custom result
+func GetJson(endpoint string, headers map[string]string, rw *sync.RWMutex) ResultData {
+	return ExecuteJsonAPI("GET", endpoint, nil, false, headers, reqTimeOut, rw)
 }
 
-// DeleteJSON wraps http.Delete with custom result
-func DeleteJSON(endpoint string, headers map[string]string) ResultData {
-	return ExecuteJSONAPI("DELETE", endpoint, nil, false, headers, reqTimeOut)
+// DeleteJson wraps http.Delete with custom result
+func DeleteJson(endpoint string, headers map[string]string, rw *sync.RWMutex) ResultData {
+	return ExecuteJsonAPI("DELETE", endpoint, nil, false, headers, reqTimeOut, rw)
 }
 
 // ParseQueryString parses the query string into a column value

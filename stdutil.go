@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	ssd "github.com/shopspring/decimal"
@@ -620,6 +621,33 @@ func StripLeading(value string, offset int) string {
 		return string(str[offset:])
 	}
 	return value
+}
+
+// SafeMapWrite allows writing to maps by locking, preventing the library from crashing
+func SafeMapWrite[T any](ptrMap *map[string]T, key string, value T, rw *sync.RWMutex) bool {
+	defer func() {
+		recover()
+	}()
+	// Prepare mutex
+	// attempt writing to map
+	if rw.TryLock() {
+		defer rw.Unlock()
+		(*ptrMap)[key] = value
+	}
+	return true
+}
+
+// SafeMapRead allows reading maps by locking it, preventing the library from crashing
+func SafeMapRead[T any](ptrMap *map[string]T, key string, rw *sync.RWMutex) T {
+	var result T
+	defer func() {
+		recover()
+	}()
+	if rw.TryLock() {
+		defer rw.Unlock()
+		result = (*ptrMap)[key]
+	}
+	return result
 }
 
 // Elem returns the element of an array as specified by the index

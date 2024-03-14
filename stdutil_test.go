@@ -2,6 +2,7 @@ package stdutil
 
 import (
 	"log"
+	"sync"
 	"testing"
 	"time"
 
@@ -347,5 +348,18 @@ func TestNonNullComp(t *testing.T) {
 		} else if res == 1 {
 			t.Log(`Parameters are not equal`)
 		}
+	}
+}
+
+func TestSafeMapWrite(t *testing.T) {
+	rw := &sync.RWMutex{}
+	m := map[string]int{}
+	for i := 0; i < 1000; i++ {
+		k := i
+		go func() {
+			SafeMapWrite(&m, "testing", k, rw)
+			read := SafeMapRead(&m, "testing", rw)
+			t.Logf("Reading map: %d", read)
+		}()
 	}
 }
