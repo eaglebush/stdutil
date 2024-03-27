@@ -37,6 +37,7 @@ type Result struct {
 
 	ln        livenote.LiveNote // Internal note
 	eventVerb string            // event verb related to the name of the operation
+	osIsWin   bool
 }
 
 // InitResult - initialize result for API query. This is the recommended initialization of this object.
@@ -50,16 +51,13 @@ type Result struct {
 // To add a message, set NameValue.Name to "message" and set NameValue.Value to a valid message.
 // Depending on the current status (default is EXCEPTION), the message type is automatically set to that type
 func InitResult(args ...NameValue[string]) Result {
-
 	res := Result{
-		Status: string(EXCEPTION),
-		ln:     livenote.LiveNote{},
+		Status:  string(EXCEPTION),
+		ln:      livenote.LiveNote{},
+		osIsWin: runtime.GOOS == "windows",
 	}
-
 	res.Messages = make([]string, 0)
-
 	for _, nv := range args {
-
 		// check if it is a valid status, ignore if not
 		// go to next value if valid
 		if strings.EqualFold(nv.Name, `status`) {
@@ -69,13 +67,11 @@ func InitResult(args ...NameValue[string]) Result {
 				continue
 			}
 		}
-
 		if strings.EqualFold(nv.Name, `prefix`) {
 			res.MessagePrefix = nv.Value
 			res.ln.Prefix = nv.Value // set default prefix for livenote
 			continue
 		}
-
 		if strings.EqualFold(nv.Name, `message`) {
 			if res.Status == string(EXCEPTION) {
 				res.AddError(nv.Value)
@@ -270,6 +266,18 @@ func (r *Result) EventID() string {
 
 // ToString adds a formatted error message and returns itself
 func (r *Result) MessagesToString() string {
+	// if r.Messages is not empty, it can be because it was unmarshalled from result bytes
+	if len(r.Messages) > 0 {
+		lf := "\n"
+		if r.osIsWin {
+			lf = "\r\n"
+		}
+		sb := strings.Builder{}
+		for _, v := range r.Messages {
+			sb.Write([]byte(v + lf))
+		}
+		return sb.String()
+	}
 	return r.ln.ToString()
 }
 
