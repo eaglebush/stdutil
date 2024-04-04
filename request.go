@@ -131,7 +131,7 @@ func ExecuteAPI(method string, endPoint string, payload []byte, compressed bool,
 		return nil, err
 	}
 	nr.Close = true
-	nr.Header.Set("User-Agent", fmt.Sprintf("stdutil.request/%s-%s", REQUEST_VERSION, REQUEST_MODIFIED))
+	nr.Header.Set("User-Agent", fmt.Sprintf("eaglebush.stdutil.request/%s-%s", REQUEST_VERSION, REQUEST_MODIFIED))
 	nr.Header.Set("Connection", "keep-alive")
 	nr.Header.Set("Accept", "*/*")
 	if compressed {

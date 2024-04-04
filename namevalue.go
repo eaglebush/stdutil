@@ -1,6 +1,6 @@
 package stdutil
 
 type NameValue[T any] struct {
-	Name  string
-	Value T
+	Name  string `json:"name,omitempty"`
+	Value T      `json:"value,omitempty"`
 }

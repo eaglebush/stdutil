@@ -14,28 +14,23 @@ type NameValues struct {
 }
 
 func (nvp *NameValues) prepare() {
-
 	np := make(map[string]any)
 	for n := range nvp.Pair {
 		ln := strings.ToLower(n)
 		np[ln] = nvp.Pair[n]
 		delete(nvp.Pair, n)
 	}
-
 	for n := range np {
 		nvp.Pair[n] = np[n]
 	}
-
 	nvp.prepared = true
 }
 
 // Exists checks if the key or name exists. It returns the index of the element if found, -1 if not found.
 func (nvp *NameValues) Exists(name string) bool {
-
 	if !nvp.prepared {
 		nvp.prepare()
 	}
-
 	name = strings.ToLower(name)
 	_, exists := nvp.Pair[name]
 	return exists
