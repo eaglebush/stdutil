@@ -19,35 +19,37 @@ import (
 	"github.com/narsilworks/livenote"
 )
 
-const REQUEST_VERSION string = "1.0.0.0"
-const REQUEST_MODIFIED string = "15112023"
+const (
+	REQUEST_VERSION  string = "1.0.0.0"
+	REQUEST_MODIFIED string = "15052024"
+)
 
 var (
 	reqTimeOut int
 	ct         *http.Transport
 )
 
-// CustomPayload - payload for JWT
-type CustomPayload struct {
-	jwt.Payload
-	UserName      string `json:"usr,omitempty"` // Username payload for JWT
-	Domain        string `json:"dom,omitempty"` // Domain payload for JWT
-	ApplicationID string `json:"app,omitempty"` // Application payload for JWT
-	DeviceID      string `json:"dev,omitempty"` // Device id payload for JWT
-	TenantID      string `json:"tnt,omitempty"` // Tenant id payload for JWT
-}
-
-// ResultData - a result structure and a JSON raw message
-type ResultData struct {
-	Result
-	Data json.RawMessage `json:"data"`
-}
-
-// ResultAny - a result structure with an empty interface
-type ResultAny[T any] struct {
-	Result
-	Data T `json:"data"`
-}
+type (
+	// CustomPayload - payload for JWT
+	CustomPayload struct {
+		jwt.Payload
+		UserName      string `json:"usr,omitempty"` // Username payload for JWT
+		Domain        string `json:"dom,omitempty"` // Domain payload for JWT
+		ApplicationID string `json:"app,omitempty"` // Application payload for JWT
+		DeviceID      string `json:"dev,omitempty"` // Device id payload for JWT
+		TenantID      string `json:"tnt,omitempty"` // Tenant id payload for JWT
+	}
+	// ResultData - a result structure and a JSON raw message
+	ResultData struct {
+		Result
+		Data json.RawMessage `json:"data"`
+	}
+	// ResultAny - a result structure with an empty interface
+	ResultAny[T any] struct {
+		Result
+		Data T `json:"data"`
+	}
+)
 
 func init() {
 	reqTimeOut = 30
@@ -124,16 +126,25 @@ func ExecuteJsonAPI(method string, endPoint string, payload []byte, compressed b
 }
 
 // ExecuteAPI wraps http operation that change or read data and returns a byte array
+//
+// On headers:
+//   - Content-Type: If this header is not set, it defaults to "application/json"//
+//   - Content-Encoding: If compressed is true, it is set to "gzip"
 func ExecuteAPI(method string, endPoint string, payload []byte, compressed bool, header map[string]string, timeOut int) ([]byte, error) {
-
 	nr, err := http.NewRequest(method, endPoint, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, err
 	}
 	nr.Close = true
-	nr.Header.Set("User-Agent", fmt.Sprintf("eaglebush.stdutil.request/%s-%s", REQUEST_VERSION, REQUEST_MODIFIED))
+	nr.Header.Set(
+		"User-Agent",
+		fmt.Sprintf("com.github.eaglebush.stdutil.request/%s-%s",
+			REQUEST_VERSION, REQUEST_MODIFIED))
 	nr.Header.Set("Connection", "keep-alive")
 	nr.Header.Set("Accept", "*/*")
+	if ct := nr.Header.Get("Content-Type"); ct == "" {
+		nr.Header.Set("Content-Type", "application/json")
+	}
 	if compressed {
 		nr.Header.Set("Accept-Encoding", "gzip, deflate, br")
 		switch strings.ToUpper(nr.Method) {
