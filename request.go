@@ -21,7 +21,7 @@ import (
 
 const (
 	REQUEST_VERSION  string = "1.0.0.0"
-	REQUEST_MODIFIED string = "15052024"
+	REQUEST_MODIFIED string = "16052024"
 )
 
 var (

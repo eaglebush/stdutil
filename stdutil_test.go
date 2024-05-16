@@ -363,3 +363,19 @@ func TestSafeMapWrite(t *testing.T) {
 		}()
 	}
 }
+
+func TestMapVal(t *testing.T) {
+	mapMV := map[string]any{
+		"do":   "Joe",
+		"does": "Rob",
+		"did":  "John",
+	}
+
+	mv := MapVal[string](&mapMV, "did")
+	if mv == nil {
+		t.Fail()
+		return
+	}
+	log.Println(*mv)
+
+}

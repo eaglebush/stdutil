@@ -13,53 +13,51 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-type FieldTypeConstraint interface {
-	constraints.Ordered | time.Time | ssd.Decimal | bool | byte
-}
-
-type NumericConstraint interface {
-	constraints.Integer | constraints.Float
-}
-
-type StringValidationOptions struct {
-	Empty    bool // Allow empty string. Default: false, will raise an error if the string is empty
-	Null     bool // Allow null. Default: false, will raise an error if the string is null
-	Min      int  // Minimum length. Default: 0
-	Max      int  // Maximum length. Default: 0
-	NoSpaces bool // Do not allow spaces in the string. Default: false. Setting to true will raise an error if the string has spaces
-	Extended []func(value *string) error
-}
-
-type TimeValidationOptions struct {
-	Null     bool       // Allow null. Default: false, will raise an error if the time is null
-	Empty    bool       // Allow zero time Default: false, will raise an error if the time is zero
-	Min      *time.Time // Minimum time. Default: nil
-	Max      *time.Time // Maximum time. Default: nil
-	DateOnly bool       // Compare dates only. Default: false
-	Extended []func(value *time.Time) error
-}
-
-type NumericValidationOptions[T NumericConstraint] struct {
-	Null     bool // Allow null. Default: false, will raise an error if the time is null
-	Empty    bool // Allow zero time Default: false, will raise an error if the time is zero
-	Min      T    // Minimum time. Default: nil
-	Max      T    // Maximum time. Default: nil
-	Extended []func(value *T) error
-}
-
-type DecimalValidationOptions struct {
-	Null     bool         // Allow null. Default: false, will raise an error if the decimal is null
-	Empty    bool         // Allow zero decimal. Default: false, will raise an error if the decimal is zero
-	Min      *ssd.Decimal // Minimum decimal value. Default: nil
-	Max      *ssd.Decimal // Maximum decimal value. Default: nil
-	Extended []func(value *ssd.Decimal) error
-}
-
-type SeriesOptions struct {
-	Prefix string // Prefix of series
-	Suffix string // Suffix of series
-	Length int    // Fixed length of the series
-}
+type (
+	FieldTypeConstraint interface {
+		constraints.Ordered | time.Time | ssd.Decimal | bool | byte
+	}
+	NumericConstraint interface {
+		constraints.Integer | constraints.Float
+	}
+)
+type (
+	StringValidationOptions struct {
+		Empty    bool // Allow empty string. Default: false, will raise an error if the string is empty
+		Null     bool // Allow null. Default: false, will raise an error if the string is null
+		Min      int  // Minimum length. Default: 0
+		Max      int  // Maximum length. Default: 0
+		NoSpaces bool // Do not allow spaces in the string. Default: false. Setting to true will raise an error if the string has spaces
+		Extended []func(value *string) error
+	}
+	TimeValidationOptions struct {
+		Null     bool       // Allow null. Default: false, will raise an error if the time is null
+		Empty    bool       // Allow zero time Default: false, will raise an error if the time is zero
+		Min      *time.Time // Minimum time. Default: nil
+		Max      *time.Time // Maximum time. Default: nil
+		DateOnly bool       // Compare dates only. Default: false
+		Extended []func(value *time.Time) error
+	}
+	NumericValidationOptions[T NumericConstraint] struct {
+		Null     bool // Allow null. Default: false, will raise an error if the time is null
+		Empty    bool // Allow zero time Default: false, will raise an error if the time is zero
+		Min      T    // Minimum time. Default: nil
+		Max      T    // Maximum time. Default: nil
+		Extended []func(value *T) error
+	}
+	DecimalValidationOptions struct {
+		Null     bool         // Allow null. Default: false, will raise an error if the decimal is null
+		Empty    bool         // Allow zero decimal. Default: false, will raise an error if the decimal is zero
+		Min      *ssd.Decimal // Minimum decimal value. Default: nil
+		Max      *ssd.Decimal // Maximum decimal value. Default: nil
+		Extended []func(value *ssd.Decimal) error
+	}
+	SeriesOptions struct {
+		Prefix string // Prefix of series
+		Suffix string // Suffix of series
+		Length int    // Fixed length of the series
+	}
+)
 
 // AnyToString converts any variable to string
 func AnyToString(value interface{}) string {
@@ -210,14 +208,24 @@ func Itos(value interface{}) string {
 
 // ToInterfaceArray converts a value to interface array
 //
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
+//
 // This function requires version 1.18+
 func ToInterfaceArray[T FieldTypeConstraint](values T) []interface{} {
 	return []interface{}{values}
 }
 
 // IsNullOrEmpty checks for nullity and emptiness of a pointer variable
-// Currently supported data types are the ones in the constraints.Ordered,
-// time.Time, bool and shopspring/decimal
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
 //
 // This function requires version 1.18+
 func IsNullOrEmpty[T FieldTypeConstraint](value *T) bool {
@@ -225,8 +233,12 @@ func IsNullOrEmpty[T FieldTypeConstraint](value *T) bool {
 }
 
 // IsNullOrEmpty checks for emptiness of a pointer variable ignoring nullity
-// Currently supported data types are the ones in the constraints.Ordered,
-// time.Time, bool and shopspring/decimal
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
 //
 // This function requires version 1.18+
 func IsEmpty[T FieldTypeConstraint](value *T) bool {
@@ -241,8 +253,12 @@ func IsEmpty[T FieldTypeConstraint](value *T) bool {
 }
 
 // Val gets the value of a pointer in order
-// Currently supported data types are the ones in the constraints.Ordered,
-// time.Time, bool and shopspring/decimal
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
 //
 // This function requires version 1.18+
 func Val[T FieldTypeConstraint](value *T) T {
@@ -252,9 +268,35 @@ func Val[T FieldTypeConstraint](value *T) T {
 	return *value
 }
 
+// MapVal retrieves a value from a map by a key and converts it to the type indicated by T.
+// Returns a pointer to the value if found. Returns nil if not found
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
+//
+// This function requires version 1.18+
+func MapVal[T FieldTypeConstraint](kvmap *map[string]any, key string) *T {
+	miv, ok := (*kvmap)[key]
+	if !ok {
+		return nil
+	}
+	mv, ok := miv.(T)
+	if !ok {
+		return nil
+	}
+	return &mv
+}
+
 // New initializes a variable and returns a pointer of its type
-// Currently supported data types are the ones in the constraints.Ordered,
-// time.Time, bool and shopspring/decimal
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
 //
 // This function requires version 1.18+
 func New[T FieldTypeConstraint](value T) *T {
@@ -264,9 +306,16 @@ func New[T FieldTypeConstraint](value T) *T {
 }
 
 // NonNullComp compares two parameters when both are not nil.
-// When one or both of the parameters is nil, the function returns -1
-// When the parameters are equal, the function returns 0.
-// Else it returns 1
+//
+//   - When one or both of the parameters is nil, the function returns -1
+//   - When the parameters are equal, the function returns 0.
+//   - else it returns 1
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
 //
 // This function requires version 1.18+
 func NonNullComp[T FieldTypeConstraint](param1 *T, param2 *T) int {
@@ -281,6 +330,12 @@ func NonNullComp[T FieldTypeConstraint](param1 *T, param2 *T) int {
 
 // Null accepts a value to test and the default value
 // if it fails. It returns a non-pointer value of T.
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
 //
 // This function requires version 1.18+
 func Null[T any](testValue any, defaultValue any) T {
@@ -311,6 +366,12 @@ func Null[T any](testValue any, defaultValue any) T {
 // NullPtr accepts a value to test and the default value
 // if it fails. It returns a pointer value of T.
 //
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
+//
 // This function requires version 1.18+
 func NullPtr[T any](testValue any, defaultValue any) *T {
 	val := Null[T](testValue, defaultValue)
@@ -319,15 +380,12 @@ func NullPtr[T any](testValue any, defaultValue any) *T {
 
 // NameValuesToInterfaceArray converts name values to interface array
 func NameValuesToInterfaceArray(values NameValues) []interface{} {
-
 	args := make([]interface{}, len(values.Pair))
 	i := 0
-
 	for _, v := range values.Pair {
 		args[i] = v
 		i++
 	}
-
 	return args
 }
 
@@ -480,6 +538,12 @@ func ValidateTime(value *time.Time, opts *TimeValidationOptions) error {
 }
 
 // ValidateNumeric validates a numeric input against numeric validation options
+//
+// Currently supported data types are:
+//   - constraints.Integer (Signed | Unsigned)
+//   - constraints.Float (~float32 | ~float64)
+//
+// This function requires version 1.18+
 func ValidateNumeric[T NumericConstraint](value *T, opts *NumericValidationOptions[T]) error {
 
 	// If options were not set, this time is valid
@@ -560,6 +624,14 @@ func BuildSeries(series int, opt SeriesOptions) string {
 }
 
 // In checks if the seek parameter is in the list parameter
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
+//
+// This function requires version 1.18+
 func In[T comparable](seek T, list ...T) bool {
 	for _, li := range list {
 		if li == seek {
@@ -624,6 +696,14 @@ func StripLeading(value string, offset int) string {
 }
 
 // SafeMapWrite allows writing to maps by locking, preventing the library from crashing
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
+//
+// This function requires version 1.18+
 func SafeMapWrite[T any](ptrMap *map[string]T, key string, value T, rw *sync.RWMutex) bool {
 	defer func() {
 		recover()
@@ -638,6 +718,14 @@ func SafeMapWrite[T any](ptrMap *map[string]T, key string, value T, rw *sync.RWM
 }
 
 // SafeMapRead allows reading maps by locking it, preventing the library from crashing
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
+//
+// This function requires version 1.18+
 func SafeMapRead[T any](ptrMap *map[string]T, key string, rw *sync.RWMutex) T {
 	var result T
 	defer func() {
@@ -655,32 +743,32 @@ func SafeMapRead[T any](ptrMap *map[string]T, key string, rw *sync.RWMutex) T {
 // If the index exceeds the length of an array, it will return a non-nil value of the type.
 // To monitor if the element exists, define a boolean value in the exists parameter
 //
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
+//
 // This function requires version 1.18+
 func Elem[T any](array *[]T, index int, exists *bool) T {
-
 	var result T
-
 	if exists != nil {
 		*exists = false
 	}
-
 	if array == nil {
 		return result
 	}
-
 	arrl := len(*array)
 	if arrl == 0 {
 		return result
 	}
 	arrl--
-
 	if arrl >= index {
 		if exists != nil {
 			*exists = true
 		}
 		return (*array)[index]
 	}
-
 	return result
 }
 
@@ -689,14 +777,25 @@ func Elem[T any](array *[]T, index int, exists *bool) T {
 // If the index exceeds the length of an array, it will return a non-nil value of the type.
 // To monitor if the element exists, define a boolean value in the exists parameter
 //
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
+//
 // This function requires version 1.18+
 func ElemPtr[T any](array *[]T, index int, exists *bool) *T {
 	r := Elem(array, index, exists)
 	return &r
 }
 
-// GetZero gets the zero value of the types defined as
-// constraints.Ordered, time.Time and shopspring/decimal
+// GetZero gets the zero value of the type.
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
 //
 // This function requires version 1.18+
 func GetZero[T FieldTypeConstraint]() T {
