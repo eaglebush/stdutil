@@ -366,16 +366,59 @@ func TestSafeMapWrite(t *testing.T) {
 
 func TestMapVal(t *testing.T) {
 	mapMV := map[string]any{
-		"do":   "Joe",
-		"does": "Rob",
-		"did":  "John",
+		"do":    "Joe",
+		"does":  "Rob",
+		"did":   "John",
+		"birth": "11/23/2023",
+		"start": "12/23/2023",
+		"date":  time.Date(2024, time.May, 16, 0, 0, 0, 0, time.Now().Location()),
+		"float": 1230.42,
+		"amount": func() ssd.Decimal {
+			dc, _ := ssd.NewFromString("23576.987")
+			return dc
+		}(),
+		"decimalFromStr": "654562.789",
 	}
 
-	mv := MapVal[string](&mapMV, "did")
-	if mv == nil {
+	// mv := MapVal[string](&mapMV, "did")
+	// if mv == nil {
+	// 	t.Fail()
+	// 	return
+	// }
+	// log.Println(*mv)
+
+	mvd := MapVal[time.Time](&mapMV, "birth")
+	if mvd == nil {
 		t.Fail()
 		return
 	}
-	log.Println(*mv)
+	log.Println(*mvd)
 
+	mvd = MapVal[time.Time](&mapMV, "start", "01/02/2006")
+	if mvd == nil {
+		t.Fail()
+		return
+	}
+	log.Println(*mvd)
+
+	mvd = MapVal[time.Time](&mapMV, "date")
+	if mvd == nil {
+		t.Fail()
+		return
+	}
+	log.Println(*mvd)
+
+	amt2 := MapVal[ssd.Decimal](&mapMV, "amount")
+	if amt2 == nil {
+		t.Fail()
+		return
+	}
+	log.Println(*amt2)
+
+	amt3 := MapVal[ssd.Decimal](&mapMV, "decimalFromStr")
+	if amt3 == nil {
+		t.Fail()
+		return
+	}
+	log.Println(*amt3)
 }

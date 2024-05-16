@@ -269,7 +269,24 @@ func Val[T FieldTypeConstraint](value *T) T {
 }
 
 // MapVal retrieves a value from a map by a key and converts it to the type indicated by T.
-// Returns a pointer to the value if found. Returns nil if not found
+// Returns a pointer to the value if found, or nil if not found.
+//
+// The third parameter, dateLayout can be set with many time layouts. The specified layouts
+// will be the only one to try parsing.
+//
+// If not set, the following built-in date layouts are used:
+//   - "2006-01-02"
+//   - "01-02-2006"
+//   - "02-01-2006"
+//   - "2006/01/02"
+//   - "01/02/2006"
+//   - "02/01/2006"
+//   - "06-01-02"
+//   - "01-02-06"
+//   - "02-01-06"
+//   - "06/01/02"
+//   - "01/02/06"
+//   - "02/01/06"
 //
 // Currently supported data types are:
 //   - constraints.Ordered (Integer | Float | ~string)
@@ -278,16 +295,65 @@ func Val[T FieldTypeConstraint](value *T) T {
 //   - shopspring/decimal
 //
 // This function requires version 1.18+
-func MapVal[T FieldTypeConstraint](kvmap *map[string]any, key string) *T {
+func MapVal[T FieldTypeConstraint](kvmap *map[string]any, key string, dateLayout ...string) *T {
+	var (
+		ok bool
+	)
+	if kvmap == nil {
+		return nil
+	}
 	miv, ok := (*kvmap)[key]
 	if !ok {
 		return nil
 	}
 	mv, ok := miv.(T)
-	if !ok {
-		return nil
+	if ok {
+		return &mv
 	}
-	return &mv
+	t := new(T)  // initialize a variable to the return generic type
+	a := any(*t) // initialize a variable to the value type of the generic type
+	switch a.(type) {
+	case time.Time:
+		if s, ok := miv.(string); ok {
+			dlo := dateLayout
+			if len(dlo) == 0 {
+				dlo = []string{
+					"2006-01-02",
+					"01-02-2006",
+					"02-01-2006",
+					"2006/01/02",
+					"01/02/2006",
+					"02/01/2006",
+					"06-01-02",
+					"01-02-06",
+					"02-01-06",
+					"06/01/02",
+					"01/02/06",
+					"02/01/06",
+				}
+			}
+			for _, lo := range dlo {
+				v, err := time.Parse(lo, s)
+				if err != nil {
+					continue
+				}
+				*t = any(v).(T) // Convert the parsed value to any before asserting the type for the return
+				return t
+			}
+		}
+	case ssd.Decimal:
+		if s, ok := miv.(string); ok {
+			v, err := ssd.NewFromString(s)
+			if err != nil {
+				return nil
+			}
+			*t = any(v).(T)
+			return t
+		}
+	default:
+
+	}
+	return nil
 }
 
 // New initializes a variable and returns a pointer of its type
@@ -639,6 +705,25 @@ func In[T comparable](seek T, list ...T) bool {
 		}
 	}
 	return false
+}
+
+// Seek checks if the seek parameter is in the list parameter and returns it.
+// If the value is not found in the list, the function returns nil
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
+//
+// This function requires version 1.18+
+func Seek[T comparable](seek T, list ...T) *T {
+	for _, li := range list {
+		if li == seek {
+			return &li
+		}
+	}
+	return nil
 }
 
 // SortByKey reorders keys and values based on a keyOrder array sequence
