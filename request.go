@@ -66,7 +66,6 @@ func SetRequestTimeout(timeout int) {
 
 // ExecuteJsonAPI wraps http operation that change or read data and returns a custom result
 func ExecuteJsonAPI(method string, endPoint string, payload []byte, compressed bool, header map[string]string, timeOut int, rw *sync.RWMutex) (rd ResultData) {
-
 	rd = ResultData{
 		Result: InitResult(),
 	}
@@ -264,20 +263,16 @@ func ParseQueryString(qs *string) NameValues {
 func ParseRouteVars(r *http.Request) (Command []string, Key string) {
 	cmd := make([]string, 0, 10)
 	key := ""
-
 	m := mux.CurrentRoute(r)
 	pt, _ := m.GetPathTemplate()
 	ptn := strings.Replace(r.URL.Path, pt, "", -1) // Trim the url by URL path. The remaining text will be the path to evaluate
-
 	hasTrailingSlash := false
 	if ptn != "" {
 		hasTrailingSlash = ptn[len(ptn)-1:] == `/`
 	}
-
 	path := strings.FieldsFunc(ptn, func(c rune) bool {
 		return c == '/'
 	})
-
 	pathlen := len(path)
 
 	// If path length is 1, we might have a key.
@@ -301,7 +296,6 @@ func ParseRouteVars(r *http.Request) (Command []string, Key string) {
 				cmd = append(cmd, strings.ToLower(ck))
 			}
 		}
-
 		if pth := path[pathlen-1]; len(pth) > 0 {
 			if hasTrailingSlash {
 				cmd = append(cmd, strings.ToLower(pth))
@@ -325,15 +319,12 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 
 	aud := jwt.Audience{}
 	var ifc interface{}
-
 	if ifc = clm["iss"]; ifc != nil {
 		iss = ifc.(string)
 	}
-
 	if ifc = clm["sub"]; ifc != nil {
 		sub = ifc.(string)
 	}
-
 	if ifc = clm["aud"]; ifc != nil {
 		t := reflect.TypeOf(ifc)
 
@@ -415,20 +406,20 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 
 // GetRequestVarsOnly get request variables
 func GetRequestVarsOnly(r *http.Request) RequestVars {
-
-	rv := &RequestVars{}
+	var (
+		c1 string
+	)
 	const (
 		mulpart string = "multipart/form-data"
 		furlenc string = "application/x-www-form-urlencoded"
 	)
-
-	rv.Method = strings.ToUpper(r.Method)
-	ctype := strings.Split(r.Header.Get("Content-Type"), ";")
-	c1 := strings.TrimSpace(ctype[0])
-
-	useBody := (c1 != furlenc && c1 != mulpart) && (rv.IsPostOrPut() || rv.IsDelete())
-
-	if useBody {
+	rv := &RequestVars{
+		Method: strings.ToUpper(r.Method),
+	}
+	if ctype := strings.Split(r.Header.Get("Content-Type"), ";"); len(ctype) > 0 {
+		c1 = strings.TrimSpace(ctype[0])
+	}
+	if useBody := (c1 != furlenc && c1 != mulpart) && (rv.IsPostOrPut() || rv.IsDelete()); useBody {
 		// We are receiving body as bytes to Unmarshall later depending on the type
 		b := func() []byte {
 			if r.Body != nil {
@@ -442,43 +433,35 @@ func GetRequestVarsOnly(r *http.Request) RequestVars {
 			rv.HasBody = len(rv.Body) > 0
 		}
 	}
-
 	// Query Strings
 	rv.Variables.QueryString = ParseQueryString(&r.URL.RawQuery)
 	rv.Variables.HasQueryString = len(rv.Variables.QueryString.Pair) > 0
 	rv.Variables.IsMultipart = (c1 == mulpart)
-
 	if rv.Variables.IsMultipart {
 		r.ParseMultipartForm(30 << 20)
 	} else {
 		r.ParseForm()
 	}
-
 	// Get Form data
 	rv.Variables.FormData = NameValues{
 		Pair: make(map[string]any),
 	}
-
 	for k, v := range r.PostForm {
 		rv.Variables.FormData.Pair[k] = strings.Join(v[:], ",")
 	}
 	rv.Variables.HasFormData = len(rv.Variables.FormData.Pair) > 0
-
 	// Get route commands
 	rv.Variables.Command, rv.Variables.Key = ParseRouteVars(r)
-
 	return *rv
 }
 
 // ValidateJWT validates JWT and returns information
 func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) (*JWTInfo, error) {
-
 	var (
 		jwtfromck,
 		jwth string
 		jwtp []string
 	)
-
 	// Get Authorization header
 	if jwth = r.Header.Get("Authorization"); len(jwth) == 0 {
 		return nil, fmt.Errorf(`authorization header not set`)
@@ -497,9 +480,7 @@ func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) (*JWTInf
 
 // ParseJWT validates, parses JWT and returns information
 func ParseJWT(token, secretKey string, validateTimes bool) (*JWTInfo, error) {
-
 	ji := &JWTInfo{}
-
 	if len(secretKey) == 0 {
 		return ji, fmt.Errorf(`secret key not set`)
 	}
@@ -526,7 +507,6 @@ func ParseJWT(token, secretKey string, validateTimes bool) (*JWTInfo, error) {
 	} else {
 		_, err = jwt.Verify([]byte(token), HMAC, &pl)
 	}
-
 	if err != nil {
 		return ji, err
 	}
@@ -546,20 +526,16 @@ func ParseJWT(token, secretKey string, validateTimes bool) (*JWTInfo, error) {
 
 // GetRequestVars requests variables and return JWT validation result
 func GetRequestVars(r *http.Request, secretKey string, validateTimes bool) (RequestVars, error) {
-
 	rv := GetRequestVarsOnly(r)
 	rv.Token = nil
-
 	// silently ignore OPTION methid
 	if strings.EqualFold(r.Method, "OPTION") {
 		return rv, nil
 	}
-
 	ji, err := ValidateJWT(r, secretKey, validateTimes)
 	if err != nil {
 		return rv, err
 	}
 	rv.Token = ji
-
 	return rv, nil
 }

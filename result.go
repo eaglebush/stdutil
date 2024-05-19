@@ -102,7 +102,7 @@ func (r *Result) MessageManager() *livenote.LiveNote {
 	return &r.ln
 }
 
-// Return a status
+// Return sets the current status of a result
 func (r *Result) Return(status Status) Result {
 	r.Status = string(status)
 	return *r
@@ -140,7 +140,6 @@ func (r *Result) No() bool {
 
 // AddInfo adds an information message and returns itself
 func (r *Result) AddInfo(message string) Result {
-	// add message
 	r.ln.AddInfo(message)
 	r.updateMessage()
 	return *r
@@ -153,7 +152,6 @@ func (r *Result) AddInfof(format string, a ...interface{}) Result {
 
 // AddWarning - adds a warning message and returns itself
 func (r *Result) AddWarning(message string) Result {
-	// add message
 	r.ln.AddWarning(message)
 	r.updateMessage()
 	return *r
@@ -166,7 +164,6 @@ func (r *Result) AddWarningf(format string, a ...interface{}) Result {
 
 // AddError adds an error message and returns itself
 func (r *Result) AddError(message string) Result {
-	// add message
 	r.ln.AddError(message)
 	r.updateMessage()
 	return *r
@@ -177,9 +174,21 @@ func (r *Result) AddErrorf(format string, a ...interface{}) Result {
 	return r.AddError(fmt.Sprintf(format, a...))
 }
 
-// AddErr - adds a real error and returns itself
+// AddErr adds a error-typed value and returns itself.
 func (r *Result) AddErr(err error) Result {
 	r.AddError(err.Error())
+	return *r
+}
+
+// AddErrWithAlt adds an error-typed value, with an alternate error
+// message if the err happens to be nil. It returns itself.
+func (r *Result) AddErrWithAlt(err error, altMsg string, altMsgValues ...any) Result {
+	if err != nil {
+		return r.AddErr(err)
+	}
+	if altMsg != "" {
+		return r.AddErrorf(altMsg, altMsgValues...)
+	}
 	return *r
 }
 
@@ -242,7 +251,7 @@ func (r *Result) AppendWarningf(rs Result, format string, a ...interface{}) Resu
 	return r.AddWarningf(format, a...)
 }
 
-// Stuff messages of a result. The Result messages may contain different types of message
+// Stuff adds or appends the messages of a Result.
 func (r *Result) Stuff(rs Result) Result {
 	for _, n := range rs.ln.Notes() {
 		r.ln.Append(n)

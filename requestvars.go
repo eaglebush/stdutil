@@ -5,27 +5,29 @@ import (
 	"errors"
 )
 
-// JWTInfo contains the information about JWT
-type JWTInfo struct {
-	ApplicationID string   // Application ID from the JWT token
-	Audience      []string // Audience intended by the token
-	DeviceID      string   // The device id where the token came from
-	Domain        string   // The application domain that the token is intended for
-	Raw           string   // Raw JWT token
-	TenantID      string   // Tenant ID from the JWT token
-	UserName      string   // User account authenticated and produced the token
-	Valid         bool     // Indicates that the request has a valid JWT token
-}
+type (
+	// JWTInfo contains the information about JWT
+	JWTInfo struct {
+		ApplicationID string   // Application ID from the JWT token
+		Audience      []string // Audience intended by the token
+		DeviceID      string   // The device id where the token came from
+		Domain        string   // The application domain that the token is intended for
+		Raw           string   // Raw JWT token
+		TenantID      string   // Tenant ID from the JWT token
+		UserName      string   // User account authenticated and produced the token
+		Valid         bool     // Indicates that the request has a valid JWT token
+	}
 
-// RequestVars - contains necessary request variables
-type RequestVars struct {
-	Body      []byte            // The body of the request
-	Cookies   map[string]string // Cookies included in the request
-	HasBody   bool              // Indicates that the request has a body
-	Method    string            // Method of the request
-	Variables CustomVars        // Variables included in the request
-	Token     *JWTInfo          // Access token
-}
+	// RequestVars - contains necessary request variables
+	RequestVars struct {
+		Body      []byte            // The body of the request
+		Cookies   map[string]string // Cookies included in the request
+		HasBody   bool              // Indicates that the request has a body
+		Method    string            // Method of the request
+		Variables CustomVars        // Variables included in the request
+		Token     *JWTInfo          // Access token
+	}
+)
 
 // Errors
 var (
@@ -68,7 +70,7 @@ func (rv *RequestVars) IsPostOrPut() bool {
 }
 
 // IsJSONGood checks if the request has body and attempts to marshal to Json
-func (rv *RequestVars) IsJSONGood(v interface{}) error {
+func (rv *RequestVars) IsJSONGood(v any) error {
 	if !rv.HasBody {
 		return ErrRVNoBody
 	}

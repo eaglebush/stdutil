@@ -46,9 +46,7 @@ func GenerateAlpha(length int, lower bool) string {
 }
 
 func genRndString(length int, mask string) string {
-
 	b := make([]byte, length)
-
 	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
 	for i, cache, remain := length-1, src.Int63(), idxmax; i >= 0; {
 		if remain == 0 {
@@ -61,6 +59,5 @@ func genRndString(length int, mask string) string {
 		cache >>= idxbits
 		remain--
 	}
-
 	return *(*string)(unsafe.Pointer(&b))
 }

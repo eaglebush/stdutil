@@ -10,19 +10,21 @@ var (
 	lw func(string) string             = strings.ToLower
 )
 
-// EventSubject is a struct to describe the subject event
-type EventSubject struct {
-	Application string // Application. This would form as the first segment
-	Service     string // Service. This would form as the second segment
-	Module      string // Module. This would form as the last segment
-}
+type (
+	// EventSubject is a struct to describe the subject event
+	EventSubject struct {
+		Application string // Application. This would form as the first segment
+		Service     string // Service. This would form as the second segment
+		Module      string // Module. This would form as the last segment
+	}
 
-// Event contains the address and the event data
-type Event struct {
-	Index   int64       `json:"index,omitempty"`   // Optional. Index of this data to return to later
-	Subject string      `json:"subject,omitempty"` // Subject of the event
-	Data    interface{} `json:"data,omitempty"`    // Data of the event
-}
+	// Event contains the address and the event data
+	Event struct {
+		Index   int64       `json:"index,omitempty"`   // Optional. Index of this data to return to later
+		Subject string      `json:"subject,omitempty"` // Subject of the event
+		Data    interface{} `json:"data,omitempty"`    // Data of the event
+	}
+)
 
 // NewEventSubjectBase properly creates a new event base.
 func NewEventSubjectBase(application, service, module string) EventSubject {

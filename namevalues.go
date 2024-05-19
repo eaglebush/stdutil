@@ -7,11 +7,18 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-// NameValues - a struct to manage value structs
-type NameValues struct {
-	Pair     map[string]any
-	prepared bool
-}
+type (
+	// NameValue is a struct to contain a name-value pair
+	NameValue[T any] struct {
+		Name  string `json:"name,omitempty"`
+		Value T      `json:"value,omitempty"`
+	}
+	// NameValues is a struct to manage value structs
+	NameValues struct {
+		Pair     map[string]any
+		prepared bool
+	}
+)
 
 func (nvp *NameValues) prepare() {
 	np := make(map[string]any)
@@ -101,7 +108,6 @@ func (nvp *NameValues) String(name string) (string, bool) {
 	if !nvp.prepared {
 		nvp.prepare()
 	}
-
 	name = strings.ToLower(name)
 	tmp, exists := nvp.Pair[name]
 	value, _ := tmp.(string)

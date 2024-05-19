@@ -1,3 +1,6 @@
+// Package stdutil is a collection of often-needed functions for development use
+//
+// The package is still supports v1.19.
 package stdutil
 
 import (
@@ -106,37 +109,31 @@ func AnyToString(value interface{}) string {
 		if t == nil {
 			return ""
 		}
-
 		b = *t
 	case *int:
 		if t == nil {
 			return "0"
 		}
-
 		b = strconv.FormatInt(int64(*t), 10)
 	case *int8:
 		if t == nil {
 			return "0"
 		}
-
 		b = strconv.FormatInt(int64(*t), 10)
 	case *int16:
 		if t == nil {
 			return "0"
 		}
-
 		b = strconv.FormatInt(int64(*t), 10)
 	case *int32:
 		if t == nil {
 			return "0"
 		}
-
 		b = strconv.FormatInt(int64(*t), 10)
 	case *int64:
 		if t == nil {
 			return "0"
 		}
-
 		b = strconv.FormatInt(*t, 10)
 	case *uint:
 		if t == nil {
@@ -147,53 +144,41 @@ func AnyToString(value interface{}) string {
 		if t == nil {
 			return "0"
 		}
-
 		b = strconv.FormatUint(uint64(*t), 10)
 	case *uint16:
 		if t == nil {
 			return "0"
 		}
-
 		b = strconv.FormatUint(uint64(*t), 10)
 	case *uint32:
 		if t == nil {
 			return "0"
 		}
-
 		b = strconv.FormatUint(uint64(*t), 10)
 	case *uint64:
 		if t == nil {
 			return "0"
 		}
-
 		b = strconv.FormatUint(uint64(*t), 10)
 	case *float32:
 		if t == nil {
 			return "0"
 		}
-
 		b = fmt.Sprintf("%f", *t)
 	case *float64:
 		if t == nil {
 			return "0"
 		}
-
 		b = fmt.Sprintf("%f", *t)
 	case *bool:
-		if t == nil {
+		if t == nil || !*t {
 			return "false"
 		}
-
-		if *t {
-			return "true"
-		} else {
-			return "false"
-		}
+		return "true"
 	case *time.Time:
 		if t == nil {
 			return "'" + time.Time{}.Format(time.RFC3339) + "'"
 		}
-
 		tm := *t
 		b = "'" + tm.Format(time.RFC3339) + "'"
 	}
@@ -492,7 +477,9 @@ func ValidateEmail(email *string) error {
 	if email == nil || *email == "" {
 		return fmt.Errorf("is an invalid email address")
 	}
-	re := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	re := regexp.MustCompile(
+		"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9]" +
+			"(?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 	if !re.MatchString(*email) {
 		return fmt.Errorf("is an invalid email address")
 	}
@@ -574,12 +561,10 @@ func ValidateTime(value *time.Time, opts *TimeValidationOptions) error {
 	if opts.DateOnly {
 		dv := *value
 		*value = time.Date(dv.Year(), dv.Month(), dv.Day(), 0, 0, 0, 0, dv.Location())
-
 		if opts.Min != nil {
 			dc := opts.Min
 			*opts.Min = time.Date(dc.Year(), dc.Month(), dc.Day(), 0, 0, 0, 0, dc.Location())
 		}
-
 		if opts.Max != nil {
 			dc := opts.Max
 			*opts.Max = time.Date(dc.Year(), dc.Month(), dc.Day(), 0, 0, 0, 0, dc.Location())
@@ -728,18 +713,16 @@ func Seek[T comparable](seek T, list ...T) *T {
 
 // SortByKey reorders keys and values based on a keyOrder array sequence
 func SortByKey(values *NameValues, keyOrder *[]string) NameValues {
-
 	if keyOrder == nil {
 		return *values
 	}
-
 	ko := *keyOrder
 	if len(ko) == 0 {
 		return *values
 	}
-
-	ret := NameValues{}
-	ret.Pair = make(map[string]any)
+	ret := NameValues{
+		Pair: make(map[string]any),
+	}
 	for i := 0; i < len(ko); i++ {
 		for k, v := range values.Pair {
 			if strings.EqualFold(ko[i], k) {
