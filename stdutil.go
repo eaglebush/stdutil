@@ -429,6 +429,52 @@ func NullPtr[T any](testValue any, defaultValue any) *T {
 	return &val
 }
 
+// If is a basic ternary operator to return whatever is set in
+// truthy and falsey parameter.
+// If the subject is nil, empty string, 0, -0 or false, it will return the falsey parameter
+//
+// This function requires version 1.18+
+func If[T constraints.Ordered](subject any, truthy T, falsey T) T {
+	if subject == nil {
+		return falsey
+	}
+	switch t := subject.(type) {
+	case string:
+		if t == "" {
+			return falsey
+		}
+	case *string:
+		if t == nil || *t == "" {
+			return falsey
+		}
+	case
+		int8, int16, int32, int64, int,
+		uint8, uint16, uint32, uint64, uint,
+		float32, float64, complex64, complex128:
+		if t == 0 || t == -0 {
+			return falsey
+		}
+	case
+		*int8, *int16, *int32, *int64, *int,
+		*uint8, *uint16, *uint32, *uint64, *uint,
+		*float32, *float64, *complex64, *complex128:
+		vo := reflect.ValueOf(t)
+		tx := vo.Elem()
+		if !tx.IsValid() || tx.IsZero() {
+			return falsey
+		}
+	case bool:
+		if !t {
+			return falsey
+		}
+	case *bool:
+		if !*t {
+			return falsey
+		}
+	}
+	return truthy
+}
+
 // NameValuesToInterfaceArray converts name values to interface array
 func NameValuesToInterfaceArray(values NameValues) []interface{} {
 	args := make([]interface{}, len(values.Pair))

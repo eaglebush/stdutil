@@ -422,3 +422,81 @@ func TestMapVal(t *testing.T) {
 	}
 	log.Println(*amt3)
 }
+func TestIfPtrString(t *testing.T) {
+	var str *string
+	returns := If(str, "Yes", "No")
+	t.Log(returns)
+
+	str = new(string)
+
+	*str = ""
+	returns = If(str, "Yes", "No")
+	t.Log(returns)
+	*str = "OKDokey"
+	returns = If(str, "Yes", "No")
+	t.Log(returns)
+}
+func TestIfPtrInt(t *testing.T) {
+	var str *int
+	returns := If(str, "Yes", "No")
+	t.Log(returns)
+
+	str = new(int)
+	*str = 0
+	returns = If(str, "Yes", "No")
+	t.Log(returns)
+
+	*str = -0
+	returns = If(str, "Yes", "No")
+	t.Log(returns)
+
+	*str = 1
+	returns = If(str, "Yes", "No")
+	t.Log(returns)
+}
+
+func TestIfInt(t *testing.T) {
+	var str int
+	returns := If(str, "Yes", "No")
+	t.Log(returns)
+
+	str = -0
+	returns = If(str, "Yes", "No")
+	t.Log(returns)
+
+	str = 1
+	returns = If(str, "Yes", "No")
+	t.Log(returns)
+}
+
+func TestIfNil(t *testing.T) {
+	var str any
+	returns := If(str, "Yes", "No")
+	t.Log(returns)
+
+	str = "aha"
+	returns = If(str, "Yes", "No")
+	t.Log(returns)
+}
+
+func TestIfBool(t *testing.T) {
+	var str any
+	returns := If(str, "Yes", "No")
+	t.Log(returns)
+
+	str = new(bool)
+	returns = If(str, "Yes", "No")
+	t.Log(returns)
+
+	str = New(true)
+	returns = If(str, "Yes", "No")
+	t.Log(returns)
+
+	str = false
+	returns = If(str, "Yes", "No")
+	t.Log(returns)
+
+	str = true
+	returns = If(str, "Yes", "No")
+	t.Log(returns)
+}
