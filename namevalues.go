@@ -103,7 +103,7 @@ func NameValueGetPtr[T constraints.Ordered | bool](nvs NameValues, name string) 
 	return &value
 }
 
-// String returns the name value as string. The second argument returns the existence.
+// String returns the name value as string. The second result returns the existence.
 func (nvp *NameValues) String(name string) (string, bool) {
 	if !nvp.prepared {
 		nvp.prepare()
@@ -114,13 +114,18 @@ func (nvp *NameValues) String(name string) (string, bool) {
 	return value, exists
 }
 
-// Strings returns the values as a string array
+// Strings returns the values as a string array.
+// If the value is comma-separated, all elements delimited by the comma
+// will be returned as an array of string
 func (nvp *NameValues) Strings(name string) []string {
 	value, _ := nvp.String(name)
+	if strings.Contains(value, ",") {
+		return strings.Split(value, ",")
+	}
 	return []string{value}
 }
 
-// Int returns the name value as int. The second argument returns the existence.
+// Int returns the name value as int. The second result returns the existence.
 func (nvp *NameValues) Int(name string) (int, bool) {
 	if !nvp.prepared {
 		nvp.prepare()
@@ -141,7 +146,7 @@ func (nvp *NameValues) Ints(name string) []int {
 	return []int{value}
 }
 
-// Int64 returns the name value as int64. The second argument returns the existence.
+// Int64 returns the name value as int64. The second result returns the existence.
 func (nvp *NameValues) Int64(name string) (int64, bool) {
 	if !nvp.prepared {
 		nvp.prepare()
@@ -161,7 +166,7 @@ func (nvp *NameValues) Int64s(name string) []int64 {
 	return []int64{value}
 }
 
-// Plain returns the name value as interface{}. The second argument returns the existence.
+// Plain returns the name value as interface{}. The second result returns the existence.
 func (nvp *NameValues) Plain(name string) (interface{}, bool) {
 	if !nvp.prepared {
 		nvp.prepare()
@@ -171,7 +176,7 @@ func (nvp *NameValues) Plain(name string) (interface{}, bool) {
 	return tmp, exists
 }
 
-// Bool returns the name value as boolean. It automatically convers 'true', 'yes', '1', '-1' and 'on' to boolean The second argument returns the existence.
+// Bool returns the name value as boolean. It automatically convers 'true', 'yes', '1', '-1' and 'on' to boolean The second result returns the existence.
 func (nvp *NameValues) Bool(name string) (bool, bool) {
 	value, _ := nvp.String(name)
 	return (value == "true" || value == "yes" || value == "1" || value == "-1" || value == "on"), true
@@ -183,7 +188,7 @@ func (nvp *NameValues) Bools(name string) []bool {
 	return []bool{value}
 }
 
-// Float64 returns the name value as float64. The second argument returns the existence.
+// Float64 returns the name value as float64. The second result returns the existence.
 func (nvp *NameValues) Float64(name string) (float64, bool) {
 	if !nvp.prepared {
 		nvp.prepare()
@@ -207,37 +212,37 @@ func (nvp *NameValues) Float64s(name string) []float64 {
 //   Pointer outputs
 // **************************************************************
 
-// PtrString returns the name value as pointer to string. The second argument returns the existence.
+// PtrString returns the name value as pointer to string. The second result returns the existence.
 func (nvp *NameValues) PtrString(name string) (*string, bool) {
 	value, exists := nvp.String(name)
 	return &value, exists
 }
 
-// PtrInt returns the name value as pointer to int. The second argument returns the existence.
+// PtrInt returns the name value as pointer to int. The second result returns the existence.
 func (nvp *NameValues) PtrInt(name string) (*int, bool) {
 	value, exists := nvp.Int(name)
 	return &value, exists
 }
 
-// PtrInt64 returns the name value as pointer to int64. The second argument returns the existence.
+// PtrInt64 returns the name value as pointer to int64. The second result returns the existence.
 func (nvp *NameValues) PtrInt64(name string) (*int64, bool) {
 	value, exists := nvp.Int64(name)
 	return &value, exists
 }
 
-// PtrPlain returns the name value as pointer to interface{}. The second argument returns the existence.
+// PtrPlain returns the name value as pointer to interface{}. The second result returns the existence.
 func (nvp *NameValues) PtrPlain(name string) (*interface{}, bool) {
 	value, exists := nvp.Plain(name)
 	return &value, exists
 }
 
-// PtrBool returns the name value as pointer to bool. The second argument returns the existence.
+// PtrBool returns the name value as pointer to bool. The second result returns the existence.
 func (nvp *NameValues) PtrBool(name string) (*bool, bool) {
 	value, exists := nvp.Bool(name)
 	return &value, exists
 }
 
-// PtrFloat64 returns the name value as pointer to int64. The second argument returns the existence.
+// PtrFloat64 returns the name value as pointer to int64. The second result returns the existence.
 func (nvp *NameValues) PtrFloat64(name string) (*float64, bool) {
 	value, exists := nvp.Float64(name)
 	return &value, exists
