@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"
 
+	ssd "github.com/shopspring/decimal"
 	"golang.org/x/exp/constraints"
 )
 
@@ -108,10 +109,22 @@ func (nvp *NameValues) String(name string) (string, bool) {
 	if !nvp.prepared {
 		nvp.prepare()
 	}
+	var (
+		tmp          any
+		exists, conv bool
+		str          string
+		val          string
+	)
 	name = strings.ToLower(name)
-	tmp, exists := nvp.Pair[name]
-	value, _ := tmp.(string)
-	return value, exists
+	tmp, exists = nvp.Pair[name]
+	if !exists {
+		return str, exists
+	}
+	val, conv = tmp.(string)
+	if !conv {
+		return val, exists
+	}
+	return val, exists
 }
 
 // Strings returns the values as a string array.
@@ -130,14 +143,35 @@ func (nvp *NameValues) Int(name string) (int, bool) {
 	if !nvp.prepared {
 		nvp.prepare()
 	}
-	var value int
+	var (
+		conv, exists bool
+		tmp          any
+		val          int
+		str          string
+		err          error
+	)
 	name = strings.ToLower(name)
-	tmp, exists := nvp.Pair[name]
-	if exists {
-		val, _ := strconv.ParseInt(tmp.(string), 10, 32)
-		value = int(val)
+	// Check if the key exists in the map
+	tmp, exists = nvp.Pair[name]
+	if !exists {
+		return val, exists
 	}
-	return value, exists
+	// Attempt to convert the interface to int
+	val, conv = tmp.(int)
+	if conv {
+		return val, exists
+	}
+	// If it did not succeed, try converting to string first
+	// and manually convert to int
+	str, conv = tmp.(string)
+	if !conv {
+		return val, exists
+	}
+	val, err = strconv.Atoi(str)
+	if err != nil {
+		return val, exists
+	}
+	return val, exists
 }
 
 // Ints returns the values as an int array
@@ -151,13 +185,35 @@ func (nvp *NameValues) Int64(name string) (int64, bool) {
 	if !nvp.prepared {
 		nvp.prepare()
 	}
-	var value int64
+	var (
+		conv, exists bool
+		tmp          any
+		val          int64
+		str          string
+		err          error
+	)
 	name = strings.ToLower(name)
-	tmp, exists := nvp.Pair[name]
-	if exists {
-		value, _ = strconv.ParseInt(tmp.(string), 10, 64)
+	// Check if the key exists in the map
+	tmp, exists = nvp.Pair[name]
+	if !exists {
+		return val, exists
 	}
-	return value, exists
+	// Attempt to convert the interface to int64
+	val, conv = tmp.(int64)
+	if conv {
+		return val, exists
+	}
+	// If it did not succeed, try converting to string first
+	// and manually convert to int64
+	str, conv = tmp.(string)
+	if !conv {
+		return val, exists
+	}
+	val, err = strconv.ParseInt(str, 10, 64)
+	if err != nil {
+		return val, exists
+	}
+	return val, exists
 }
 
 // Int64s returns the values as an int64 array
@@ -178,7 +234,10 @@ func (nvp *NameValues) Plain(name string) (interface{}, bool) {
 
 // Bool returns the name value as boolean. It automatically convers 'true', 'yes', '1', '-1' and 'on' to boolean The second result returns the existence.
 func (nvp *NameValues) Bool(name string) (bool, bool) {
-	value, _ := nvp.String(name)
+	value, exists := nvp.String(name)
+	if !exists {
+		return exists, exists
+	}
 	return (value == "true" || value == "yes" || value == "1" || value == "-1" || value == "on"), true
 }
 
@@ -193,19 +252,94 @@ func (nvp *NameValues) Float64(name string) (float64, bool) {
 	if !nvp.prepared {
 		nvp.prepare()
 	}
-	var value float64
+	var (
+		conv, exists bool
+		tmp          any
+		val          float64
+		str          string
+		err          error
+	)
 	name = strings.ToLower(name)
-	tmp, exists := nvp.Pair[name]
-	if exists {
-		value, _ = strconv.ParseFloat(tmp.(string), 64)
+	// Check if the key exists in the map
+	tmp, exists = nvp.Pair[name]
+	if !exists {
+		return val, exists
 	}
-	return value, exists
+	// Attempt to convert the interface to float64
+	val, conv = tmp.(float64)
+	if conv {
+		return val, exists
+	}
+	// If it did not succeed, try converting to string first
+	// and manually convert to int64
+	str, conv = tmp.(string)
+	if !conv {
+		return val, exists
+	}
+	val, err = strconv.ParseFloat(str, 64)
+	if err != nil {
+		return val, exists
+	}
+	return val, exists
 }
 
 // Float64s returns the values as a float64 array
 func (nvp *NameValues) Float64s(name string) []float64 {
 	value, _ := nvp.Float64(name)
 	return []float64{value}
+}
+
+// Decimal returns the name value as shopspring.Decimal. The second result returns the existence.
+func (nvp *NameValues) Decimal(name string) (ssd.Decimal, bool) {
+	if !nvp.prepared {
+		nvp.prepare()
+	}
+	var (
+		exists bool
+		tmp    any
+		val    ssd.Decimal
+		err    error
+	)
+
+	name = strings.ToLower(name)
+	tmp, exists = nvp.Pair[name]
+	if !exists {
+		return val, exists
+	}
+	// Try getting if this is really a decimal
+	// Then try as a string again
+	switch t := tmp.(type) {
+	case string:
+		t = strings.ReplaceAll(t, ",", "")
+		t = strings.ReplaceAll(t, " ", "")
+		val, err = ssd.NewFromString(t)
+		if err != nil {
+			return val, exists
+		}
+	case int:
+		val = ssd.NewFromInt(int64(t))
+		return val, exists
+	case int64:
+		val = ssd.NewFromInt(t)
+		return val, exists
+	case float32:
+		val = ssd.NewFromFloat(float64(t))
+		return val, exists
+	case float64:
+		val = ssd.NewFromFloat(t)
+		return val, exists
+	case ssd.Decimal:
+		val = t
+		return val, exists
+	}
+
+	return val, exists
+}
+
+// Decimals returns the values as a decimal array
+func (nvp *NameValues) Decimals(name string) []ssd.Decimal {
+	value, _ := nvp.Decimal(name)
+	return []ssd.Decimal{value}
 }
 
 // **************************************************************
@@ -215,36 +349,63 @@ func (nvp *NameValues) Float64s(name string) []float64 {
 // PtrString returns the name value as pointer to string. The second result returns the existence.
 func (nvp *NameValues) PtrString(name string) (*string, bool) {
 	value, exists := nvp.String(name)
+	if !exists {
+		return nil, exists
+	}
 	return &value, exists
 }
 
 // PtrInt returns the name value as pointer to int. The second result returns the existence.
 func (nvp *NameValues) PtrInt(name string) (*int, bool) {
 	value, exists := nvp.Int(name)
+	if !exists {
+		return nil, exists
+	}
 	return &value, exists
 }
 
 // PtrInt64 returns the name value as pointer to int64. The second result returns the existence.
 func (nvp *NameValues) PtrInt64(name string) (*int64, bool) {
 	value, exists := nvp.Int64(name)
+	if !exists {
+		return nil, exists
+	}
 	return &value, exists
 }
 
 // PtrPlain returns the name value as pointer to interface{}. The second result returns the existence.
 func (nvp *NameValues) PtrPlain(name string) (*interface{}, bool) {
 	value, exists := nvp.Plain(name)
+	if !exists {
+		return nil, exists
+	}
 	return &value, exists
 }
 
 // PtrBool returns the name value as pointer to bool. The second result returns the existence.
 func (nvp *NameValues) PtrBool(name string) (*bool, bool) {
 	value, exists := nvp.Bool(name)
+	if !exists {
+		return nil, exists
+	}
 	return &value, exists
 }
 
 // PtrFloat64 returns the name value as pointer to int64. The second result returns the existence.
 func (nvp *NameValues) PtrFloat64(name string) (*float64, bool) {
 	value, exists := nvp.Float64(name)
+	if !exists {
+		return nil, exists
+	}
+	return &value, exists
+}
+
+// PtrFloat64 returns the name value as pointer to int64. The second result returns the existence.
+func (nvp *NameValues) PtrDecimal(name string) (*ssd.Decimal, bool) {
+	value, exists := nvp.Decimal(name)
+	if !exists {
+		return nil, exists
+	}
 	return &value, exists
 }
 

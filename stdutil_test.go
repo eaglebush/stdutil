@@ -500,3 +500,5 @@ func TestIfBool(t *testing.T) {
 	returns = If(str, "Yes", "No")
 	t.Log(returns)
 }
+
+
