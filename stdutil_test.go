@@ -366,13 +366,17 @@ func TestSafeMapWrite(t *testing.T) {
 
 func TestMapVal(t *testing.T) {
 	mapMV := map[string]any{
-		"do":    "Joe",
-		"does":  "Rob",
-		"did":   "John",
-		"birth": "11/23/2023",
-		"start": "12/23/2023",
-		"date":  time.Date(2024, time.May, 16, 0, 0, 0, 0, time.Now().Location()),
-		"float": 1230.42,
+		"do":          "Joe",
+		"does":        "Rob",
+		"did":         "John",
+		"birth":       "11/23/2023",
+		"start":       "12/23/2023",
+		"timeformat1": "6/4/2023",
+		"timeformat2": "4/6/2023",
+		"timeformat3": "11/4/2023",
+		"timeformat4": "4/11/2023",
+		"date":        time.Date(2024, time.May, 16, 0, 0, 0, 0, time.Now().Location()),
+		"float":       1230.42,
 		"amount": func() ssd.Decimal {
 			dc, _ := ssd.NewFromString("23576.987")
 			return dc
@@ -400,6 +404,41 @@ func TestMapVal(t *testing.T) {
 		return
 	}
 	log.Println(*mvd)
+
+	mvd = MapVal[time.Time](&mapMV, "timeformat1")
+	if mvd == nil {
+		t.Fail()
+		return
+	}
+	log.Println("timeformat1", *mvd)
+
+	mvd = MapVal[time.Time](&mapMV, "timeformat2")
+	if mvd == nil {
+		t.Fail()
+		return
+	}
+	log.Println("timeformat2", *mvd)
+
+	mvd = MapVal[time.Time](&mapMV, "timeformat3")
+	if mvd == nil {
+		t.Fail()
+		return
+	}
+	log.Println("timeformat3", *mvd)
+
+	mvd = MapVal[time.Time](&mapMV, "timeformat4")
+	if mvd == nil {
+		t.Fail()
+		return
+	}
+	log.Println("timeformat4", *mvd)
+
+	mvd = MapVal[time.Time](&mapMV, "timeformat3", "2/1/2006")
+	if mvd == nil {
+		t.Fail()
+		return
+	}
+	log.Println("timeformat3a", *mvd)
 
 	mvd = MapVal[time.Time](&mapMV, "date")
 	if mvd == nil {
@@ -500,5 +539,3 @@ func TestIfBool(t *testing.T) {
 	returns = If(str, "Yes", "No")
 	t.Log(returns)
 }
-
-

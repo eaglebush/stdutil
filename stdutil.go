@@ -259,19 +259,7 @@ func Val[T FieldTypeConstraint](value *T) T {
 // The third parameter, dateLayout can be set with many time layouts. The specified layouts
 // will be the only one to try parsing.
 //
-// If not set, the following built-in date layouts are used:
-//   - "2006-01-02"
-//   - "01-02-2006"
-//   - "02-01-2006"
-//   - "2006/01/02"
-//   - "01/02/2006"
-//   - "02/01/2006"
-//   - "06-01-02"
-//   - "01-02-06"
-//   - "02-01-06"
-//   - "06/01/02"
-//   - "01/02/06"
-//   - "02/01/06"
+// If not set, the built-in date layouts of ParseDate are used. See function for supported layouts
 //
 // Currently supported data types are:
 //   - constraints.Ordered (Integer | Float | ~string)
@@ -300,31 +288,16 @@ func MapVal[T FieldTypeConstraint](kvmap *map[string]any, key string, dateLayout
 	switch a.(type) {
 	case time.Time:
 		if s, ok := miv.(string); ok {
-			dlo := dateLayout
-			if len(dlo) == 0 {
-				dlo = []string{
-					"2006-01-02",
-					"01-02-2006",
-					"02-01-2006",
-					"2006/01/02",
-					"01/02/2006",
-					"02/01/2006",
-					"06-01-02",
-					"01-02-06",
-					"02-01-06",
-					"06/01/02",
-					"01/02/06",
-					"02/01/06",
-				}
+			var dlo *string
+			if len(dateLayout) > 0 {
+				dlo = &dateLayout[0]
 			}
-			for _, lo := range dlo {
-				v, err := time.Parse(lo, s)
-				if err != nil {
-					continue
-				}
-				*t = any(v).(T) // Convert the parsed value to any before asserting the type for the return
-				return t
+			v, _, err := ParseDate(s, dlo)
+			if err != nil {
+				return nil
 			}
+			*t = any(v).(T) // Convert the parsed value to any before asserting the type for the return
+			return t
 		}
 	case ssd.Decimal:
 		if s, ok := miv.(string); ok {
@@ -516,6 +489,93 @@ func Interpolate(base string, keyValues NameValues) (string, []interface{}) {
 	}
 
 	return retstr, retif
+}
+
+// ParseDate parses a string as date.
+//
+// If dateLayout is not provided, this function try all layout combinations.
+// The following date layouts has been provided:
+//   - "2006-01-02"
+//   - "2006-02-01"
+//   - "01-02-2006"
+//   - "02-01-2006"
+//   - "2006/01/02"
+//   - "2006/02/01"
+//   - "01/02/2006"
+//   - "02/01/2006"
+//   - "1/2/2006"
+//   - "2/1/2006"
+//   - "2006/1/2"
+//   - "2006/2/1"
+//   - "06-01-02"
+//   - "06-02-01"
+//   - "01-02-06"
+//   - "02-01-06"
+//   - "06/01/02"
+//   - "06/02/01"
+//   - "01/02/06"
+//   - "02/01/06"
+//
+// The date layout partitions means:
+//   - Anything with 1, with or without zero is the month
+//   - Anything with 2, with or without zero is the day
+//   - Anything with 06, with or without the prefix 20 is the year
+func ParseDate(dtText string, dateLayout *string) (time.Time, string, error) {
+	var (
+		rtm time.Time
+		rlo string
+		err error
+	)
+	if dtText == "" {
+		return rtm, rlo, fmt.Errorf("invalid date or time input")
+	}
+	dlo :=
+		[]string{
+			// Dashed full year
+			"2006-01-02",
+			"2006-02-01",
+			"01-02-2006",
+			"02-01-2006",
+			// Forward-slashed full year
+			"2006/01/02",
+			"2006/02/01",
+			"01/02/2006",
+			"02/01/2006",
+			// Forward-slashed single digit day and month
+			"1/2/2006",
+			"2/1/2006",
+			"2006/1/2",
+			"2006/2/1",
+			// 2-digit dashed year with full digit day and month
+			"06-01-02",
+			"06-02-01",
+			"01-02-06",
+			"02-01-06",
+			// 2-digit forward-slashed year with full digit day and month
+			"06/01/02",
+			"06/02/01",
+			"01/02/06",
+			"02/01/06",
+		}
+	// Try to parse using layout provided
+	// The function will return upon failure or success
+	if dateLayout != nil {
+		// Check if layout is in the array
+		if !In(*dateLayout, dlo...) {
+			return rtm, *dateLayout, fmt.Errorf("layout provided not supported")
+		}
+		rtm, err = time.Parse(*dateLayout, dtText)
+		return rtm, *dateLayout, err
+	}
+	// Try each layout until it succeeds
+	for _, lo := range dlo {
+		rtm, err = time.Parse(lo, dtText)
+		if err != nil {
+			continue
+		}
+		return rtm, lo, err
+	}
+	return rtm, rlo, fmt.Errorf("date parsing failed")
 }
 
 // ValidateEmail - validate an e-mail address
