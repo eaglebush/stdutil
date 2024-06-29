@@ -24,6 +24,13 @@ type (
 		constraints.Integer | constraints.Float
 	}
 )
+
+const (
+	INTERPOLATE_PATTERN string = `\$\{(\w*)\}` // search for ${*}
+	EMAIL_PATTERN       string = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9]" +
+		"(?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+)
+
 type (
 	StringValidationOptions struct {
 		Empty    bool // Allow empty string. Default: false, will raise an error if the string is empty
@@ -65,11 +72,9 @@ type (
 // AnyToString converts any variable to string
 func AnyToString(value interface{}) string {
 	var b string
-
 	if value == nil {
 		return ""
 	}
-
 	switch t := value.(type) {
 	case string:
 		b = t
@@ -200,8 +205,10 @@ func Itos(value interface{}) string {
 //   - shopspring/decimal
 //
 // This function requires version 1.18+
-func ToInterfaceArray[T FieldTypeConstraint](values T) []interface{} {
-	return []interface{}{values}
+func ToInterfaceArray[T FieldTypeConstraint](values T) []any {
+	var value [1]any
+	value[0] = values
+	return value[:]
 }
 
 // IsNullOrEmpty checks for nullity and emptiness of a pointer variable
@@ -460,35 +467,30 @@ func NameValuesToInterfaceArray(values NameValues) []interface{} {
 }
 
 // Interpolate interpolates string with the name value pairs
-func Interpolate(base string, keyValues NameValues) (string, []interface{}) {
+func Interpolate(base string, nv NameValues) (string, []any) {
+	var (
+		val  any
+		sval string
+	)
 
-	retstr := base
-	hasmatch := false
-	pattern := `\$\{(\w*)\}` //search for ${*}
-	re := regexp.MustCompile(pattern)
+	nstr := base
+	re := regexp.MustCompile(INTERPOLATE_PATTERN)
 	matches := re.FindAllString(base, -1)
-
-	retif := make([]interface{}, len(matches))
-
+	vals := make([]any, len(matches))
 	for i, match := range matches {
-		hasmatch = false
-		for n, v := range keyValues.Pair {
+		val = "0"
+		sval = "0"
+		for n, v := range nv.Pair {
 			if strings.EqualFold(match, `${`+n+`}`) {
-				retstr = strings.Replace(retstr, match, AnyToString(v), -1)
-				retif[i] = v
-				hasmatch = true
+				sval = AnyToString(v)
+				val = v
 				break
 			}
 		}
-
-		/* The matches needs to have a default value */
-		if !hasmatch {
-			retstr = strings.Replace(retstr, match, "0", -1)
-			retif[i] = "0" //a string 0 would cater to both string and number columns
-		}
+		nstr = strings.Replace(nstr, match, sval, -1)
+		vals[i] = val //a string 0 would cater to both string and number columns
 	}
-
-	return retstr, retif
+	return nstr, vals
 }
 
 // ParseDate parses a string as date.
@@ -578,14 +580,12 @@ func ParseDate(dtText string, dateLayout *string) (time.Time, string, error) {
 	return rtm, rlo, fmt.Errorf("date parsing failed")
 }
 
-// ValidateEmail - validate an e-mail address
+// ValidateEmail validates an e-mail address
 func ValidateEmail(email *string) error {
 	if email == nil || *email == "" {
 		return fmt.Errorf("is an invalid email address")
 	}
-	re := regexp.MustCompile(
-		"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9]" +
-			"(?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	re := regexp.MustCompile(EMAIL_PATTERN)
 	if !re.MatchString(*email) {
 		return fmt.Errorf("is an invalid email address")
 	}

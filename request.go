@@ -44,11 +44,6 @@ type (
 		Result
 		Data json.RawMessage `json:"data"`
 	}
-	// ResultAny - a result structure with an empty interface
-	ResultAny[T any] struct {
-		Result
-		Data T `json:"data"`
-	}
 )
 
 func init() {
@@ -480,11 +475,9 @@ func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) (*JWTInf
 
 // ParseJWT validates, parses JWT and returns information
 func ParseJWT(token, secretKey string, validateTimes bool) (*JWTInfo, error) {
-	ji := &JWTInfo{}
 	if len(secretKey) == 0 {
-		return ji, fmt.Errorf(`secret key not set`)
+		return nil, fmt.Errorf(`secret key not set`)
 	}
-
 	var (
 		pl  CustomPayload
 		err error
@@ -492,36 +485,34 @@ func ParseJWT(token, secretKey string, validateTimes bool) (*JWTInfo, error) {
 
 	// Parse JWT
 	HMAC := jwt.NewHS256([]byte(secretKey))
-	now := time.Now()
 
 	// Validate claims "iat", "exp" and "aud".
 	if validateTimes {
-		iatValidator := jwt.IssuedAtValidator(now)
-		expValidator := jwt.ExpirationTimeValidator(now)
-		nbfValidator := jwt.NotBeforeValidator(now)
-
+		now := time.Now()
 		// Use jwt.ValidatePayload to build a jwt.VerifyOption.
 		// Validators are run in the order informed.
-		validator := jwt.ValidatePayload(&pl.Payload, iatValidator, expValidator, nbfValidator)
+		validator := jwt.ValidatePayload(
+			&pl.Payload,
+			jwt.IssuedAtValidator(now),
+			jwt.ExpirationTimeValidator(now),
+			jwt.NotBeforeValidator(now))
 		_, err = jwt.Verify([]byte(token), HMAC, &pl, validator)
 	} else {
 		_, err = jwt.Verify([]byte(token), HMAC, &pl)
 	}
 	if err != nil {
-		return ji, err
+		return nil, err
 	}
-
-	ji.Audience = pl.Audience
-	ji.UserName = pl.UserName
-	ji.Domain = pl.Domain
-	ji.DeviceID = pl.DeviceID
-	ji.ApplicationID = pl.ApplicationID
-	ji.TenantID = pl.TenantID
-	ji.Raw = token
-
-	ji.Valid = true
-
-	return ji, nil
+	return &JWTInfo{
+		Audience:      pl.Audience,
+		UserName:      pl.UserName,
+		Domain:        pl.Domain,
+		DeviceID:      pl.DeviceID,
+		ApplicationID: pl.ApplicationID,
+		TenantID:      pl.TenantID,
+		Raw:           token,
+		Valid:         true,
+	}, nil
 }
 
 // GetRequestVars requests variables and return JWT validation result

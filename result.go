@@ -26,7 +26,7 @@ type Result struct {
 	Messages      []string     `json:"messages"`                // Accumulated messages as a result from Add methods. Do not append messages using append()
 	Status        string       `json:"status"`                  // OK, ERROR, VALID or any status
 	Operation     string       `json:"operation,omitempty"`     // Name of the operation / function that returned the result
-	TaskID        *string      `json:"task_id,omitempty"`       // ID of the request and of the result
+	TaskID        *string      `json:"task_id,omitempty"`       // ID of the task and of the result
 	WorkerID      *string      `json:"worker_id,omitempty"`     // ID of the worker that processed the data
 	FocusControl  *string      `json:"focus_control,omitempty"` // Control to focus when error was activated
 	Page          *int         `json:"page,omitempty"`          // Current Page
@@ -138,40 +138,25 @@ func (r *Result) No() bool {
 	return r.Status == string(NO)
 }
 
-// AddInfo adds an information message and returns itself
-func (r *Result) AddInfo(message string) Result {
-	r.ln.AddInfo(message)
+// AddInfo adds a formatted information message and returns itself
+func (r *Result) AddInfo(fmtMsg string, a ...interface{}) Result {
+	r.ln.AddInfo(fmt.Sprintf(fmtMsg, a...))
 	r.updateMessage()
 	return *r
 }
 
-// AddInfof adds a formatted information message and returns itself
-func (r *Result) AddInfof(format string, a ...interface{}) Result {
-	return r.AddInfo(fmt.Sprintf(format, a...))
-}
-
-// AddWarning - adds a warning message and returns itself
-func (r *Result) AddWarning(message string) Result {
-	r.ln.AddWarning(message)
-	r.updateMessage()
-	return *r
-}
-
-// AddWarningf adds a formatted warning message and returns itself
-func (r *Result) AddWarningf(format string, a ...interface{}) Result {
-	return r.AddWarning(fmt.Sprintf(format, a...))
-}
-
-// AddError adds an error message and returns itself
-func (r *Result) AddError(message string) Result {
-	r.ln.AddError(message)
+// AddWarning adds a formatted warning message and returns itself
+func (r *Result) AddWarning(fmtMsg string, a ...interface{}) Result {
+	r.ln.AddWarning(fmt.Sprintf(fmtMsg, a...))
 	r.updateMessage()
 	return *r
 }
 
 // AddErrorf adds a formatted error message and returns itself
-func (r *Result) AddErrorf(format string, a ...interface{}) Result {
-	return r.AddError(fmt.Sprintf(format, a...))
+func (r *Result) AddError(fmtMsg string, a ...interface{}) Result {
+	r.ln.AddError(fmt.Sprintf(fmtMsg, a...))
+	r.updateMessage()
+	return *r
 }
 
 // AddErr adds a error-typed value and returns itself.
@@ -187,17 +172,8 @@ func (r *Result) AddErrWithAlt(err error, altMsg string, altMsgValues ...any) Re
 		return r.AddErr(err)
 	}
 	if altMsg != "" {
-		return r.AddErrorf(altMsg, altMsgValues...)
+		return r.AddError(altMsg, altMsgValues...)
 	}
-	return *r
-}
-
-// AppendError copies the messages of the Result parameter and append the current message
-func (r *Result) AppendError(rs Result, message string) Result {
-	for _, n := range rs.ln.Notes() {
-		r.ln.Append(n)
-	}
-	r.AddError(message)
 	return *r
 }
 
@@ -210,45 +186,27 @@ func (r *Result) AppendErr(rs Result, err error) Result {
 }
 
 // AppendErrorf copies the messages of the Result parameter and append a formatted error message
-func (r *Result) AppendErrorf(rs Result, format string, a ...interface{}) Result {
+func (r *Result) AppendError(rs Result, fmtMsg string, a ...interface{}) Result {
 	for _, n := range rs.ln.Notes() {
 		r.ln.Append(n)
 	}
-	return r.AddErrorf(format, a...)
-}
-
-// AppendInfo copies the messages of the Result parameter and append the current message
-func (r *Result) AppendInfo(rs Result, message string) Result {
-	for _, n := range rs.ln.Notes() {
-		r.ln.Append(n)
-	}
-	r.AddInfo(message)
-	return *r
+	return r.AddError(fmtMsg, a...)
 }
 
 // AppendInfof copies the messages of the Result parameter and append a formatted information message
-func (r *Result) AppendInfof(rs Result, format string, a ...interface{}) Result {
+func (r *Result) AppendInfo(rs Result, fmtMsg string, a ...interface{}) Result {
 	for _, n := range rs.ln.Notes() {
 		r.ln.Append(n)
 	}
-	return r.AddInfof(format, a...)
+	return r.AddInfo(fmtMsg, a...)
 }
 
-// AppendWarning copies the messages of the Result parameter and append the current message
-func (r *Result) AppendWarning(rs Result, message string) Result {
+// AppendWarning copies the messages of the Result parameter and append a formatted warning message
+func (r *Result) AppendWarning(rs Result, fmtMsg string, a ...interface{}) Result {
 	for _, n := range rs.ln.Notes() {
 		r.ln.Append(n)
 	}
-	r.AddWarning(message)
-	return *r
-}
-
-// AppendWarningf copies the messages of the Result parameter and append a formatted warning message
-func (r *Result) AppendWarningf(rs Result, format string, a ...interface{}) Result {
-	for _, n := range rs.ln.Notes() {
-		r.ln.Append(n)
-	}
-	return r.AddWarningf(format, a...)
+	return r.AddWarning(fmtMsg, a...)
 }
 
 // Stuff adds or appends the messages of a Result.
@@ -283,7 +241,8 @@ func (r *Result) MessagesToString() string {
 		}
 		sb := strings.Builder{}
 		for _, v := range r.Messages {
-			sb.Write([]byte(v + lf))
+			vlf := v + lf // prevents escape to the heap
+			sb.Write([]byte(vlf))
 		}
 		return sb.String()
 	}

@@ -193,6 +193,18 @@ func TestInterpolate(t *testing.T) {
 	log.Println(str, obj)
 }
 
+func BenchmarkInterpolate(b *testing.B) {
+	str, obj := Interpolate(`This is ${name}. Leader of the ${band} band.`, NameValues{
+		Pair: map[string]any{
+			"name": "Zaldy",
+			"band": "Razzie",
+		},
+	})
+	// log.Println(str, obj)
+	_ = str
+	_ = obj
+}
+
 func TestIn(t *testing.T) {
 
 	type SP string

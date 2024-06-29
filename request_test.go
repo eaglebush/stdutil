@@ -1,6 +1,7 @@
 package stdutil
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -125,4 +126,31 @@ func TestParseAccessToken(t *testing.T) {
 	} else {
 		t.Fail()
 	}
+}
+
+func TestParseJWT(t *testing.T) {
+	jwtfromck := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJBUFBTSFVCLUFVVEgiLCJleHAiOjAsIm5iZiI6MTU3OTIyMTM1MywiaWF0IjoxNTc5MjIxMzUzLCJ1c3IiOiJ6YWxkeS5iYWd1aW5vbiIsImRvbSI6Ik1EQ0kiLCJhcHAiOiJBUFBTSFVCLUFJVEgiLCJkZXYiOiJqNGgyajM0aDIzams0aDNrajRoZmRzZnNkZiJ9.MS77eSy7rg0a8-wTyaGmSbR8kOtZCv0092qVoucpG9k"
+
+	vj, err := ParseJWT(jwtfromck, "thisisanhmacsecretkey", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(vj)
+}
+
+func BenchmarkParseJWT(b *testing.B) {
+	jwtfromck := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJBUFBTSFVCLUFVVEgiLCJleHAiOjAsIm5iZiI6MTU3OTIyMTM1MywiaWF0IjoxNTc5MjIxMzUzLCJ1c3IiOiJ6YWxkeS5iYWd1aW5vbiIsImRvbSI6Ik1EQ0kiLCJhcHAiOiJBUFBTSFVCLUFJVEgiLCJkZXYiOiJqNGgyajM0aDIzams0aDNrajRoZmRzZnNkZiJ9.MS77eSy7rg0a8-wTyaGmSbR8kOtZCv0092qVoucpG9k"
+
+	vj, err := ParseJWT(jwtfromck, "thisisanhmacsecretkey", false)
+	if err != nil {
+		b.Fatal(err)
+	}
+	_ = vj
+	//b.Log(vj)
+}
+
+func TestResultAny(t *testing.T) {
+	res := ResultAny[string]{}
+	res.AddErr(errors.New("overriden result"))
+	t.Log(res)
 }

@@ -112,8 +112,7 @@ func (nvp *NameValues) String(name string) (string, bool) {
 	var (
 		tmp          any
 		exists, conv bool
-		str          string
-		val          string
+		str, val     string
 	)
 	name = strings.ToLower(name)
 	tmp, exists = nvp.Pair[name]
@@ -135,7 +134,9 @@ func (nvp *NameValues) Strings(name string) []string {
 	if strings.Contains(value, ",") {
 		return strings.Split(value, ",")
 	}
-	return []string{value}
+	var result [1]string
+	result[0] = value
+	return result[:]
 }
 
 // Int returns the name value as int. The second result returns the existence.
@@ -177,7 +178,9 @@ func (nvp *NameValues) Int(name string) (int, bool) {
 // Ints returns the values as an int array
 func (nvp *NameValues) Ints(name string) []int {
 	value, _ := nvp.Int(name)
-	return []int{value}
+	var result [1]int
+	result[0] = value
+	return result[:]
 }
 
 // Int64 returns the name value as int64. The second result returns the existence.
@@ -219,7 +222,9 @@ func (nvp *NameValues) Int64(name string) (int64, bool) {
 // Int64s returns the values as an int64 array
 func (nvp *NameValues) Int64s(name string) []int64 {
 	value, _ := nvp.Int64(name)
-	return []int64{value}
+	var result [1]int64
+	result[0] = value
+	return result[:]
 }
 
 // Plain returns the name value as interface{}. The second result returns the existence.
@@ -232,7 +237,8 @@ func (nvp *NameValues) Plain(name string) (interface{}, bool) {
 	return tmp, exists
 }
 
-// Bool returns the name value as boolean. It automatically convers 'true', 'yes', '1', '-1' and 'on' to boolean The second result returns the existence.
+// Bool returns the name value as boolean. It automatically convers 'true', 'yes', '1', '-1' and 'on' to boolean.
+// The second result returns the existence.
 func (nvp *NameValues) Bool(name string) (bool, bool) {
 	value, exists := nvp.String(name)
 	if !exists {
@@ -244,7 +250,9 @@ func (nvp *NameValues) Bool(name string) (bool, bool) {
 // Bools returns the values as a boolean array
 func (nvp *NameValues) Bools(name string) []bool {
 	value, _ := nvp.Bool(name)
-	return []bool{value}
+	var result [1]bool
+	result[0] = value
+	return result[:]
 }
 
 // Float64 returns the name value as float64. The second result returns the existence.
@@ -286,7 +294,9 @@ func (nvp *NameValues) Float64(name string) (float64, bool) {
 // Float64s returns the values as a float64 array
 func (nvp *NameValues) Float64s(name string) []float64 {
 	value, _ := nvp.Float64(name)
-	return []float64{value}
+	var result [1]float64
+	result[0] = value
+	return result[:]
 }
 
 // Decimal returns the name value as shopspring.Decimal. The second result returns the existence.
@@ -339,7 +349,9 @@ func (nvp *NameValues) Decimal(name string) (ssd.Decimal, bool) {
 // Decimals returns the values as a decimal array
 func (nvp *NameValues) Decimals(name string) []ssd.Decimal {
 	value, _ := nvp.Decimal(name)
-	return []ssd.Decimal{value}
+	var result [1]ssd.Decimal
+	result[0] = value
+	return result[:]
 }
 
 // **************************************************************
