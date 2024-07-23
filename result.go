@@ -165,7 +165,7 @@ func (r *Result) AddErr(err error) Result {
 	return *r
 }
 
-// AddErrWithAlt adds an error-typed value, with an alternate error
+// AddErrWithAlt adds an error-typed value, and an alternate error
 // message if the err happens to be nil. It returns itself.
 func (r *Result) AddErrWithAlt(err error, altMsg string, altMsgValues ...any) Result {
 	if err != nil {
@@ -174,6 +174,29 @@ func (r *Result) AddErrWithAlt(err error, altMsg string, altMsgValues ...any) Re
 	if altMsg != "" {
 		return r.AddError(altMsg, altMsgValues...)
 	}
+	return *r
+}
+
+// AddErrorWithAlt appends the messages of a Result.
+// And an alternative message if the Result is other than OK or VALID status.
+func (r *Result) AddErrorWithAlt(rs Result, altMsg string, altMsgValues ...any) Result {
+	if !(rs.OK() || rs.Valid()) {
+		for _, n := range rs.ln.Notes() {
+			r.ln.Append(n)
+		}
+		r.updateMessage()
+		return *r
+	}
+	if altMsg == "" {
+		return *r
+	}
+	r.ln.Append(
+		livenote.LiveNoteInfo{
+			Type:    livenote.Error,
+			Message: fmt.Sprintf(altMsg, altMsgValues...),
+			Prefix:  r.ln.Prefix,
+		})
+	r.updateMessage()
 	return *r
 }
 

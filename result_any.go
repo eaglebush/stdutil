@@ -51,10 +51,20 @@ func (r *ResultAny[T]) Stuff(rs Result) ResultAny[T] {
 	}
 }
 
-// AddErrWithAlt adds an error-typed value, with an alternate error
+// AddErrWithAlt adds an error-typed value, and an alternate error
 // message if the err happens to be nil. It returns itself.
 func (r *ResultAny[T]) AddErrWithAlt(err error, altMsg string, altMsgValues ...any) ResultAny[T] {
 	r.Result.AddErrWithAlt(err, altMsg, altMsgValues...)
+	return ResultAny[T]{
+		Result: r.Result,
+		Data:   r.Data,
+	}
+}
+
+// AddErrorWithAlt appends the messages of a Result.
+// And an alternative message if the Result is other than OK or VALID status.
+func (r *ResultAny[T]) AddErrorWithAlt(rs Result, altMsg string, altMsgValues ...any) ResultAny[T] {
+	r.Result.AddErrorWithAlt(rs, altMsg, altMsgValues...)
 	return ResultAny[T]{
 		Result: r.Result,
 		Data:   r.Data,
