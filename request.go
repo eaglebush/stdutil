@@ -217,29 +217,59 @@ func ExecuteAPI(method string, endPoint string, payload []byte, compressed bool,
 	return data, nil
 }
 
-// PostJson wraps http.Post with custom result
-func PostJson(endpoint string, payload []byte, gzipped bool, headers map[string]string, rw *sync.RWMutex) ResultData {
-	return ExecuteJsonAPI("POST", endpoint, payload, gzipped, headers, reqTimeOut, rw)
-}
-
-// PutJson wraps http.Put with custom result
-func PutJson(endpoint string, payload []byte, gzipped bool, headers map[string]string, rw *sync.RWMutex) ResultData {
-	return ExecuteJsonAPI("PUT", endpoint, payload, gzipped, headers, reqTimeOut, rw)
-}
-
-// PatchJson wraps http.Patch with custom result
-func PatchJson(endpoint string, payload []byte, gzipped bool, headers map[string]string, rw *sync.RWMutex) ResultData {
-	return ExecuteJsonAPI("PATCH", endpoint, payload, gzipped, headers, reqTimeOut, rw)
-}
-
-// GetJson wraps http.Get with custom result
+// GetJson wraps http.Get and gets a raw json message data
 func GetJson(endpoint string, headers map[string]string, rw *sync.RWMutex) ResultData {
 	return ExecuteJsonAPI("GET", endpoint, nil, false, headers, reqTimeOut, rw)
 }
 
-// DeleteJson wraps http.Delete with custom result
+// DeleteJson wraps http.Delete and gets a raw json message data
 func DeleteJson(endpoint string, headers map[string]string, rw *sync.RWMutex) ResultData {
 	return ExecuteJsonAPI("DELETE", endpoint, nil, false, headers, reqTimeOut, rw)
+}
+
+// PostJson wraps http.Post and gets a raw json message data
+func PostJson(endpoint string, payload []byte, gzipped bool, headers map[string]string, rw *sync.RWMutex) ResultData {
+	return ExecuteJsonAPI("POST", endpoint, payload, gzipped, headers, reqTimeOut, rw)
+}
+
+// PutJson wraps http.Put and gets a raw json message data
+func PutJson(endpoint string, payload []byte, gzipped bool, headers map[string]string, rw *sync.RWMutex) ResultData {
+	return ExecuteJsonAPI("PUT", endpoint, payload, gzipped, headers, reqTimeOut, rw)
+}
+
+// PatchJson wraps http.Patch and gets a raw json message data
+func PatchJson(endpoint string, payload []byte, gzipped bool, headers map[string]string, rw *sync.RWMutex) ResultData {
+	return ExecuteJsonAPI("PATCH", endpoint, payload, gzipped, headers, reqTimeOut, rw)
+}
+
+// PostApi posts data on an API endpoint and converts the returned data into a resulting type
+func PostApi[T any](url string, pl []byte, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
+	rd := ExecuteJsonAPI("POST", url, pl, gzpd, hdrs, reqTimeOut, rw)
+	return getJsonConverted[T](&rd)
+}
+
+// ReadApi retrieves data on an API endpoint and converts the returned data into a resulting type
+func ReadApi[T any](url string, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
+	rd := ExecuteJsonAPI("GET", url, nil, false, hdrs, reqTimeOut, rw)
+	return getJsonConverted[T](&rd)
+}
+
+// PutApi updates data on an API endpoint and converts the returned data into a resulting type
+func PutApi[T any](url string, pl []byte, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
+	rd := ExecuteJsonAPI("PUT", url, pl, gzpd, hdrs, reqTimeOut, rw)
+	return getJsonConverted[T](&rd)
+}
+
+// DeleteApi deletes data on an API endpoint and converts the returned data into a resulting type
+func DeleteApi[T any](url string, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
+	rd := ExecuteJsonAPI("DELETE", url, nil, false, hdrs, reqTimeOut, rw)
+	return getJsonConverted[T](&rd)
+}
+
+// PatchApi patches data on an API endpoint and converts the returned data into a resulting type
+func PatchApi[T any](url string, pl []byte, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
+	rd := ExecuteJsonAPI("PATCH", url, pl, gzpd, hdrs, reqTimeOut, rw)
+	return getJsonConverted[T](&rd)
 }
 
 // ParseQueryString parses the query string into a column value
@@ -529,4 +559,48 @@ func GetRequestVars(r *http.Request, secretKey string, validateTimes bool) (Requ
 	}
 	rv.Token = ji
 	return rv, nil
+}
+
+func getJsonConverted[T any](rslt *ResultData) ResultAny[T] {
+	var data T
+	if !rslt.OK() {
+		return ResultAny[T]{
+			Result: rslt.Result,
+			Data:   data,
+		}
+	}
+	if len(rslt.Data) == 0 {
+		return ResultAny[T]{
+			Result: InitResult(
+				NameValue[string]{
+					Name: "status", Value: string(EXCEPTION),
+				},
+				NameValue[string]{
+					Name: "message", Value: "No data retrieved",
+				},
+			),
+			Data: data,
+		}
+	}
+	if err := json.Unmarshal(rslt.Data, &data); err != nil {
+		return ResultAny[T]{
+			Result: InitResult(
+				NameValue[string]{
+					Name: "status", Value: string(EXCEPTION),
+				},
+				NameValue[string]{
+					Name: "message", Value: err.Error(),
+				},
+			),
+			Data: data,
+		}
+	}
+	return ResultAny[T]{
+		Result: InitResult(
+			NameValue[string]{
+				Name: "status", Value: rslt.Status,
+			},
+		),
+		Data: data,
+	}
 }

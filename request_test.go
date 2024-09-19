@@ -154,3 +154,33 @@ func TestResultAny(t *testing.T) {
 	res.AddErr(errors.New("overriden result"))
 	t.Log(res)
 }
+
+func TestGetAny(t *testing.T) {
+	hdr := make(map[string]string)
+	hdr["Cookie"] = "APPSHUB-WF-login=zaldy.baguinon; APPSHUB-WF-appdomain=MDCI"
+	hdr["Authorization"] = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJLZWFudS1VcGxvYWRlciIsImV4cCI6MCwibmJmIjoxNjc1MzE0MTg0LCJpYXQiOjAsInVzciI6ImphbWVzLmx1bWliYW9AbWRjaS5jb20ucGgiLCJkb20iOiJNRENJIiwiYXBwIjoiS2VhbnUtVXBsb2FkZXIiLCJkZXYiOiIyS1JzS3Z4Y2NuOUp0RjNxbDIxMmN1MmhwS1MifQ.961xUrBObQfN6fkO_s7OYhFTqKC_aMrr1OKVwvPhkLU"
+	type UserAccount struct {
+		Key                 *int       `json:"user_key,omitempty"`
+		UserName            *string    `json:"user_name,omitempty"` // UserName, required
+		Password            *string    `json:"password,omitempty"`  // Password, required
+		Active              *bool      `json:"active,omitempty"`
+		AppsHubAdmin        *bool      `json:"apps_hub_admin,omitempty"`
+		ApplicationID       *string    `json:"application_id,omitempty"` // ApplicationID, for specific uses only, not on the database
+		DisplayName         *string    `json:"display_name,omitempty"`
+		ProfileImageURI     *string    `json:"profile_image_uri,omitempty"`
+		ProfileImageExt     *string    `json:"profile_image_ext,omitempty"`
+		EmailAddress        *string    `json:"email_address,omitempty"` // EmailAddress, required
+		MobileNo            *string    `json:"mobile_no,omitempty"`     // MobileNo, required if email address is not available
+		LDAPLogin           *bool      `json:"ldap_login,omitempty"`
+		TransactionID       *string    `json:"transaction_id,omitempty"`
+		ActivationCode      *string    `json:"activation_code,omitempty"`
+		ActivationStatus    *string    `json:"activation_status,omitempty"`
+		RegistrationChannel *string    `json:"registration_channel,omitempty"`
+		DateLastLoggedIn    *time.Time `json:"date_last_logged_in,omitempty"`
+	}
+	exapi := Get[[]UserAccount]("https://appcore.vdimdci.com.ph/api/user/19", hdr, nil)
+	if !exapi.OK() {
+		t.Fail()
+	}
+	fmt.Printf("%v", exapi.Data)
+}
