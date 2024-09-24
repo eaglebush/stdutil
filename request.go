@@ -243,8 +243,19 @@ func PatchJson(endpoint string, payload []byte, gzipped bool, headers map[string
 }
 
 // PostApi posts data on an API endpoint and converts the returned data into a resulting type
-func PostApi[T any](url string, pl []byte, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
-	rd := ExecuteJsonAPI("POST", url, pl, gzpd, hdrs, reqTimeOut, rw)
+func PostApi[T any](url string, pl T, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
+	b, err := json.Marshal(pl)
+	if err != nil {
+		return ResultAny[T]{
+			Result: InitResult(
+				NameValue[string]{
+					Name:  "message",
+					Value: err.Error(),
+				},
+			),
+		}
+	}
+	rd := ExecuteJsonAPI("POST", url, b, gzpd, hdrs, reqTimeOut, rw)
 	return getJsonConverted[T](&rd)
 }
 
@@ -255,8 +266,19 @@ func ReadApi[T any](url string, hdrs map[string]string, rw *sync.RWMutex) Result
 }
 
 // PutApi updates data on an API endpoint and converts the returned data into a resulting type
-func PutApi[T any](url string, pl []byte, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
-	rd := ExecuteJsonAPI("PUT", url, pl, gzpd, hdrs, reqTimeOut, rw)
+func PutApi[T any](url string, pl T, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
+	b, err := json.Marshal(pl)
+	if err != nil {
+		return ResultAny[T]{
+			Result: InitResult(
+				NameValue[string]{
+					Name:  "message",
+					Value: err.Error(),
+				},
+			),
+		}
+	}
+	rd := ExecuteJsonAPI("PUT", url, b, gzpd, hdrs, reqTimeOut, rw)
 	return getJsonConverted[T](&rd)
 }
 
@@ -267,8 +289,19 @@ func DeleteApi[T any](url string, gzpd bool, hdrs map[string]string, rw *sync.RW
 }
 
 // PatchApi patches data on an API endpoint and converts the returned data into a resulting type
-func PatchApi[T any](url string, pl []byte, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
-	rd := ExecuteJsonAPI("PATCH", url, pl, gzpd, hdrs, reqTimeOut, rw)
+func PatchApi[T any](url string, pl T, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
+	b, err := json.Marshal(pl)
+	if err != nil {
+		return ResultAny[T]{
+			Result: InitResult(
+				NameValue[string]{
+					Name:  "message",
+					Value: err.Error(),
+				},
+			),
+		}
+	}
+	rd := ExecuteJsonAPI("PATCH", url, b, gzpd, hdrs, reqTimeOut, rw)
 	return getJsonConverted[T](&rd)
 }
 

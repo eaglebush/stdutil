@@ -178,7 +178,7 @@ func TestGetAny(t *testing.T) {
 		RegistrationChannel *string    `json:"registration_channel,omitempty"`
 		DateLastLoggedIn    *time.Time `json:"date_last_logged_in,omitempty"`
 	}
-	exapi := Get[[]UserAccount]("https://appcore.vdimdci.com.ph/api/user/19", hdr, nil)
+	exapi := ReadApi[[]UserAccount]("https://appcore.vdimdci.com.ph/api/user/19", hdr, nil)
 	if !exapi.OK() {
 		t.Fail()
 	}
