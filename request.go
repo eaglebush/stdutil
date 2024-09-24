@@ -243,7 +243,7 @@ func PatchJson(endpoint string, payload []byte, gzipped bool, headers map[string
 }
 
 // PostApi posts data on an API endpoint and converts the returned data into a resulting type
-func PostApi[T any](url string, pl T, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
+func PostApi[T any, U any](url string, pl U, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
 	b, err := json.Marshal(pl)
 	if err != nil {
 		return ResultAny[T]{
@@ -266,7 +266,7 @@ func ReadApi[T any](url string, hdrs map[string]string, rw *sync.RWMutex) Result
 }
 
 // PutApi updates data on an API endpoint and converts the returned data into a resulting type
-func PutApi[T any](url string, pl T, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
+func PutApi[T any, U any](url string, pl U, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
 	b, err := json.Marshal(pl)
 	if err != nil {
 		return ResultAny[T]{
@@ -289,7 +289,7 @@ func DeleteApi[T any](url string, gzpd bool, hdrs map[string]string, rw *sync.RW
 }
 
 // PatchApi patches data on an API endpoint and converts the returned data into a resulting type
-func PatchApi[T any](url string, pl T, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
+func PatchApi[T any, U any](url string, pl U, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
 	b, err := json.Marshal(pl)
 	if err != nil {
 		return ResultAny[T]{

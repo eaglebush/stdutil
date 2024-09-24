@@ -3,6 +3,7 @@ package stdutil
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -183,4 +184,8 @@ func TestGetAny(t *testing.T) {
 		t.Fail()
 	}
 	fmt.Printf("%v", exapi.Data)
+
+	ua := UserAccount{}
+	PostApi[[]UserAccount]("https://appcore.vdimdci.com.ph/api/user/19", ua, true, hdr, &sync.RWMutex{})
+
 }
