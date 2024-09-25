@@ -628,7 +628,9 @@ func CreateApi[T any, U any](url string, pl U, opts ...RequestOption) ResultAny[
 			),
 		}
 	}
-	rp := RequestParam{}
+	rp := RequestParam{
+		Compressed: false,
+	}
 	for _, o := range opts {
 		if o == nil {
 			continue
@@ -641,7 +643,9 @@ func CreateApi[T any, U any](url string, pl U, opts ...RequestOption) ResultAny[
 
 // ReadApi retrieves data on an API endpoint and converts the returned data into a resulting type
 func ReadApi[T any](url string, opts ...RequestOption) ResultAny[T] {
-	rp := RequestParam{}
+	rp := RequestParam{
+		Compressed: true,
+	}
 	for _, o := range opts {
 		if o == nil {
 			continue
@@ -678,7 +682,9 @@ func UpdateApi[T any, U any](url string, pl U, opts ...RequestOption) ResultAny[
 
 // DeleteApi deletes data on an API endpoint and converts the returned data into a resulting type
 func DeleteApi[T any](url string, opts ...RequestOption) ResultAny[T] {
-	rp := RequestParam{}
+	rp := RequestParam{
+		Compressed: false,
+	}
 	for _, o := range opts {
 		if o == nil {
 			continue
@@ -702,7 +708,9 @@ func PatchApi[T any, U any](url string, pl U, opts ...RequestOption) ResultAny[T
 			),
 		}
 	}
-	rp := RequestParam{}
+	rp := RequestParam{
+		Compressed: false,
+	}
 	for _, o := range opts {
 		if o == nil {
 			continue
