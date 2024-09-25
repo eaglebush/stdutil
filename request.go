@@ -44,6 +44,15 @@ type (
 		Result
 		Data json.RawMessage `json:"data"`
 	}
+	// RequestParam for <REST verb>Api request functions
+	RequestParam struct {
+		TimeOut    int               // Request time out
+		Compressed bool              // Compressed
+		Headers    map[string]string // Headers for the request
+		Mutex      *sync.RWMutex     // Mutex lock for header modification
+	}
+	// RequestOption for <REST verb>Api request functions
+	RequestOption func(opt *RequestParam) error
 )
 
 func init() {
@@ -55,12 +64,12 @@ func init() {
 }
 
 // SetRequestTimeOut sets the new timeout value
-func SetRequestTimeout(timeout int) {
-	reqTimeOut = timeout
+func SetRequestTimeout(timeOut int) {
+	reqTimeOut = timeOut
 }
 
-// ExecuteJsonAPI wraps http operation that change or read data and returns a custom result
-func ExecuteJsonAPI(method string, endPoint string, payload []byte, compressed bool, header map[string]string, timeOut int, rw *sync.RWMutex) (rd ResultData) {
+// ExecuteJsonApi wraps http operation that change or read data and returns a custom result
+func ExecuteJsonApi(method string, endPoint string, payload []byte, compressed bool, header map[string]string, timeOut int, rw *sync.RWMutex) (rd ResultData) {
 	rd = ResultData{
 		Result: InitResult(),
 	}
@@ -71,7 +80,7 @@ func ExecuteJsonAPI(method string, endPoint string, payload []byte, compressed b
 		rw = &sync.RWMutex{}
 	}
 	SafeMapWrite(&header, "Content-Type", "application/json", rw)
-	data, err := ExecuteAPI(method, endPoint, payload, compressed, header, timeOut)
+	data, err := ExecuteApi(method, endPoint, payload, compressed, header, timeOut)
 	if err != nil {
 		rd.Result.AddErr(err)
 		return
@@ -119,12 +128,12 @@ func ExecuteJsonAPI(method string, endPoint string, payload []byte, compressed b
 	return
 }
 
-// ExecuteAPI wraps http operation that change or read data and returns a byte array
+// ExecuteApi wraps http operation that change or read data and returns a byte array
 //
 // On headers:
 //   - Content-Type: If this header is not set, it defaults to "application/json"//
 //   - Content-Encoding: If compressed is true, it is set to "gzip"
-func ExecuteAPI(method string, endPoint string, payload []byte, compressed bool, header map[string]string, timeOut int) ([]byte, error) {
+func ExecuteApi(method string, endPoint string, payload []byte, compressed bool, header map[string]string, timeOut int) ([]byte, error) {
 	nr, err := http.NewRequest(method, endPoint, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, err
@@ -219,90 +228,27 @@ func ExecuteAPI(method string, endPoint string, payload []byte, compressed bool,
 
 // GetJson wraps http.Get and gets a raw json message data
 func GetJson(endpoint string, headers map[string]string, rw *sync.RWMutex) ResultData {
-	return ExecuteJsonAPI("GET", endpoint, nil, false, headers, reqTimeOut, rw)
+	return ExecuteJsonApi("GET", endpoint, nil, false, headers, reqTimeOut, rw)
 }
 
 // DeleteJson wraps http.Delete and gets a raw json message data
 func DeleteJson(endpoint string, headers map[string]string, rw *sync.RWMutex) ResultData {
-	return ExecuteJsonAPI("DELETE", endpoint, nil, false, headers, reqTimeOut, rw)
+	return ExecuteJsonApi("DELETE", endpoint, nil, false, headers, reqTimeOut, rw)
 }
 
 // PostJson wraps http.Post and gets a raw json message data
 func PostJson(endpoint string, payload []byte, gzipped bool, headers map[string]string, rw *sync.RWMutex) ResultData {
-	return ExecuteJsonAPI("POST", endpoint, payload, gzipped, headers, reqTimeOut, rw)
+	return ExecuteJsonApi("POST", endpoint, payload, gzipped, headers, reqTimeOut, rw)
 }
 
 // PutJson wraps http.Put and gets a raw json message data
 func PutJson(endpoint string, payload []byte, gzipped bool, headers map[string]string, rw *sync.RWMutex) ResultData {
-	return ExecuteJsonAPI("PUT", endpoint, payload, gzipped, headers, reqTimeOut, rw)
+	return ExecuteJsonApi("PUT", endpoint, payload, gzipped, headers, reqTimeOut, rw)
 }
 
 // PatchJson wraps http.Patch and gets a raw json message data
 func PatchJson(endpoint string, payload []byte, gzipped bool, headers map[string]string, rw *sync.RWMutex) ResultData {
-	return ExecuteJsonAPI("PATCH", endpoint, payload, gzipped, headers, reqTimeOut, rw)
-}
-
-// PostApi posts data on an API endpoint and converts the returned data into a resulting type
-func PostApi[T any, U any](url string, pl U, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
-	b, err := json.Marshal(pl)
-	if err != nil {
-		return ResultAny[T]{
-			Result: InitResult(
-				NameValue[string]{
-					Name:  "message",
-					Value: err.Error(),
-				},
-			),
-		}
-	}
-	rd := ExecuteJsonAPI("POST", url, b, gzpd, hdrs, reqTimeOut, rw)
-	return getJsonConverted[T](&rd)
-}
-
-// ReadApi retrieves data on an API endpoint and converts the returned data into a resulting type
-func ReadApi[T any](url string, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
-	rd := ExecuteJsonAPI("GET", url, nil, false, hdrs, reqTimeOut, rw)
-	return getJsonConverted[T](&rd)
-}
-
-// PutApi updates data on an API endpoint and converts the returned data into a resulting type
-func PutApi[T any, U any](url string, pl U, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
-	b, err := json.Marshal(pl)
-	if err != nil {
-		return ResultAny[T]{
-			Result: InitResult(
-				NameValue[string]{
-					Name:  "message",
-					Value: err.Error(),
-				},
-			),
-		}
-	}
-	rd := ExecuteJsonAPI("PUT", url, b, gzpd, hdrs, reqTimeOut, rw)
-	return getJsonConverted[T](&rd)
-}
-
-// DeleteApi deletes data on an API endpoint and converts the returned data into a resulting type
-func DeleteApi[T any](url string, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
-	rd := ExecuteJsonAPI("DELETE", url, nil, false, hdrs, reqTimeOut, rw)
-	return getJsonConverted[T](&rd)
-}
-
-// PatchApi patches data on an API endpoint and converts the returned data into a resulting type
-func PatchApi[T any, U any](url string, pl U, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
-	b, err := json.Marshal(pl)
-	if err != nil {
-		return ResultAny[T]{
-			Result: InitResult(
-				NameValue[string]{
-					Name:  "message",
-					Value: err.Error(),
-				},
-			),
-		}
-	}
-	rd := ExecuteJsonAPI("PATCH", url, b, gzpd, hdrs, reqTimeOut, rw)
-	return getJsonConverted[T](&rd)
+	return ExecuteJsonApi("PATCH", endpoint, payload, gzipped, headers, reqTimeOut, rw)
 }
 
 // ParseQueryString parses the query string into a column value
@@ -636,4 +582,126 @@ func getJsonConverted[T any](rslt *ResultData) ResultAny[T] {
 		),
 		Data: data,
 	}
+}
+
+// TimeOut sets the request timeout as an option
+//
+// This is used with <REST verb>Api functions
+func TimeOut(timeOut int) RequestOption {
+	return func(rp *RequestParam) error {
+		rp.TimeOut = timeOut
+		return nil
+	}
+}
+
+// Compressed sets the request compression as an option
+//
+// This is used with <REST verb>Api functions
+func Compressed(compressed bool) RequestOption {
+	return func(rp *RequestParam) error {
+		rp.Compressed = compressed
+		return nil
+	}
+}
+
+// Headers adds request headers as an option
+//
+// This is used with <REST verb>Api functions
+func Headers(hdr map[string]string, mut *sync.RWMutex) RequestOption {
+	return func(rp *RequestParam) error {
+		rp.Headers = hdr
+		rp.Mutex = mut
+		return nil
+	}
+}
+
+// CreateApi posts data on an API endpoint and converts the returned data into a resulting type
+func CreateApi[T any, U any](url string, pl U, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
+	b, err := json.Marshal(pl)
+	if err != nil {
+		return ResultAny[T]{
+			Result: InitResult(
+				NameValue[string]{
+					Name:  "message",
+					Value: err.Error(),
+				},
+			),
+		}
+	}
+	rd := ExecuteJsonApi("POST", url, b, gzpd, hdrs, reqTimeOut, rw)
+	return getJsonConverted[T](&rd)
+}
+
+// ReadApi retrieves data on an API endpoint and converts the returned data into a resulting type
+func ReadApi[T any](url string, opts ...RequestOption) ResultAny[T] {
+	rp := RequestParam{}
+	for _, o := range opts {
+		if o == nil {
+			continue
+		}
+		o(&rp)
+	}
+	rd := ExecuteJsonApi("GET", url, nil, rp.Compressed, rp.Headers, rp.TimeOut, rp.Mutex)
+	return getJsonConverted[T](&rd)
+}
+
+// UpdateApi updates data on an API endpoint and converts the returned data into a resulting type
+func UpdateApi[T any, U any](url string, pl U, opts ...RequestOption) ResultAny[T] {
+	b, err := json.Marshal(pl)
+	if err != nil {
+		return ResultAny[T]{
+			Result: InitResult(
+				NameValue[string]{
+					Name:  "message",
+					Value: err.Error(),
+				},
+			),
+		}
+	}
+	rp := RequestParam{}
+	for _, o := range opts {
+		if o == nil {
+			continue
+		}
+		o(&rp)
+	}
+	rd := ExecuteJsonApi("PUT", url, b, rp.Compressed, rp.Headers, rp.TimeOut, rp.Mutex)
+	return getJsonConverted[T](&rd)
+}
+
+// DeleteApi deletes data on an API endpoint and converts the returned data into a resulting type
+func DeleteApi[T any](url string, opts ...RequestOption) ResultAny[T] {
+	rp := RequestParam{}
+	for _, o := range opts {
+		if o == nil {
+			continue
+		}
+		o(&rp)
+	}
+	rd := ExecuteJsonApi("DELETE", url, nil, rp.Compressed, rp.Headers, rp.TimeOut, rp.Mutex)
+	return getJsonConverted[T](&rd)
+}
+
+// PatchApi patches data on an API endpoint and converts the returned data into a resulting type
+func PatchApi[T any, U any](url string, pl U, opts ...RequestOption) ResultAny[T] {
+	b, err := json.Marshal(pl)
+	if err != nil {
+		return ResultAny[T]{
+			Result: InitResult(
+				NameValue[string]{
+					Name:  "message",
+					Value: err.Error(),
+				},
+			),
+		}
+	}
+	rp := RequestParam{}
+	for _, o := range opts {
+		if o == nil {
+			continue
+		}
+		o(&rp)
+	}
+	rd := ExecuteJsonApi("PATCH", url, b, rp.Compressed, rp.Headers, rp.TimeOut, rp.Mutex)
+	return getJsonConverted[T](&rd)
 }

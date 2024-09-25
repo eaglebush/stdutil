@@ -179,13 +179,17 @@ func TestGetAny(t *testing.T) {
 		RegistrationChannel *string    `json:"registration_channel,omitempty"`
 		DateLastLoggedIn    *time.Time `json:"date_last_logged_in,omitempty"`
 	}
-	exapi := ReadApi[[]UserAccount]("https://appcore.vdimdci.com.ph/api/user/19", hdr, nil)
+	exapi := ReadApi[[]UserAccount](
+		"https://appcore.vdimdci.com.ph/api/user/19",
+		TimeOut(1000),
+		Headers(hdr, &sync.RWMutex{}),
+		Compressed(true))
 	if !exapi.OK() {
 		t.Fail()
 	}
 	fmt.Printf("%v", exapi.Data)
 
-	ua := UserAccount{}
-	PostApi[[]UserAccount]("https://appcore.vdimdci.com.ph/api/user/19", ua, true, hdr, &sync.RWMutex{})
+	//ua := UserAccount{}
+	//CreateApi[[]UserAccount]("https://appcore.vdimdci.com.ph/api/user/19", ua, true, hdr, &sync.RWMutex{})
 
 }
