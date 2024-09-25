@@ -616,7 +616,7 @@ func Headers(hdr map[string]string, mut *sync.RWMutex) RequestOption {
 }
 
 // CreateApi posts data on an API endpoint and converts the returned data into a resulting type
-func CreateApi[T any, U any](url string, pl U, gzpd bool, hdrs map[string]string, rw *sync.RWMutex) ResultAny[T] {
+func CreateApi[T any, U any](url string, pl U, opts ...RequestOption) ResultAny[T] {
 	b, err := json.Marshal(pl)
 	if err != nil {
 		return ResultAny[T]{
@@ -628,7 +628,14 @@ func CreateApi[T any, U any](url string, pl U, gzpd bool, hdrs map[string]string
 			),
 		}
 	}
-	rd := ExecuteJsonApi("POST", url, b, gzpd, hdrs, reqTimeOut, rw)
+	rp := RequestParam{}
+	for _, o := range opts {
+		if o == nil {
+			continue
+		}
+		o(&rp)
+	}
+	rd := ExecuteJsonApi("POST", url, b, rp.Compressed, rp.Headers, rp.TimeOut, rp.Mutex)
 	return getJsonConverted[T](&rd)
 }
 
