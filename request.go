@@ -542,23 +542,10 @@ func GetRequestVars(r *http.Request, secretKey string, validateTimes bool) (Requ
 
 func getJsonConverted[T any](rslt *ResultData) ResultAny[T] {
 	var data T
-	if !rslt.OK() {
+	if len(rslt.Data) == 0 {
 		return ResultAny[T]{
 			Result: rslt.Result,
 			Data:   data,
-		}
-	}
-	if len(rslt.Data) == 0 {
-		return ResultAny[T]{
-			Result: InitResult(
-				NameValue[string]{
-					Name: "status", Value: string(EXCEPTION),
-				},
-				NameValue[string]{
-					Name: "message", Value: "No data retrieved",
-				},
-			),
-			Data: data,
 		}
 	}
 	if err := json.Unmarshal(rslt.Data, &data); err != nil {
@@ -575,12 +562,8 @@ func getJsonConverted[T any](rslt *ResultData) ResultAny[T] {
 		}
 	}
 	return ResultAny[T]{
-		Result: InitResult(
-			NameValue[string]{
-				Name: "status", Value: rslt.Status,
-			},
-		),
-		Data: data,
+		Result: rslt.Result,
+		Data:   data,
 	}
 }
 
