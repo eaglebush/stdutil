@@ -3,6 +3,7 @@ package stdutil
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -192,4 +193,29 @@ func TestGetAny(t *testing.T) {
 	//ua := UserAccount{}
 	//CreateApi[[]UserAccount]("https://appcore.vdimdci.com.ph/api/user/19", ua, true, hdr, &sync.RWMutex{})
 
+}
+
+func TestMessageParsing(t *testing.T) {
+	msgs := []string{
+		"ERR: This is a message",
+		"ERR[prefix]: This is a message with prefix",
+	}
+	for _, m := range msgs {
+		if m == "" {
+			continue
+		}
+		msgType := m[0:3]
+		prefix := ""
+		msg := m[3:]
+		if strings.HasPrefix(msg, ":") {
+			msg = msg[2:]
+		}
+		if strings.HasPrefix(msg, "[") {
+			if endBr := strings.Index(msg, "]"); endBr != -1 {
+				prefix = msg[1:endBr]
+				msg = msg[endBr+3:]
+			}
+		}
+		t.Logf("Message Type: %s, Prefix: %s, Message: %s", msgType, prefix, msg)
+	}
 }

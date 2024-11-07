@@ -107,6 +107,9 @@ func ExecuteJsonApi(method string, endPoint string, payload []byte, compressed b
 		}
 		msgType := m[0:3]
 		msg := m[3:]
+		if strings.HasPrefix(msg, ":") {
+			msg = msg[2:]
+		}
 		if strings.HasPrefix(msg, "[") {
 			if endBr := strings.Index(msg, "]"); endBr != -1 {
 				rd.ln.Prefix = msg[1:endBr]
@@ -120,6 +123,8 @@ func ExecuteJsonApi(method string, endPoint string, payload []byte, compressed b
 			rd.Result.AddError(msg)
 		case string(livenote.Fatal):
 			rd.Result.AddError(msg)
+		case string(livenote.Success):
+			rd.Result.ln.AddSuccess(msg)
 		case string(livenote.App):
 			rd.Result.ln.AddAppMsg(msg)
 		}
@@ -313,7 +318,7 @@ func ParseRouteVars(r *http.Request) (Command []string, Key string) {
 }
 
 // BuildAccessToken builds a JWT token
-func BuildAccessToken(header *map[string]interface{}, claims *map[string]interface{}, secretkey string) string {
+func BuildAccessToken(header *map[string]interface{}, claims *map[string]interface{}, secretKey string) string {
 	clm := *claims
 	var (
 		usr, dom, app, dev string
@@ -399,7 +404,7 @@ func BuildAccessToken(header *map[string]interface{}, claims *map[string]interfa
 		TenantID:      tnt,
 	}
 
-	HMAC := jwt.NewHS256([]byte(secretkey))
+	HMAC := jwt.NewHS256([]byte(secretKey))
 	token, err := jwt.Sign(pl, HMAC)
 	if err != nil {
 		return ""
