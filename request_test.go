@@ -79,11 +79,6 @@ func TestJWTParse(t *testing.T) {
 }
 
 func TestBuildAccessToken(t *testing.T) {
-	jwth := map[string]interface{}{
-		"alg": "HS256",
-		"typ": "JWT",
-	}
-
 	jwtc := map[string]interface{}{
 		"nbf": time.Now().Unix(),
 		"iat": time.Now().Unix(),
@@ -95,7 +90,7 @@ func TestBuildAccessToken(t *testing.T) {
 		"app": "APPSHUB-AITH",
 	}
 
-	token := BuildAccessToken(&jwth, &jwtc, "thisisanhmacsecretkey")
+	token := SignJwt(&jwtc, "thisisanhmacsecretkey")
 	if token == "" {
 		t.Fail()
 	}
@@ -133,7 +128,7 @@ func TestParseAccessToken(t *testing.T) {
 func TestParseJWT(t *testing.T) {
 	jwtfromck := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJBUFBTSFVCLUFVVEgiLCJleHAiOjAsIm5iZiI6MTU3OTIyMTM1MywiaWF0IjoxNTc5MjIxMzUzLCJ1c3IiOiJ6YWxkeS5iYWd1aW5vbiIsImRvbSI6Ik1EQ0kiLCJhcHAiOiJBUFBTSFVCLUFJVEgiLCJkZXYiOiJqNGgyajM0aDIzams0aDNrajRoZmRzZnNkZiJ9.MS77eSy7rg0a8-wTyaGmSbR8kOtZCv0092qVoucpG9k"
 
-	vj, err := ParseJWT(jwtfromck, "thisisanhmacsecretkey", false)
+	vj, err := ParseJwt(jwtfromck, "thisisanhmacsecretkey", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -143,7 +138,7 @@ func TestParseJWT(t *testing.T) {
 func BenchmarkParseJWT(b *testing.B) {
 	jwtfromck := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJBUFBTSFVCLUFVVEgiLCJleHAiOjAsIm5iZiI6MTU3OTIyMTM1MywiaWF0IjoxNTc5MjIxMzUzLCJ1c3IiOiJ6YWxkeS5iYWd1aW5vbiIsImRvbSI6Ik1EQ0kiLCJhcHAiOiJBUFBTSFVCLUFJVEgiLCJkZXYiOiJqNGgyajM0aDIzams0aDNrajRoZmRzZnNkZiJ9.MS77eSy7rg0a8-wTyaGmSbR8kOtZCv0092qVoucpG9k"
 
-	vj, err := ParseJWT(jwtfromck, "thisisanhmacsecretkey", false)
+	vj, err := ParseJwt(jwtfromck, "thisisanhmacsecretkey", false)
 	if err != nil {
 		b.Fatal(err)
 	}

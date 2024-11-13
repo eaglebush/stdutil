@@ -317,8 +317,8 @@ func ParseRouteVars(r *http.Request) (Command []string, Key string) {
 	return cmd, key
 }
 
-// BuildAccessToken builds a JWT token
-func BuildAccessToken(header *map[string]interface{}, claims *map[string]interface{}, secretKey string) string {
+// SignJwt builds a JWT token using HMAC256 algorithm
+func SignJwt(claims *map[string]interface{}, secretKey string) string {
 	clm := *claims
 	var (
 		usr, dom, app, dev string
@@ -464,8 +464,8 @@ func GetRequestVarsOnly(r *http.Request) RequestVars {
 	return *rv
 }
 
-// ValidateJWT validates JWT and returns information
-func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) (*JWTInfo, error) {
+// ValidateJwt validates JWT and returns information using HMAC256 algorithm
+func ValidateJwt(r *http.Request, secretKey string, validateTimes bool) (*JWTInfo, error) {
 	var (
 		jwtfromck,
 		jwth string
@@ -484,11 +484,11 @@ func ValidateJWT(r *http.Request, secretKey string, validateTimes bool) (*JWTInf
 	if jwtfromck = strings.TrimSpace(jwtp[1]); len(jwtfromck) == 0 {
 		return nil, fmt.Errorf(`invalid authorization token`)
 	}
-	return ParseJWT(jwtfromck, secretKey, validateTimes)
+	return ParseJwt(jwtfromck, secretKey, validateTimes)
 }
 
-// ParseJWT validates, parses JWT and returns information
-func ParseJWT(token, secretKey string, validateTimes bool) (*JWTInfo, error) {
+// ParseJwt validates, parses JWT and returns information using HMAC256 algorithm
+func ParseJwt(token, secretKey string, validateTimes bool) (*JWTInfo, error) {
 	if len(secretKey) == 0 {
 		return nil, fmt.Errorf(`secret key not set`)
 	}
@@ -537,7 +537,7 @@ func GetRequestVars(r *http.Request, secretKey string, validateTimes bool) (Requ
 	if strings.EqualFold(r.Method, "OPTION") {
 		return rv, nil
 	}
-	ji, err := ValidateJWT(r, secretKey, validateTimes)
+	ji, err := ValidateJwt(r, secretKey, validateTimes)
 	if err != nil {
 		return rv, err
 	}
