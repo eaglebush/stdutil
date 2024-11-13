@@ -191,12 +191,23 @@ func AnyToString(value interface{}) string {
 	return b
 }
 
-// Itos is a shortcut to AnyToString. I means Interface
-func Itos(value interface{}) string {
-	return AnyToString(value)
+// BuildSeries builds series based on options
+func BuildSeries(series int, opt SeriesOptions) string {
+
+	// If length is specified, we get the difference between suffix and prefix
+	if opt.Length > 0 {
+		diff := opt.Length - (len(opt.Prefix) + len(opt.Suffix))
+		ds := `%0` + strconv.Itoa(diff) + `d`
+		return fmt.Sprintf(`%s`+ds+`%s`, opt.Prefix, series, opt.Suffix)
+	}
+
+	return fmt.Sprintf(`%s%d%s`, opt.Prefix, series, opt.Suffix)
 }
 
-// ToInterfaceArray converts a value to interface array
+// Elem returns the element of an array as specified by the index
+//
+// If the index exceeds the length of an array, it will return a non-nil value of the type.
+// To monitor if the element exists, define a boolean value in the exists parameter
 //
 // Currently supported data types are:
 //   - constraints.Ordered (Integer | Float | ~string)
@@ -205,13 +216,32 @@ func Itos(value interface{}) string {
 //   - shopspring/decimal
 //
 // This function requires version 1.18+
-func ToInterfaceArray[T FieldTypeConstraint](values T) []any {
-	var value [1]any
-	value[0] = values
-	return value[:]
+func Elem[T any](array *[]T, index int, exists *bool) T {
+	var result T
+	if exists != nil {
+		*exists = false
+	}
+	if array == nil {
+		return result
+	}
+	arrl := len(*array)
+	if arrl == 0 {
+		return result
+	}
+	arrl--
+	if arrl >= index {
+		if exists != nil {
+			*exists = true
+		}
+		return (*array)[index]
+	}
+	return result
 }
 
-// IsNullOrEmpty checks for nullity and emptiness of a pointer variable
+// ElemPtr returns a pointer to the element of an array as specified by the index
+//
+// If the index exceeds the length of an array, it will return a non-nil value of the type.
+// To monitor if the element exists, define a boolean value in the exists parameter
 //
 // Currently supported data types are:
 //   - constraints.Ordered (Integer | Float | ~string)
@@ -220,8 +250,87 @@ func ToInterfaceArray[T FieldTypeConstraint](values T) []any {
 //   - shopspring/decimal
 //
 // This function requires version 1.18+
-func IsNullOrEmpty[T FieldTypeConstraint](value *T) bool {
-	return value == nil || *value == GetZero[T]()
+func ElemPtr[T any](array *[]T, index int, exists *bool) *T {
+	r := Elem(array, index, exists)
+	return &r
+}
+
+// GetZero gets the zero value of the type.
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
+//
+// This function requires version 1.18+
+func GetZero[T FieldTypeConstraint]() T {
+	var result T
+	return result
+}
+
+// If is a basic ternary operator to return whatever is set in
+// truthy and falsey parameter.
+// If the subject is nil, empty string, 0, -0 or false, it will return the falsey parameter
+//
+// This function requires version 1.18+
+func If[T constraints.Ordered](subject any, truthy T, falsey T) T {
+	if subject == nil {
+		return falsey
+	}
+	switch t := subject.(type) {
+	case string:
+		if t == "" {
+			return falsey
+		}
+	case *string:
+		if t == nil || *t == "" {
+			return falsey
+		}
+	case
+		int8, int16, int32, int64, int,
+		uint8, uint16, uint32, uint64, uint,
+		float32, float64, complex64, complex128:
+		if t == 0 || t == -0 {
+			return falsey
+		}
+	case
+		*int8, *int16, *int32, *int64, *int,
+		*uint8, *uint16, *uint32, *uint64, *uint,
+		*float32, *float64, *complex64, *complex128:
+		vo := reflect.ValueOf(t)
+		tx := vo.Elem()
+		if !tx.IsValid() || tx.IsZero() {
+			return falsey
+		}
+	case bool:
+		if !t {
+			return falsey
+		}
+	case *bool:
+		if !*t {
+			return falsey
+		}
+	}
+	return truthy
+}
+
+// In checks if the seek parameter is in the list parameter
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
+//
+// This function requires version 1.18+
+func In[T comparable](seek T, list ...T) bool {
+	for _, li := range list {
+		if li == seek {
+			return true
+		}
+	}
+	return false
 }
 
 // IsNullOrEmpty checks for emptiness of a pointer variable ignoring nullity
@@ -244,7 +353,7 @@ func IsEmpty[T FieldTypeConstraint](value *T) bool {
 	return value != nil && *value == GetZero[T]()
 }
 
-// Val gets the value of a pointer in order
+// IsNullOrEmpty checks for nullity and emptiness of a pointer variable
 //
 // Currently supported data types are:
 //   - constraints.Ordered (Integer | Float | ~string)
@@ -253,11 +362,46 @@ func IsEmpty[T FieldTypeConstraint](value *T) bool {
 //   - shopspring/decimal
 //
 // This function requires version 1.18+
-func Val[T FieldTypeConstraint](value *T) T {
-	if value == nil {
-		return GetZero[T]()
+func IsNullOrEmpty[T FieldTypeConstraint](value *T) bool {
+	return value == nil || *value == GetZero[T]()
+}
+
+// IsNumeric checks if a string is numeric
+func IsNumeric(value string) error {
+	if value == "" {
+		return fmt.Errorf("is empty")
 	}
-	return *value
+	if _, err := strconv.ParseFloat(value, 64); err != nil {
+		return fmt.Errorf(`is not a number (%s)`, err)
+	}
+	return nil
+}
+
+// Interpolate interpolates string with the name value pairs
+func Interpolate(base string, nv NameValues) (string, []any) {
+	var (
+		val  any
+		sval string
+	)
+
+	nstr := base
+	re := regexp.MustCompile(INTERPOLATE_PATTERN)
+	matches := re.FindAllString(base, -1)
+	vals := make([]any, len(matches))
+	for i, match := range matches {
+		val = "0"
+		sval = "0"
+		for n, v := range nv.Pair {
+			if strings.EqualFold(match, `${`+n+`}`) {
+				sval = AnyToString(v)
+				val = v
+				break
+			}
+		}
+		nstr = strings.Replace(nstr, match, sval, -1)
+		vals[i] = val //a string 0 would cater to both string and number columns
+	}
+	return nstr, vals
 }
 
 // MapVal retrieves a value from a map by a key and converts it to the type indicated by T.
@@ -409,52 +553,6 @@ func NullPtr[T any](testValue any, defaultValue any) *T {
 	return &val
 }
 
-// If is a basic ternary operator to return whatever is set in
-// truthy and falsey parameter.
-// If the subject is nil, empty string, 0, -0 or false, it will return the falsey parameter
-//
-// This function requires version 1.18+
-func If[T constraints.Ordered](subject any, truthy T, falsey T) T {
-	if subject == nil {
-		return falsey
-	}
-	switch t := subject.(type) {
-	case string:
-		if t == "" {
-			return falsey
-		}
-	case *string:
-		if t == nil || *t == "" {
-			return falsey
-		}
-	case
-		int8, int16, int32, int64, int,
-		uint8, uint16, uint32, uint64, uint,
-		float32, float64, complex64, complex128:
-		if t == 0 || t == -0 {
-			return falsey
-		}
-	case
-		*int8, *int16, *int32, *int64, *int,
-		*uint8, *uint16, *uint32, *uint64, *uint,
-		*float32, *float64, *complex64, *complex128:
-		vo := reflect.ValueOf(t)
-		tx := vo.Elem()
-		if !tx.IsValid() || tx.IsZero() {
-			return falsey
-		}
-	case bool:
-		if !t {
-			return falsey
-		}
-	case *bool:
-		if !*t {
-			return falsey
-		}
-	}
-	return truthy
-}
-
 // NameValuesToInterfaceArray converts name values to interface array
 func NameValuesToInterfaceArray(values NameValues) []interface{} {
 	args := make([]interface{}, len(values.Pair))
@@ -464,33 +562,6 @@ func NameValuesToInterfaceArray(values NameValues) []interface{} {
 		i++
 	}
 	return args
-}
-
-// Interpolate interpolates string with the name value pairs
-func Interpolate(base string, nv NameValues) (string, []any) {
-	var (
-		val  any
-		sval string
-	)
-
-	nstr := base
-	re := regexp.MustCompile(INTERPOLATE_PATTERN)
-	matches := re.FindAllString(base, -1)
-	vals := make([]any, len(matches))
-	for i, match := range matches {
-		val = "0"
-		sval = "0"
-		for n, v := range nv.Pair {
-			if strings.EqualFold(match, `${`+n+`}`) {
-				sval = AnyToString(v)
-				val = v
-				break
-			}
-		}
-		nstr = strings.Replace(nstr, match, sval, -1)
-		vals[i] = val //a string 0 would cater to both string and number columns
-	}
-	return nstr, vals
 }
 
 // ParseDate parses a string as date.
@@ -580,6 +651,156 @@ func ParseDate(dtText string, dateLayout *string) (time.Time, string, error) {
 	return rtm, rlo, fmt.Errorf("date parsing failed")
 }
 
+// SafeMapWrite allows writing to maps by locking, preventing the library from crashing
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
+//
+// This function requires version 1.18+
+func SafeMapWrite[T any](ptrMap *map[string]T, key string, value T, rw *sync.RWMutex) bool {
+	defer func() {
+		recover()
+	}()
+	// Prepare mutex
+	// attempt writing to map
+	if rw.TryLock() {
+		defer rw.Unlock()
+		(*ptrMap)[key] = value
+	}
+	return true
+}
+
+// SafeMapRead allows reading maps by locking it, preventing the library from crashing
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
+//
+// This function requires version 1.18+
+func SafeMapRead[T any](ptrMap *map[string]T, key string, rw *sync.RWMutex) T {
+	var result T
+	defer func() {
+		recover()
+	}()
+	if rw.TryLock() {
+		defer rw.Unlock()
+		result = (*ptrMap)[key]
+	}
+	return result
+}
+
+// Seek checks if the seek parameter is in the list parameter and returns it.
+// If the value is not found in the list, the function returns nil
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
+//
+// This function requires version 1.18+
+func Seek[T comparable](seek T, list ...T) *T {
+	for _, li := range list {
+		if li == seek {
+			return &li
+		}
+	}
+	return nil
+}
+
+// SortByKey reorders keys and values based on a keyOrder array sequence
+func SortByKey(values *NameValues, keyOrder *[]string) NameValues {
+	if keyOrder == nil {
+		return *values
+	}
+	ko := *keyOrder
+	if len(ko) == 0 {
+		return *values
+	}
+	ret := NameValues{
+		Pair: make(map[string]any),
+	}
+	for i := 0; i < len(ko); i++ {
+		for k, v := range values.Pair {
+			if strings.EqualFold(ko[i], k) {
+				ret.Pair[k] = v
+				break
+			}
+		}
+	}
+	return ret
+}
+
+// StringToByte converts string or strings to byte array with an option for a separator
+func StringToByte(sep string, elems ...string) []byte {
+	return []byte(strings.Join(elems, sep))
+}
+
+// StripEndingForwardSlash removes the ending forward slash of a string
+func StripEndingForwardSlash(value string) string {
+	v := strings.TrimSpace(value)
+	v = strings.ReplaceAll(v, `\`, `/`)
+	ix := strings.LastIndex(v, `/`)
+	if ix == (len(v) - 1) {
+		return v[0:ix]
+	}
+	return v
+}
+
+// StripLeading strips string of leading characters by an offset
+func StripLeading(value string, offset int) string {
+	str := []rune(value)
+	if len(str) > offset {
+		return string(str[offset:])
+	}
+	return value
+}
+
+// StripTrailing strips string of trailing characters after the length
+func StripTrailing(value string, length int) string {
+	str := []rune(value)
+	if len(str) > length {
+		return string(str[0:length])
+	}
+	return value
+}
+
+// ToInterfaceArray converts a value to interface array
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
+//
+// This function requires version 1.18+
+func ToInterfaceArray[T FieldTypeConstraint](values T) []any {
+	var value [1]any
+	value[0] = values
+	return value[:]
+}
+
+// Val gets the value of a pointer in order
+//
+// Currently supported data types are:
+//   - constraints.Ordered (Integer | Float | ~string)
+//   - time.Time
+//   - bool
+//   - shopspring/decimal
+//
+// This function requires version 1.18+
+func Val[T FieldTypeConstraint](value *T) T {
+	if value == nil {
+		return GetZero[T]()
+	}
+	return *value
+}
+
 // ValidateEmail validates an e-mail address
 func ValidateEmail(email *string) error {
 	if email == nil || *email == "" {
@@ -588,17 +809,6 @@ func ValidateEmail(email *string) error {
 	re := regexp.MustCompile(EMAIL_PATTERN)
 	if !re.MatchString(*email) {
 		return fmt.Errorf("is an invalid email address")
-	}
-	return nil
-}
-
-// IsStringNumeric checks if a string is numeric
-func IsStringNumeric(value *string) error {
-	if value == nil {
-		return fmt.Errorf("is empty")
-	}
-	if _, err := strconv.ParseFloat(*value, 64); err != nil {
-		return fmt.Errorf(`is not a number (%s)`, err)
 	}
 	return nil
 }
@@ -765,214 +975,4 @@ func ValidateDecimal(value *ssd.Decimal, opts *DecimalValidationOptions) error {
 		}
 	}
 	return nil
-}
-
-// BuildSeries builds series based on options
-func BuildSeries(series int, opt SeriesOptions) string {
-
-	// If length is specified, we get the difference between suffix and prefix
-	if opt.Length > 0 {
-		diff := opt.Length - (len(opt.Prefix) + len(opt.Suffix))
-		ds := `%0` + strconv.Itoa(diff) + `d`
-		return fmt.Sprintf(`%s`+ds+`%s`, opt.Prefix, series, opt.Suffix)
-	}
-
-	return fmt.Sprintf(`%s%d%s`, opt.Prefix, series, opt.Suffix)
-}
-
-// In checks if the seek parameter is in the list parameter
-//
-// Currently supported data types are:
-//   - constraints.Ordered (Integer | Float | ~string)
-//   - time.Time
-//   - bool
-//   - shopspring/decimal
-//
-// This function requires version 1.18+
-func In[T comparable](seek T, list ...T) bool {
-	for _, li := range list {
-		if li == seek {
-			return true
-		}
-	}
-	return false
-}
-
-// Seek checks if the seek parameter is in the list parameter and returns it.
-// If the value is not found in the list, the function returns nil
-//
-// Currently supported data types are:
-//   - constraints.Ordered (Integer | Float | ~string)
-//   - time.Time
-//   - bool
-//   - shopspring/decimal
-//
-// This function requires version 1.18+
-func Seek[T comparable](seek T, list ...T) *T {
-	for _, li := range list {
-		if li == seek {
-			return &li
-		}
-	}
-	return nil
-}
-
-// SortByKey reorders keys and values based on a keyOrder array sequence
-func SortByKey(values *NameValues, keyOrder *[]string) NameValues {
-	if keyOrder == nil {
-		return *values
-	}
-	ko := *keyOrder
-	if len(ko) == 0 {
-		return *values
-	}
-	ret := NameValues{
-		Pair: make(map[string]any),
-	}
-	for i := 0; i < len(ko); i++ {
-		for k, v := range values.Pair {
-			if strings.EqualFold(ko[i], k) {
-				ret.Pair[k] = v
-				break
-			}
-		}
-	}
-	return ret
-}
-
-// StripEndingForwardSlash removes the ending forward slash of a string
-func StripEndingForwardSlash(value string) string {
-	v := strings.TrimSpace(value)
-	v = strings.ReplaceAll(v, `\`, `/`)
-	ix := strings.LastIndex(v, `/`)
-	if ix == (len(v) - 1) {
-		return v[0:ix]
-	}
-	return v
-}
-
-// StripTrailing strips string of trailing characters after the length
-func StripTrailing(value string, length int) string {
-	str := []rune(value)
-	if len(str) > length {
-		return string(str[0:length])
-	}
-	return value
-}
-
-// StripLeading strips string of leading characters by an offset
-func StripLeading(value string, offset int) string {
-	str := []rune(value)
-	if len(str) > offset {
-		return string(str[offset:])
-	}
-	return value
-}
-
-// SafeMapWrite allows writing to maps by locking, preventing the library from crashing
-//
-// Currently supported data types are:
-//   - constraints.Ordered (Integer | Float | ~string)
-//   - time.Time
-//   - bool
-//   - shopspring/decimal
-//
-// This function requires version 1.18+
-func SafeMapWrite[T any](ptrMap *map[string]T, key string, value T, rw *sync.RWMutex) bool {
-	defer func() {
-		recover()
-	}()
-	// Prepare mutex
-	// attempt writing to map
-	if rw.TryLock() {
-		defer rw.Unlock()
-		(*ptrMap)[key] = value
-	}
-	return true
-}
-
-// SafeMapRead allows reading maps by locking it, preventing the library from crashing
-//
-// Currently supported data types are:
-//   - constraints.Ordered (Integer | Float | ~string)
-//   - time.Time
-//   - bool
-//   - shopspring/decimal
-//
-// This function requires version 1.18+
-func SafeMapRead[T any](ptrMap *map[string]T, key string, rw *sync.RWMutex) T {
-	var result T
-	defer func() {
-		recover()
-	}()
-	if rw.TryLock() {
-		defer rw.Unlock()
-		result = (*ptrMap)[key]
-	}
-	return result
-}
-
-// Elem returns the element of an array as specified by the index
-//
-// If the index exceeds the length of an array, it will return a non-nil value of the type.
-// To monitor if the element exists, define a boolean value in the exists parameter
-//
-// Currently supported data types are:
-//   - constraints.Ordered (Integer | Float | ~string)
-//   - time.Time
-//   - bool
-//   - shopspring/decimal
-//
-// This function requires version 1.18+
-func Elem[T any](array *[]T, index int, exists *bool) T {
-	var result T
-	if exists != nil {
-		*exists = false
-	}
-	if array == nil {
-		return result
-	}
-	arrl := len(*array)
-	if arrl == 0 {
-		return result
-	}
-	arrl--
-	if arrl >= index {
-		if exists != nil {
-			*exists = true
-		}
-		return (*array)[index]
-	}
-	return result
-}
-
-// ElemPtr returns a pointer to the element of an array as specified by the index
-//
-// If the index exceeds the length of an array, it will return a non-nil value of the type.
-// To monitor if the element exists, define a boolean value in the exists parameter
-//
-// Currently supported data types are:
-//   - constraints.Ordered (Integer | Float | ~string)
-//   - time.Time
-//   - bool
-//   - shopspring/decimal
-//
-// This function requires version 1.18+
-func ElemPtr[T any](array *[]T, index int, exists *bool) *T {
-	r := Elem(array, index, exists)
-	return &r
-}
-
-// GetZero gets the zero value of the type.
-//
-// Currently supported data types are:
-//   - constraints.Ordered (Integer | Float | ~string)
-//   - time.Time
-//   - bool
-//   - shopspring/decimal
-//
-// This function requires version 1.18+
-func GetZero[T FieldTypeConstraint]() T {
-	var result T
-	return result
 }
